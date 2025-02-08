@@ -1,0 +1,1 @@
+After cloned: run build.bat
