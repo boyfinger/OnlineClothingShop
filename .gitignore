@@ -1,4 +1,4 @@
 .vs/
 bin/
 obj/
-OnlineClothing\appsettings.Development.json
+OnlineClothing/appsettings.Development.json
