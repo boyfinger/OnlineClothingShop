@@ -14,7 +14,7 @@ CREATE TABLE [user] (
 )
 GO
 
-CREATE TABLE [user_info] (
+CREATE TABLE [userinfo] (
   [id] bigint PRIMARY KEY NOT NULL,
   [full_name] nvarchar(127) DEFAULT (null),
   [phone_number] varchar(25) DEFAULT (null),
@@ -125,7 +125,6 @@ CREATE TABLE [voucher] (
   [code] varchar(50) UNIQUE,
   [type] int,
   [value] DECIMAL(10,2),
-  [quantity] int,
   [description] nvarchar(255),
   [start_date] datetime,
   [end_date] datetime,
@@ -153,7 +152,7 @@ CREATE TABLE [feedback] (
   [product_id] bigint,
   [order_id] bigint,
   [rating] tinyint,
-  [commnet] nvarchar(511),
+  [comment] nvarchar(511),
   [create_at] datetime
 )
 GO
@@ -176,19 +175,30 @@ CREATE TABLE [report_status] (
 GO
 
 CREATE TABLE [wishlist] (
-  [id] int PRIMARY KEY,
+  [id] bigint PRIMARY KEY,
   [user_id] bigint NOT NULL,
   [product_id] bigint NOT NULL,
-  [is_deleted] tinyint,
+  [is_deleted] tinyint(1),
   [create_at] datetime,
   [update_at] datetime
 )
 GO
 
-ALTER TABLE [user_info] ADD FOREIGN KEY ([id]) REFERENCES [user] ([id])
+CREATE TABLE [user_voucher] (
+  [id] bigint PRIMARY KEY,
+  [user_id] bigint NOT NULL,
+  [voucher_id] bigint,
+  [quantity] int,
+  [start_date] datetime,
+  [end_date] datetime,
+  [status] int
+)
 GO
 
-ALTER TABLE [user_info] ADD FOREIGN KEY ([gender]) REFERENCES [user_gender] ([id])
+ALTER TABLE [userinfo] ADD FOREIGN KEY ([id]) REFERENCES [user] ([id])
+GO
+
+ALTER TABLE [userinfo] ADD FOREIGN KEY ([gender]) REFERENCES [user_gender] ([id])
 GO
 
 ALTER TABLE [user_roles] ADD FOREIGN KEY ([user_id]) REFERENCES [user] ([id])
@@ -252,4 +262,16 @@ ALTER TABLE [wishlist] ADD FOREIGN KEY ([product_id]) REFERENCES [product] ([id]
 GO
 
 ALTER TABLE [user_roles] ADD FOREIGN KEY ([role_id]) REFERENCES [roles] ([id])
+GO
+
+ALTER TABLE [order] ADD FOREIGN KEY ([customer_id]) REFERENCES [user] ([id])
+GO
+
+ALTER TABLE [order] ADD FOREIGN KEY ([seller_id]) REFERENCES [user] ([id])
+GO
+
+ALTER TABLE [user_voucher] ADD FOREIGN KEY ([user_id]) REFERENCES [user] ([id])
+GO
+
+ALTER TABLE [user_voucher] ADD FOREIGN KEY ([voucher_id]) REFERENCES [voucher] ([id])
 GO
