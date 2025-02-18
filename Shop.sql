@@ -178,7 +178,7 @@ CREATE TABLE [wishlist] (
   [id] bigint PRIMARY KEY,
   [user_id] bigint NOT NULL,
   [product_id] bigint NOT NULL,
-  [is_deleted] tinyint(1),
+  [is_deleted] tinyint,
   [create_at] datetime,
   [update_at] datetime
 )
