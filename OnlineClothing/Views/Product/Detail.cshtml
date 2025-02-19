@@ -1,0 +1,83 @@
+﻿@model OnlineClothing.Models.Product;
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<h2 class="text-center">Product Details</h2>
+
+<div class="container mt-4">
+    <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        @foreach (var image in Model.Images.Select((img, index) => new { img, index }))
+                        {
+                            <div class="carousel-item @(image.index == 0 ? "active" : "")">
+                                <img src="@image.img.Url" class="d-block w-100" alt="Product Image">
+                            </div>
+                        }
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h3 class="card-title">@Model.Name</h3>
+                    <p class="card-text"><strong>Category ID:</strong> @Model.CategoryId</p>
+                    <p class="card-text"><strong>Description:</strong> @Model.Description</p>
+                    <p class="card-text"><strong>Price:</strong> @String.Format("{0:N0} VND", Model.Price ?? 0)</p>
+                    <p class="card-text"><strong>Discount:</strong> @(Model.Discount ?? 0)%</p>
+                    <p class="card-text"><strong>Quantity:</strong> @(Model.Quantity ?? 0)</p>
+                    <p class="card-text"><strong>Status:</strong> @(Model.Status == 1 ? "Available" : "Out of Stock")</p>
+                    <a asp-action="Index" class="btn btn-primary">Back to List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-lg p-3 mb-5 bg-white rounded mt-4">
+        <div class="seller-info d-flex align-items-center mb-3">
+            <img src="" class="rounded-circle me-2" width="50" height="50" alt="Seller Avatar">
+            <h5 class="mb-0">@Model.Seller.UserName</h5>
+        </div>
+    </div>
+
+    <div class="mt-4">
+    <h3 class="mt-4">Đánh giá và Nhận xét</h3>
+    @if (Model.Feedbacks != null && Model.Feedbacks.Any())
+    {
+        @foreach (var feedback in Model.Feedbacks)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">@feedback.User.UserName</h5>
+                    <p class="text-warning">
+                        @for (int i = 0; i < feedback.Rating; i++)
+                        {
+                            <i class="fas fa-star"></i>
+                        }
+                        @for (int i = 0; i < (5 - feedback.Rating); i++)
+                        {
+                            <i class="far fa-star"></i>
+                        }
+                    </p>
+                    <p class="card-text">@feedback.Comment</p>
+                    <small class="text-muted">Đánh giá vào: @feedback.CreateAt?.ToString("dd/MM/yyyy HH:mm")</small>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+    }
+    </div>
+
+</div>
