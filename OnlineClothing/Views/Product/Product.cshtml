@@ -1,0 +1,103 @@
+﻿@model ProductViewModel
+
+@{
+    ViewData["Title"] = "Product List";
+}
+
+<style>
+    .img-fixed {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+</style>
+<h2 class="text-center">Product List</h2>
+
+<form asp-controller="Product" asp-action="Search" method="get" class="mb-3">
+    <input type="text" name="query" class="form-control" placeholder="Nhập tên sản phẩm..." required />
+    <button type="submit" class="btn btn-primary mt-2">Tìm kiếm</button>
+    <a asp-action="Index" class="btn btn-primary btn-sm mt-2">Back to list</a>
+</form>
+
+<div class="container">
+    <div class="row">
+        <div class="col-xl-9">
+            <div class="row">
+                @foreach (var product in Model.Products)
+                {
+                    <div class="col-md-3 mb-3">
+                        <div class="card h-100 d-flex flex-column">
+                            <img src="@product.ThumbnailUrl" class="card-img-top img-fixed" alt="@product.Name">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text flex-grow-1">@product.Description</p>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <p class="card-text text-danger mb-0">@String.Format("{0:N0} VND", @product.Price ?? 0)</p>
+                                    @if (product.Discount != null)
+                                    {
+                                        <p class="card-text">@product.Discount%</p>
+                                    }
+                                </div>
+                                <a asp-action="Detail" asp-route-id="@product.Id" class="btn btn-primary mt-auto">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-xl-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Bộ lọc sản phẩm</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" asp-action="FilterProducts">
+                        <label>Khoảng giá:</label>
+                        <div class="d-flex">
+                            <select name="minPrice" class="form-control me-2">
+                                <option value="">Từ</option>
+                                <option value="0">0</option>
+                                <option value="100000">100.000</option>
+                                <option value="200000">200.000</option>
+                                <option value="500000">500.000</option>
+                            </select>
+                            <select name="maxPrice" class="form-control">
+                                <option value="">Đến</option>
+                                <option value="100000">100.000</option>
+                                <option value="200000">200.000</option>
+                                <option value="500000">500.000</option>
+                                <option value="1000000">1.000.000</option>
+                                <option value="2000000">2.000.000</option>
+                            </select>
+                        </div>
+                        <label class="mt-2">Danh mục:</label>
+                        <select name="categoryId" class="form-control">
+                            <option value="">Tất cả</option>
+                            @foreach(var category in Model.Categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                        <label class="mt-2">Trạng thái:</label>
+                        <select name="status" class="form-control">
+                            <option value="">Tất cả</option>
+                            @foreach(var status in Model.ProductStatuses)
+                            {
+                                <option value="@status.Id">@status.Name</option>
+                            }
+                        </select>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" name="inStock" value="true" class="form-check-input">
+                            <label class="form-check-label">Chỉ còn hàng</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-success mt-3 w-100">Lọc sản phẩm</button>
+                        <a asp-action="Index" class="btn btn-secondary mt-2 w-100">Bỏ lọc</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

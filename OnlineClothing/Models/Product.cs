@@ -11,7 +11,7 @@ public partial class Product
 
     public string? Name { get; set; }
 
-    public long? CategoryId { get; set; }
+    public int? CategoryId { get; set; }
 
     public string? ThumbnailUrl { get; set; }
 
