@@ -7,9 +7,9 @@ public partial class Order
 {
     public long Id { get; set; }
 
-    public long? CustomerId { get; set; }
+    public Guid? CustomerId { get; set; }
 
-    public long? SellerId { get; set; }
+    public Guid? SellerId { get; set; }
 
     public long? VoucherId { get; set; }
 

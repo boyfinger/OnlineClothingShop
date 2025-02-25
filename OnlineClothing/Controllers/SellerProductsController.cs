@@ -22,7 +22,7 @@ namespace OnlineClothing.Controllers
         public async Task<IActionResult> Index()
         {
             var products = await _context.Products
-                .Where(p => p.SellerId == sellerId)
+                .Where(p => p.SellerId.Equals(sellerId))
                 .Include(p => p.Category)
                 .Include(p => p.StatusNavigation)
                 .ToListAsync();
