@@ -1,0 +1,50 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model OnlineClothing.Models.Product
+
+<div class="container">
+    <h2 class="my-4">Add Product</h2>
+    <form asp-controller="sellerproducts" asp-action="add" method="post" enctype="multipart/form-data">
+        <div class="form-group mb-3">
+            <label asp-for="Id" class="control-label">Id</label>
+            <input asp-for="Id" class="form-control" />
+            <span asp-validation-for="Id" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="Name" class="control-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="CategoryId" class="control-label"></label>
+            <select asp-for="CategoryId" class="form-control"
+                    asp-items="ViewBag.Categories"></select>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="Description" class="control-label"></label>
+            <textarea rows="4" asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="Price" class="control-label"></label>
+            <input asp-for="Price" class="form-control" />
+            <span asp-validation-for="Price" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="Quantity" class="control-label"></label>
+            <input asp-for="Quantity" class="form-control" />
+            <span asp-validation-for="Quantity" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="ThumbnailUrl" class="control-label"></label>
+            <input type="file" name="imageFile" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+    </form>
+</div>
