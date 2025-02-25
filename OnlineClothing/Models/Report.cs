@@ -7,7 +7,7 @@ public partial class Report
 {
     public long Id { get; set; }
 
-    public long UserId { get; set; }
+    public Guid UserId { get; set; }
 
     public long? ProductId { get; set; }
 

@@ -5,9 +5,9 @@ namespace OnlineClothing.Models;
 
 public partial class Feedback
 {
-    public long Id { get; set; }
+    public int Id { get; set; }
 
-    public long UserId { get; set; }
+    public Guid UserId { get; set; }
 
     public long? ProductId { get; set; }
 

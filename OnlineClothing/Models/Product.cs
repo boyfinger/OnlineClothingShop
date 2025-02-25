@@ -8,7 +8,7 @@ public partial class Product
 {
     public long Id { get; set; }
 
-    public long? SellerId { get; set; }
+    public Guid? SellerId { get; set; }
 
     [Display(Name = "Product name")]
     [Required(ErrorMessage = "Please enter product name")]
