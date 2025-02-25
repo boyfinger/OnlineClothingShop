@@ -1,5 +1,100 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model OnlineClothing.Models.AccountViewModel
 @{
+    Layout = null; // Remove this if using a shared layout
 }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Sign Up</title>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Link to login.css -->
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true">
+</head>
+<body>
+
+    <div class="container" id="container">
+        <div class="form-container sign-up-container">
+            <form method="post">
+                <h1>Create Account</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+                </div>
+                <span>or use your email for registration</span>
+
+                <select required>
+                    <option value="" disabled selected>Who are you?</option>
+                    <option value="customer">Customer</option>
+                    <option value="seller">Seller</option>
+                </select>
+
+                <input type="text" placeholder="Full Name" required />
+                <input type="email" placeholder="Email" required />
+                <input type="password" placeholder="Password" required />
+                <input type="text" placeholder="Phone Number" required />
+
+                <select required>
+                    <option value="" disabled selected>Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <input type="date" placeholder="Date of Birth" required />
+                <input type="text" placeholder="Address" required />
+
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+
+        <div class="form-container sign-in-container">
+            <form method="post" asp-action="Login">
+                <h1>Sign in</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+                </div>
+                <span>or use your account</span>
+
+                <div asp-validation-summary="All" class="custom-error-box"></div>
+
+                <select asp-for="UserType" required>
+                    <option value="" disabled selected>Select your role</option>
+                    <option value="customer">Customer</option>
+                    <option value="seller">Seller</option>
+                </select>
+
+                <input type="email" asp-for="LoginEmail" placeholder="Email" required />
+                <input type="password" asp-for="LoginPassword" placeholder="Password" required />
+
+                <a href="#">Forgot your password?</a>
+                <button type="submit">Sign In</button>
+            </form>
+        </div>
+
+
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal info</p>
+                    <button class="ghost" id="signIn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Hello, Friend!</h1>
+                    <p>Enter your personal details and start your journey with us</p>
+                    <button class="ghost" id="signUp">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to login.js -->
+    <script src="~/js/login.js" asp-append-version="true"></script>
+
+</body>
+</html>

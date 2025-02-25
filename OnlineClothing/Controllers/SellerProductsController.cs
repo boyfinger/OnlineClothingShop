@@ -42,7 +42,7 @@ namespace OnlineClothing.Controllers
             {
                 product.Status = 1;
                 product.CreateAt = DateTime.Now;
-                product.SellerId = sellerId;
+                //product.SellerId = sellerId;
 
                 if (imageFile != null && imageFile.Length > 0)
                 {

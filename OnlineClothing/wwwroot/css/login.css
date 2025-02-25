@@ -98,9 +98,9 @@ input {
 			0 10px 10px rgba(0,0,0,0.22);
 	position: relative;
 	overflow: hidden;
-	width: 768px;
+	width: 800px;
 	max-width: 100%;
-	min-height: 480px;
+	min-height: 700px;
 }
 
 .form-container {
@@ -261,3 +261,31 @@ select, input[type="date"] {
 	width: 100%;
 	font-size: 14px;
 }
+
+select {
+	color: gray; /* Default text color for placeholders */
+}
+
+	select:valid {
+		color: #9e2a2b; /* Change color when an option is selected */
+	}
+
+option[disabled] {
+	display: none; /* Hide the placeholder in dropdown */
+}
+
+.custom-error-box {
+	background-color: #f8d7da;
+	/*border: 1px solid #f5c6cb;*/
+	color: #721c24;
+	/*padding: 10px;
+	border-radius: 5px;*/
+	font-weight: bold;
+}
+
+	.custom-error-box ul {
+		list-style-type: none; /* Remove any bullet points */
+		padding-left: 0; /* Remove any left padding */
+	}
+
+
