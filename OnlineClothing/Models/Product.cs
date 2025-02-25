@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace OnlineClothing.Models;
 
@@ -9,18 +10,30 @@ public partial class Product
 
     public long? SellerId { get; set; }
 
+    [Display(Name = "Product name")]
+    [Required(ErrorMessage = "Please enter product name")]
     public string? Name { get; set; }
 
+    [Display(Name = "Category")]
     public int? CategoryId { get; set; }
 
+    [Display(Name = "Thumbnail")]
     public string? ThumbnailUrl { get; set; }
 
+    [Display(Name = "Description")]
+    [Required(ErrorMessage = "Please enter description")]
     public string? Description { get; set; }
 
+    [Display(Name = "Price")]
+    [Required(ErrorMessage = "Please enter price")]
+    [Range(minimum: 1, maximum: int.MaxValue,ErrorMessage = "Please enter price as a positive integer lmao")]
     public int? Price { get; set; }
 
     public int? Discount { get; set; }
 
+    [Display(Name = "Quantity")]
+    [Required(ErrorMessage = "Please enter quantity")]
+    [Range(minimum: 1, maximum: int.MaxValue, ErrorMessage = "Please enter quantity as a positive integer")]
     public int? Quantity { get; set; }
 
     public int? Status { get; set; }
