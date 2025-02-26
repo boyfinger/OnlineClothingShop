@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
 using OnlineClothing.Utils;
+using System.CodeDom.Compiler;
 
 namespace OnlineClothing.Controllers
 {
@@ -17,34 +18,23 @@ namespace OnlineClothing.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            var model = new AccountViewModel
-            {
-                LoginModel = new LoginViewModel(),
-                SignupModel = new SignUpViewModel()
-            };
-
-            return View(model);
+            return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(AccountViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-
-            // Fetch the user based on the email
             var user = await context.Users
-                .FirstOrDefaultAsync(u => u.Email == model.LoginModel.LoginEmail && u.Password == model.LoginModel.LoginPassword);
-
+                .FirstOrDefaultAsync(u => u.Email == model.LoginEmail && u.Password == model.LoginPassword);
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid email or password.");
                 return View(model);
             }
-
-            // Check user status (if active, banned, or unverified)
             if (user.Status == 2)
             {
                 ModelState.AddModelError(string.Empty, "Your account is not verified yet.");
@@ -52,63 +42,53 @@ namespace OnlineClothing.Controllers
             }
             if (user.Status == 3)
             {
-                ModelState.AddModelError(string.Empty, "Your account has been banned.");
+                ModelState.AddModelError(string.Empty, "Your account has been banned. Please contact admin.");
                 return View(model);
             }
-
-            // Check roles (customer or seller)
             var userRoles = await context.UserRoles
                 .Where(ur => ur.UserId == user.Id)
                 .Select(ur => ur.RoleId)
                 .ToListAsync();
-
             bool isSeller = userRoles.Contains(2);
             bool isCustomer = userRoles.Contains(3);
-
-            // Validate user type selection
-            if (model.LoginModel.UserType == "seller" && !isSeller)
+            if (model.UserType == "seller" && !isSeller)
             {
                 ModelState.AddModelError(string.Empty, "You are not a seller.");
                 return View(model);
             }
-            if (model.LoginModel.UserType == "customer" && !isCustomer)
+            if (model.UserType == "customer" && !isCustomer)
             {
                 ModelState.AddModelError(string.Empty, "You are not a customer.");
                 return View(model);
             }
-
-            // Store session data after successful login
             HttpContext.Session.SetString("UserId", user.Id.ToString());
-            HttpContext.Session.SetString("UserRole", model.LoginModel.UserType.ToUpper());
-
-            return RedirectToAction("Index", "Home"); // Redirect to homepage/dashboard after successful login
+            HttpContext.Session.SetString("UserRole", model.UserType.ToUpper());
+            if (isCustomer)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                return RedirectToAction("Index", "SellerProducts");
+            }
         }
-
 
         [HttpGet]
         public IActionResult AdminLogin()
         {
-            var model = new AccountViewModel
-            {
-                LoginModel = new LoginViewModel(),
-                SignupModel = new SignUpViewModel()
-            };
-
-            return View(model);
+            return View();
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> AdminLogin(AccountViewModel model)
+        public async Task<IActionResult> AdminLogin(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-
-            // Check if the user exists in the database
+            
             var adminUser = await context.Users
-                .FirstOrDefaultAsync(u => u.Email == model.LoginModel.LoginEmail && u.Password == model.LoginModel.LoginPassword);
+                .FirstOrDefaultAsync(u => u.Email == model.LoginEmail && u.Password == model.LoginPassword);
 
             if (adminUser == null)
             {
@@ -116,7 +96,6 @@ namespace OnlineClothing.Controllers
                 return View(model);
             }
 
-            // Check if the user has the admin role (role_id 1 for admin)
             var userRoles = await context.UserRoles
                 .Where(ur => ur.UserId == adminUser.Id)
                 .Select(ur => ur.RoleId)
@@ -124,7 +103,7 @@ namespace OnlineClothing.Controllers
 
             var userRole = await context.UserRoles.Where(ur => ur.UserId == adminUser.Id && ur.RoleId == 1).FirstOrDefaultAsync();
 
-            bool isAdmin = userRoles.Contains(1); // Assuming 1 corresponds to "admin" role
+            bool isAdmin = userRoles.Contains(1);
 
             if (!isAdmin)
             {
@@ -140,55 +119,51 @@ namespace OnlineClothing.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+
+        [HttpGet]
+        public IActionResult SignUp()
+        {
+            return View();
+        }
         [HttpPost]
         public async Task<IActionResult> SignUp(SignUpViewModel model)
         {
-            // Validate user input
             string validationError = ValidationUser(model);
-
             if (validationError != null)
             {
                 ModelState.AddModelError(string.Empty, validationError);
                 return View(model);
             }
-
-            // Create a new User (without hashing the password)
             var newUser = new User
             {
-                Id = Guid.NewGuid(), // Generate new GUID for User ID
+                Id = Guid.NewGuid(),
+                UserName = model.UserName,
                 Email = model.Email,
-                Password = model.Password, // Store the password as plain text (not recommended for production)
-                Status = 1, // Set the status as needed
+                Password = model.Password,
+                Status = 2,
                 CreatedAt = DateTime.UtcNow
             };
-
-            // Add the User to the database
             context.Users.Add(newUser);
             await context.SaveChangesAsync();
-
-            // Create the UserInfo record (personal information like FullName, PhoneNumber)
             var userInfo = new Userinfo
             {
                 Id = newUser.Id,
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
+                AvatarUrl = "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg",
                 Gender = model.Gender == "male" ? 1 : model.Gender == "female" ? 2 : 3,
                 DateOfBirth = model.DateOfBirth,
                 Address = model.Address,
                 UpdateAt = DateTime.UtcNow
             };
-
-            // Add the UserInfo to the database
             context.Userinfos.Add(userInfo);
             await context.SaveChangesAsync();
-
-            // Add roles to the User (assuming "3" = Customer and "2" = Seller)
             if (model.UserType == "customer")
             {
                 context.UserRoles.Add(new UserRole
                 {
                     UserId = newUser.Id,
-                    RoleId = 3 // 3 = Customer role
+                    RoleId = 3
                 });
             }
             else if (model.UserType == "seller")
@@ -196,15 +171,11 @@ namespace OnlineClothing.Controllers
                 context.UserRoles.Add(new UserRole
                 {
                     UserId = newUser.Id,
-                    RoleId = 2 // 2 = Seller role
+                    RoleId = 2,
                 });
             }
-
-            // Save roles in the UserRoles table
             await context.SaveChangesAsync();
-
-            // Redirect to the login page after successful sign-up
-            return RedirectToAction("Login");
+            return RedirectToAction("Verify");
         }
 
 
@@ -225,6 +196,10 @@ namespace OnlineClothing.Controllers
             if (!ValidationUtils.IsValidEmail(model.Email))
             {
                 return "Please enter valid email!";
+            }
+            if(!ValidationUtils.IsValidUserName(model.UserName))
+            {
+                return "Please enter valid username! Only alphabet, number and underscore.";
             }
             if (!ValidationUtils.IsValidPassword(model.Password))
             {

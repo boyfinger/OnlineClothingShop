@@ -1,4 +1,4 @@
-﻿@model OnlineClothing.Models.AccountViewModel
+﻿@model OnlineClothing.Models.LoginViewModel
 @{
     Layout = null;
 }
@@ -24,11 +24,11 @@
         <div asp-validation-summary="All" class="custom-error-box"></div>
 
         <label for="email">Email</label>
-        <input type="email" asp-for="LoginModel.LoginEmail" placeholder="Email" required>
+        <input type="email" asp-for="LoginEmail" placeholder="Email" required>
 
         <label for="password">Password</label>
-        <input type="password" asp-for="LoginModel.LoginPassword" placeholder="Password" required>
-        <input type="hidden" asp-for="LoginModel.UserType" value="Admin" />
+        <input type="password" asp-for="LoginPassword" placeholder="Password" required>
+        <input type="hidden" asp-for="UserType" value="Admin" />
 
         <button type="submit">Log In</button>
     </form>

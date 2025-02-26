@@ -21,7 +21,7 @@ namespace OnlineClothing.Utils
 
         public static bool IsValidGender(string gender)
         {
-            return gender == "Male" || gender == "Female" || gender == "Other";
+            return gender == "male" || gender == "female" || gender == "other";
         }
 
         public static bool IsValidMobile(string mobile)
@@ -48,6 +48,16 @@ namespace OnlineClothing.Utils
                 age--;
             }
             return age >= 18;
+        }
+
+        public static bool IsValidUserName(string userName)
+        {
+            if (string.IsNullOrEmpty(userName) || userName.Length < 5 || userName.Length > 20) return false;
+
+            string pattern = @"^[a-zA-Z0-9_]+$";
+            Regex regex = new Regex(pattern);
+            if (!regex.IsMatch(userName)) return false;
+            return true;
         }
     }
 }

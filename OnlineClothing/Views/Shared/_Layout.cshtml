@@ -107,6 +107,11 @@
                 }
             });
         }
+        $(document).ready(function () {
+            $("form[asp-action='SignUp']").removeData("validator").find("input, select, textarea").removeClass("valid").removeClass("error");
+        });
+
     </script>
+
 </body>
 </html>

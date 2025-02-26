@@ -17,6 +17,7 @@ body {
 }
 
 h1 {
+	color: #e09f3e;
 	font-weight: bold;
 	margin: 0;
 }
@@ -71,13 +72,14 @@ button.ghost {
 }
 
 form {
-	background-color: #FFFFFF;
+	background-color: #9e2a2b;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
 	padding: 0 50px;
 	height: 100%;
+	width: 100%;
 	text-align: center;
 	color: #9e2a2b;
 }
@@ -86,8 +88,9 @@ input {
 	background-color: #eee;
 	color: #9e2a2b;
 	border: none;
+	border-radius: 20px;
 	padding: 12px 15px;
-	margin: 8px 0;
+	margin: 3px 0;
 	width: 100%;
 }
 
@@ -99,8 +102,8 @@ input {
 	position: relative;
 	overflow: hidden;
 	width: 800px;
-	max-width: 100%;
-	min-height: 700px;
+	max-width: 500px;
+	min-height: 720px;
 }
 
 .form-container {
@@ -112,26 +115,8 @@ input {
 
 .sign-in-container {
 	left: 0;
-	width: 50%;
+	width: 100%;
 	z-index: 2;
-}
-
-.container.right-panel-active .sign-in-container {
-	transform: translateX(100%);
-}
-
-.sign-up-container {
-	left: 0;
-	width: 50%;
-	opacity: 0;
-	z-index: 1;
-}
-
-.container.right-panel-active .sign-up-container {
-	transform: translateX(100%);
-	opacity: 1;
-	z-index: 5;
-	animation: show 0.6s;
 }
 
 @keyframes show {
@@ -150,7 +135,7 @@ input {
 	position: absolute;
 	top: 0;
 	left: 50%;
-	width: 50%;
+	width: 100%;
 	height: 100%;
 	overflow: hidden;
 	transition: transform 0.6s ease-in-out;
@@ -173,42 +158,6 @@ input {
 	width: 200%;
   	transform: translateX(0);
 	transition: transform 0.6s ease-in-out;
-}
-
-.container.right-panel-active .overlay {
-  	transform: translateX(50%);
-}
-
-.overlay-panel {
-	position: absolute;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	padding: 0 40px;
-	text-align: center;
-	top: 0;
-	height: 100%;
-	width: 50%;
-	transform: translateX(0);
-	transition: transform 0.6s ease-in-out;
-}
-
-.overlay-left {
-	transform: translateX(-20%);
-}
-
-.container.right-panel-active .overlay-left {
-	transform: translateX(0);
-}
-
-.overlay-right {
-	right: 0;
-	transform: translateX(0);
-}
-
-.container.right-panel-active .overlay-right {
-	transform: translateX(20%);
 }
 
 .social-container {
@@ -264,6 +213,7 @@ select, input[type="date"] {
 
 select {
 	color: gray; /* Default text color for placeholders */
+	border-radius: 20px;
 }
 
 	select:valid {
