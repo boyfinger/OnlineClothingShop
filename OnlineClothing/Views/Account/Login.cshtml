@@ -1,6 +1,6 @@
 ﻿@model OnlineClothing.Models.AccountViewModel
 @{
-    Layout = null; // Remove this if using a shared layout
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -10,73 +10,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login & Sign Up</title>
 
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-    <!-- Link to login.css -->
+    <!-- Add your CSS files -->
     <link rel="stylesheet" href="~/css/login.css" asp-append-version="true">
 </head>
 <body>
 
     <div class="container" id="container">
+
+        <!-- Sign-Up Form -->
         <div class="form-container sign-up-container">
-            <form method="post">
+            <form method="post" asp-action="SignUp">
                 <h1>Create Account</h1>
-                <div class="social-container">
-                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
-                </div>
-                <span>or use your email for registration</span>
 
-                <select required>
-                    <option value="" disabled selected>Who are you?</option>
-                    <option value="customer">Customer</option>
-                    <option value="seller">Seller</option>
-                </select>
+                <!-- Validation Summary for Signup Form -->
+                <div asp-validation-summary="All" class="text-danger"></div>
 
-                <input type="text" placeholder="Full Name" required />
-                <input type="email" placeholder="Email" required />
-                <input type="password" placeholder="Password" required />
-                <input type="text" placeholder="Phone Number" required />
+                <input type="text" asp-for="SignupModel.FullName" placeholder="Full Name" required />
+                <input type="email" asp-for="SignupModel.Email" placeholder="Email" required />
+                <input type="password" asp-for="SignupModel.Password" placeholder="Password" required />
+                <input type="password" asp-for="SignupModel.ConfirmPassword" placeholder="Confirm Password" required />
+                <input type="text" asp-for="SignupModel.PhoneNumber" placeholder="Phone Number" required />
 
-                <select required>
+                <select asp-for="SignupModel.Gender" required>
                     <option value="" disabled selected>Gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
                 </select>
 
-                <input type="date" placeholder="Date of Birth" required />
-                <input type="text" placeholder="Address" required />
-
+                <input type="date" asp-for="SignupModel.DateOfBirth" placeholder="Date of Birth" required />
+                <input type="text" asp-for="SignupModel.Address" placeholder="Address" required />
                 <button type="submit">Sign Up</button>
             </form>
         </div>
 
+        <!-- Sign-In Form -->
         <div class="form-container sign-in-container">
             <form method="post" asp-action="Login">
-                <h1>Sign in</h1>
-                <div class="social-container">
-                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
-                </div>
-                <span>or use your account</span>
+                <h1>Sign In</h1>
 
-                <div asp-validation-summary="All" class="custom-error-box"></div>
+                <div asp-validation-summary="All" class="text-danger"></div>
 
-                <select asp-for="UserType" required>
+                <select asp-for="LoginModel.UserType" required>
                     <option value="" disabled selected>Select your role</option>
                     <option value="customer">Customer</option>
                     <option value="seller">Seller</option>
                 </select>
 
-                <input type="email" asp-for="LoginEmail" placeholder="Email" required />
-                <input type="password" asp-for="LoginPassword" placeholder="Password" required />
+                <input type="email" asp-for="LoginModel.LoginEmail" placeholder="Email" required />
+                <input type="password" asp-for="LoginModel.LoginPassword" placeholder="Password" required />
 
                 <a href="#">Forgot your password?</a>
                 <button type="submit">Sign In</button>
             </form>
         </div>
 
-
+        <!-- Overlay to Toggle Between Sign-Up and Sign-In -->
         <div class="overlay-container">
             <div class="overlay">
                 <div class="overlay-panel overlay-left">
@@ -93,7 +82,15 @@
         </div>
     </div>
 
-    <!-- Link to login.js -->
+    <!-- Include your JavaScript -->
+    <script>
+        $(document).ready(function () {
+            // Disable client-side validation for the form
+            $.validator.setDefaults({
+                ignore: ":hidden"
+            });
+        });
+    </script>
     <script src="~/js/login.js" asp-append-version="true"></script>
 
 </body>

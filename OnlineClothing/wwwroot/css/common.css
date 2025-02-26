@@ -1,0 +1,32 @@
+﻿/* Make the header sticky at the top of the page */
+.header-area {
+    position: sticky;
+    top: 0;
+    z-index: 1000; /* Ensure it stays above other content */
+    background-color: #335c67; /* Optional: Add a background color to prevent transparency issues */
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    padding: 20px 0;
+    box-shadow: 0 4px 2px -2px gray; /* Optional: Add a shadow for better visibility */
+}
+
+
+
+/* If you're using a transparent header, you can adjust its background color */
+/*.header-sticky {
+    background-color: rgba(255, 255, 255, 0.9);*/ /* semi-transparent background */
+/*}*/
+
+/* Optionally, adjust the padding when the header is sticky */
+.header-area.sticky {
+    padding: 10px 0;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-x: hidden;
+    background-color: #fff3b0;
+}
+

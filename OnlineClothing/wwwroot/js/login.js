@@ -9,3 +9,13 @@ signUpButton.addEventListener('click', () => {
 signInButton.addEventListener('click', () => {
     container.classList.remove("right-panel-active");
 });
+
+//document.getElementById("signUp").addEventListener("click", function () {
+//    document.querySelector(".sign-in-container").style.display = "none";
+//    document.querySelector(".sign-up-container").style.display = "block";
+//});
+
+//document.getElementById("signIn").addEventListener("click", function () {
+//    document.querySelector(".sign-up-container").style.display = "none";
+//    document.querySelector(".sign-in-container").style.display = "block";
+//});
