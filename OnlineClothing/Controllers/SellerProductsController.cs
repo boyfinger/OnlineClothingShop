@@ -11,8 +11,8 @@ namespace OnlineClothing.Controllers
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IWebHostEnvironment _hostEnvironment;
 
-        //assume the sellerId is 2
-        private readonly int sellerId = 2;
+        //assume the sellerId is this?
+        private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
 
         public SellerProductsController(ClothingShopPrn222G2Context context, IWebHostEnvironment hostEnvironment)
         {
