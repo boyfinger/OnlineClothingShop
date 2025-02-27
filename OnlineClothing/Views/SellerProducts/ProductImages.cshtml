@@ -1,0 +1,49 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model List<Image>
+
+<div class="container">
+    <h2 class="my-4">Add Image</h2>
+    <form asp-controller="images" asp-action="addproductimage" asp-route-productid="@ViewBag.Product.Id"
+    method="post" enctype="multipart/form-data">
+        <div class="form-group mb-3">
+            <label class="control-label">Image</label>
+            <input type="file" name="imageFile" class="form-control" />
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+    </form>
+</div>
+<h1>Image list for &quot;@ViewBag.Product.Name&quot;</h1>
+<table class="table">
+    <thead class="table-primary">
+        <tr>
+            <th>Image</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null)
+        {
+            @foreach (var image in Model)
+            {
+                <tr>
+                    <td>
+                        <img class="img-responsive" style="width: 20%; height: auto;"
+                             src="@image.Url" alt="@image.Product.Name" />
+                    </td>
+                    <td>
+                        <a class="btn btn-danger mr-1"
+                        asp-controller="images" asp-action="deleteproductimage"
+                        asp-route-productid="@ViewBag.Product.Id" asp-route-id="@image.Id">Delete image</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

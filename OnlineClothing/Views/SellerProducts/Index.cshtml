@@ -51,7 +51,10 @@
                            asp-controller="sellerproducts" asp-action="deactivate" asp-route-id="@product.Id">
                             Deactivate
                         </a>
-
+                        <a class="btn btn-primary mr-1"
+                            asp-controller="images" asp-action="getallproductimages" asp-route-productid="@product.Id">
+                            Images list
+                        </a>
                     }
                 </td>
             </tr>
