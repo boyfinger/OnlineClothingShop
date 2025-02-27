@@ -45,22 +45,29 @@ namespace OnlineClothing.Controllers
             return statuses!;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 8)
         {
             try
             {
-                List<Product> products = await _context.Products.ToListAsync();
+                int totalProducts = await _context.Products.CountAsync();
+                List<Product> products = await _context.Products
+                    .OrderBy(p => p.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize) 
+                    .ToListAsync();
                 var viewModel = new ProductViewModel
                 {
                     Products = products,
                     Categories = await GetCategories(),
-                    ProductStatuses = await GetProductStatuses()
+                    ProductStatuses = await GetProductStatuses(),
+                    CurrentPage = page,
+                    TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize)
                 };
                 return View("Product", viewModel);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception when get product from database: {ex.Message}");
+                Console.WriteLine($"Exception when getting products: {ex.Message}");
                 return View("Error");
             }
         }
@@ -69,20 +76,36 @@ namespace OnlineClothing.Controllers
         {
             var product = await _context.Products
                 .Include(p => p.Images)
+                .Include(p => p.Category)
                 .Include(p => p.Seller)
-                .ThenInclude(p => p.Userinfo)
+                    .ThenInclude(p => p.Userinfo)
+                .Include(p => p.Feedbacks)
+                    .ThenInclude(f => f.User)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (product == null)
             {
                 return NotFound();
             }
-            //Fake feedbacks
-            product.Feedbacks = new List<Feedback>
+            var relatedProducts = await _context.Products
+                .Where(p => p.CategoryId == product.CategoryId || p.SellerId == product.SellerId && p.Id != product.Id)
+                .Select(p => new Product
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Price = p.Price,
+                    ThumbnailUrl = p.ThumbnailUrl,
+                    Discount = p.Discount,
+                })
+                .Take(4)
+                .ToListAsync();
+
+            var viewModel = new ProductDetailViewModel
             {
-                new Feedback { User = new User { UserName = "Nguyễn Văn A" }, Rating = 5, Comment = "Sản phẩm rất tốt!", CreateAt = DateTime.Now.AddDays(-1) },
-                new Feedback { User = new User { UserName = "Trần Thị B" }, Rating = 4, Comment = "Chất lượng ổn nhưng giao hàng hơi chậm!", CreateAt = DateTime.Now.AddDays(-2) }
+                Product = product,
+                RelatedProducts = relatedProducts,
             };
-            return View("Detail", product);
+
+            return View("Detail", viewModel);
         }
 
         /*
@@ -93,10 +116,17 @@ namespace OnlineClothing.Controllers
         */
         public async Task<IActionResult> Search(string query)
         {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return RedirectToAction("Index");
+            }
             var result = await _context.Products
-               .Where(p => p.Name.ToLower().Contains(query.ToLower()) ||
-                           p.Description.ToLower().Contains(query.ToLower()))
-               .ToListAsync();
+                .AsNoTracking()
+                .Where(p => p.Status == 1 &&
+                           (p.Name.ToLower().Contains(query.ToLower()) ||
+                            p.Description.ToLower().Contains(query.ToLower())))
+                .ToListAsync();
+
             var viewModel = new ProductViewModel
             {
                 Products = result,
@@ -104,6 +134,19 @@ namespace OnlineClothing.Controllers
                 ProductStatuses = await GetProductStatuses()
             };
             return View("Product", viewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchSuggestions(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return Json(new List<object>());
+            var products = await _context.Products
+                .Where(p => p.Name.ToLower().Contains(query.ToLower()))
+                .Select(p => new { p.Id, p.Name })
+                .Take(5)
+                .ToListAsync();
+            return Json(products);
         }
 
         /*

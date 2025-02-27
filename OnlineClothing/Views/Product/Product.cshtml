@@ -11,13 +11,36 @@
         object-fit: cover;
     }
 </style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <h2 class="text-center">Product List</h2>
 
-<form asp-controller="Product" asp-action="Search" method="get" class="mb-3">
-    <input type="text" name="query" class="form-control" placeholder="Nhập tên sản phẩm..." required />
-    <button type="submit" class="btn btn-primary mt-2">Tìm kiếm</button>
-    <a asp-action="Index" class="btn btn-primary btn-sm mt-2">Back to list</a>
+<form asp-controller="Product" asp-action="Search" method="get" class="mb-3 mt-lg-5 position-relative">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div style="position: relative; width: 1000px;">
+            <input type="text" id="searchBox" name="query" class="form-control"
+                   placeholder="Nhập tên sản phẩm..." required autocomplete="off" />
+            <div id="suggestions" class="list-group"
+                 style="position: absolute; width: 100%; z-index: 1000; display: none;"></div>
+        </div>
+        <div class="d-flex">
+            <button type="submit" class="btn btn-primary ms-2">Tìm kiếm</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Back to list</a>
+        </div>
+    </div>
 </form>
+
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a style="text-decoration: none; color: black;" href="/home">Home</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a style="text-decoration: none; color: black;" href="/product">Product</a>
+        </li>
+    </ol>
+</nav>
+
 
 <div class="container">
     <div class="row">
@@ -32,12 +55,23 @@
                                 <h5 class="card-title">@product.Name</h5>
                                 <p class="card-text flex-grow-1">@product.Description</p>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <p class="card-text text-danger mb-0">@String.Format("{0:N0} VND", @product.Price ?? 0)</p>
                                     @if (product.Discount != null)
                                     {
-                                        <p class="card-text">@product.Discount%</p>
+                                        <p class="card-text text-danger mb-0">@String.Format("{0:N0} VND", @product.Price - (product.Price * product.Discount / 100) ?? 0)</p>
+                                    }
+                                    @if (product.Discount != 0)
+                                    {
+                                        <p class="card-text">-@product.Discount%</p>
                                     }
                                 </div>
+                                @if (product.Discount != 0)
+                                {
+                                    <p class="card-text mb-2" style="text-decoration: line-through">@String.Format("{0:N0} VND", @product.Price ?? 0)</p>
+                                }
+                                else
+                                {
+                                    <p class="card-text mb-2">&nbsp;</p>
+                                }
                                 <a asp-action="Detail" asp-route-id="@product.Id" class="btn btn-primary mt-auto">Xem chi tiết</a>
                             </div>
                         </div>
@@ -82,22 +116,93 @@
                         <label class="mt-2">Trạng thái:</label>
                         <select name="status" class="form-control">
                             <option value="">Tất cả</option>
-                            @foreach(var status in Model.ProductStatuses)
+                            @foreach (var status in Model.ProductStatuses)
                             {
-                                <option value="@status.Id">@status.Name</option>
+                                string statusName = status.Id switch
+                                {
+                                    1 => "Còn hàng",
+                                    2 => "Hết hàng",
+                                    3 => "Ngừng kinh doanh",
+                                    _ => status.Name
+                                };
+
+                                <option value="@status.Id">@statusName</option>
                             }
                         </select>
                         <div class="form-check mt-2">
                             <input type="checkbox" name="inStock" value="true" class="form-check-input">
                             <label class="form-check-label">Chỉ còn hàng</label>
                         </div>
-
                         <button type="submit" class="btn btn-success mt-3 w-100">Lọc sản phẩm</button>
                         <a asp-action="Index" class="btn btn-secondary mt-2 w-100">Bỏ lọc</a>
                     </form>
                 </div>
             </div>
         </div>
+
+        <div class="pagination mt-4 justify-content-center">
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1 })">← Trước</a>
+                        </li>
+                    }
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                        </li>
+                    }
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1 })">Tiếp →</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 
+<script>
+    $(document).ready(function () {
+        $("#searchBox").on("keyup", function () {
+            var query = $(this).val().trim();
+            if (query.length < 1) {
+                $("#suggestions").hide();
+                return;
+            }
+            $.ajax({
+                url: "/Product/SearchSuggestions",
+                method: "GET",
+                data: { query: query },
+                success: function (data) {
+                    var suggestionsBox = $("#suggestions");
+                    suggestionsBox.empty().show();
+                    if (data.length === 0) {
+                        suggestionsBox.append('<a href="#" class="list-group-item list-group-item-action disabled">Không tìm thấy sản phẩm</a>');
+                    } else {
+                        $.each(data, function (index, product) {
+                            suggestionsBox.append(
+                                '<a href="/Product/Detail/' + product.id + '" class="list-group-item list-group-item-action d-flex align-items-center">' +
+                                '<span>' + product.name + '</span>' +
+                                '</a>'
+                            );
+                        });
+                    }
+                },
+                error: function () {
+                    $("#suggestions").hide();
+                }
+            });
+        });
+        $(document).click(function (e) {
+            if (!$(e.target).closest("#searchBox, #suggestions").length) {
+                $("#suggestions").hide();
+            }
+        });
+    });
+</script>
