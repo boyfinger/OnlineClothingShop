@@ -28,7 +28,7 @@
             <tr>
                 <td>
                     <img src="@product.ThumbnailUrl" alt="@product.Name"
-                        style="width: 20%; height: auto;"/>
+                         style="width: 20%; height: auto;" />
                 </td>
                 <td>@product.Name</td>
                 <td>@product.Category.Name</td>
@@ -40,14 +40,19 @@
                     </span>
                 </td>
                 <td>
-                    <a class="btn btn-info mr-1"
-                        asp-controller="sellerproducts" asp-action="details" asp-route-id="@product.Id">
-                        Details
-                    </a>
-                    <a class="btn btn-danger mr-1"
-                        asp-controller="sellerproducts" asp-action="delete" asp-route-id="@product.Id">
-                        Delete
-                    </a>
+                    @if (!"DISCONTINUED".Equals(product.StatusNavigation.Name))
+                    {
+
+                        <a class="btn btn-info mr-1"
+                           asp-controller="sellerproducts" asp-action="details" asp-route-id="@product.Id">
+                            Details
+                        </a>
+                        <a class="btn btn-danger mr-1"
+                           asp-controller="sellerproducts" asp-action="deactivate" asp-route-id="@product.Id">
+                            Deactivate
+                        </a>
+
+                    }
                 </td>
             </tr>
         }
@@ -55,10 +60,11 @@
 </table>
 
 @functions {
-    public string GetStatusBadgeColor(string name){
+    public string GetStatusBadgeColor(string name)
+    {
         switch (name)
         {
-            case "AVAILABLE": 
+            case "AVAILABLE":
                 return "bg-success";
             case "OUT_OF_STOCK":
                 return "bg-warning";

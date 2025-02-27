@@ -118,14 +118,16 @@ namespace OnlineClothing.Controllers
             }
         }
 
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Deactivate(int id)
         {
             var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
             if (product != null)
             {
-                _context.Products.Remove(product);
+                //set product to Discontinued
+                product.Status = 3;
+                _context.Update(product);
                 await _context.SaveChangesAsync();
-                TempData["message"] = "Deleted product successfully!";
+                TempData["message"] = "Deactivate product successfully!";
                 return RedirectToAction("Index");
             }
             else
