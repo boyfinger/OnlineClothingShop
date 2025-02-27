@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using OnlineClothing.Models;
+using OnlineClothing.Services;
 
 namespace OnlineClothing.Controllers
 {
@@ -10,14 +11,19 @@ namespace OnlineClothing.Controllers
     {
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IFileUploadService _fileUploadService;
 
         //assume the sellerId is this?
         private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
 
-        public SellerProductsController(ClothingShopPrn222G2Context context, IWebHostEnvironment hostEnvironment)
+        public SellerProductsController(
+            ClothingShopPrn222G2Context context, 
+            IWebHostEnvironment hostEnvironment,
+            IFileUploadService fileUploadService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
+            _fileUploadService = fileUploadService;
         }
         public async Task<IActionResult> Index()
         {
@@ -36,25 +42,20 @@ namespace OnlineClothing.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(Product product, IFormFile imageFile)
+        public async Task<IActionResult> Add(Product product, IFormFile? imageFile)
         {
             if (ModelState.IsValid)
             {
                 product.Status = 1;
                 product.CreateAt = DateTime.Now;
                 product.SellerId = sellerId;
-
-                if (imageFile != null && imageFile.Length > 0)
+                try
                 {
-                    // Save the image file to a directory
-                    string uploadDir = Path.Combine(_hostEnvironment.WebRootPath, "images");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    string filePath = Path.Combine(uploadDir, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(fileStream);
-                    }
-                    product.ThumbnailUrl = "/images/" + uniqueFileName;
+                    product.ThumbnailUrl = await _fileUploadService.UploadImageAsync(imageFile);
+                }
+                catch
+                {
+                    product.ThumbnailUrl = null;
                 }
 
                 _context.Products.Add(product);
@@ -82,7 +83,7 @@ namespace OnlineClothing.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Update(Product product, IFormFile imageFile)
+        public async Task<IActionResult> Update(Product product, IFormFile? imageFile)
         {
             var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
             if (existingProduct != null)
@@ -94,17 +95,13 @@ namespace OnlineClothing.Controllers
                 existingProduct.Quantity = product.Quantity;
                 existingProduct.Status = 2;
 
-                if (imageFile != null && imageFile.Length > 0)
+                try
                 {
-                    // Save the image file to a directory
-                    string uploadDir = Path.Combine(_hostEnvironment.WebRootPath, "images");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    string filePath = Path.Combine(uploadDir, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(fileStream);
-                    }
-                    existingProduct.ThumbnailUrl = "/images/" + uniqueFileName;
+                    existingProduct.ThumbnailUrl = await _fileUploadService.UploadImageAsync(imageFile);
+                }
+                catch
+                {
+
                 }
 
                 _context.Update(existingProduct);
