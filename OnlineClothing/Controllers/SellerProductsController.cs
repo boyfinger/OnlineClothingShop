@@ -16,6 +16,7 @@ namespace OnlineClothing.Controllers
 
         //assume the sellerId is this?
         private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
+        private readonly int pageSize = 4;
 
         public SellerProductsController(
             ClothingShopPrn222G2Context context,
@@ -28,15 +29,41 @@ namespace OnlineClothing.Controllers
             _fileUploadService = fileUploadService;
             _logger = logger;
         }
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, int categoryId = 0, int page = 1)
         {
             try
             {
-                var products = await _context.Products
+                var query = _context.Products
                     .Where(p => p.SellerId.Equals(sellerId))
                     .Include(p => p.Category)
                     .Include(p => p.StatusNavigation)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(searchString))
+                {
+                    query = query.Where(p => p.Name.Contains(searchString));
+                }
+
+                if (categoryId != 0)
+                {
+                    query = query.Where(p => p.CategoryId == categoryId);
+                }
+
+                var totalProducts = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+
+                var products = await query
+                    .OrderBy(p => p.Name)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.SearchString = searchString;
+                ViewBag.SelectedCategoryId = categoryId;
+                ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+
                 return View(products);
             }
             catch (Exception ex)
