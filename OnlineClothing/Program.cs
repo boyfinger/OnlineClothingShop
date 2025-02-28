@@ -1,43 +1,47 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
+using OnlineClothing.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure the DbContext to use SQL Server
 builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
 
-// Add services to the container.
+// Register the EmailUtils as a transient service
+builder.Services.AddTransient<EmailUtils>();
+
+// Add services to the container for MVC Controllers and Views
 builder.Services.AddControllersWithViews();
 
+// Configure session settings
+builder.Services.AddDistributedMemoryCache(); // Necessary for session storage
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout to 30 minutes
+    options.Cookie.HttpOnly = true;  // Makes the session cookie HttpOnly
+    options.Cookie.IsEssential = true;  // Ensures cookies are essential for the app
 });
-
-builder.Services.AddDistributedMemoryCache();
 
 var app = builder.Build();
 
+// Apply the session middleware
 app.UseSession();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Home/Error"); // Error handling in production
 }
-app.UseStaticFiles();
+app.UseStaticFiles(); // Serve static files (e.g., CSS, JavaScript)
 
-app.UseRouting();
+app.UseRouting(); // Routing configuration
 
-app.UseAuthorization();
+app.UseAuthorization(); // Authorization middleware
 
-builder.Services.AddMemoryCache();
-
+// Configure MVC route (default route)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.Run();
-
+app.Run(); // Run the application

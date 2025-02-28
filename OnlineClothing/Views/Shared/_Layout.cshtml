@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="~/css/animate.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
     <link rel="stylesheet" href="~/css/common.css">
+
 </head>
 <body>
-    <!-- ***** Preloader Start ***** -->
     <div id="js-preloader" class="js-preloader">
         <div class="preloader-inner">
             <span class="dot"></span>
@@ -26,7 +26,6 @@
         </div>
     </div>
     <!-- ***** Preloader End ***** -->
-
     <!-- ***** Header Area Start ***** -->
     <header class="header-area header-sticky">
         <div class="container">
@@ -44,12 +43,26 @@
                             <li><a href="/product" id="shop-link">Our Shop</a></li>
                             <li><a href="#">Product Details</a></li>
                             <li><a href="/contact.html">Contact Us</a></li>
-                            <li><a href="/Account/Login">Sign In</a></li>
-                        </ul>
 
-                        <a class='menu-trigger'>
-                            <span>Menu</span>
-                        </a>
+                            @if (ViewBag.UserId != null)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a href="#" class="nav-link" id="profileDropdown" onclick="menuToggle();">
+                                        <img src="@ViewBag.AvatarUrl" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                                    </a>
+                                    <ul id="profileMenu" class="dropdown-menu-custom">
+                                        <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> My Profile</a></li>
+                                        <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i> Change Password</a></li>
+                                        <li><a class="dropdown-item" href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+                                        <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <li><a href="/Account/Login" id="sign-in-link">Sign In</a></li>
+                            }
+                        </ul>
                         <!-- ***** Menu End ***** -->
                     </nav>
                 </div>
@@ -75,7 +88,6 @@
         </div>
     </footer>
     <!-- ***** Footer Area End ***** -->
-
     <!-- Scripts -->
     <script src="~/jquery/jquery.min.js"></script>
     <script src="~/js/custom.js"></script>
@@ -85,6 +97,7 @@
     <script src="~/js/counter.js"></script>
     <script src="~/js/header.js"></script>
 
+
     <!-- Custom JS to hide preloader after content is loaded -->
     <script>
         window.onload = function () {
@@ -92,25 +105,32 @@
             setActiveLink(); // Set the active link based on the current URL
         };
 
-        // Function to highlight the active link based on the current URL
+        function menuToggle() {
+            let menu = document.getElementById("profileMenu");
+            menu.classList.toggle("show");
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", function (event) {
+            let profileDropdown = document.getElementById("profileDropdown");
+            let menu = document.getElementById("profileMenu");
+
+            if (!profileDropdown.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.remove("show");
+            }
+        });
+
         function setActiveLink() {
             var currentPage = window.location.pathname;
             var links = document.querySelectorAll('.nav a');
 
-            links.forEach(function(link) {
-                // Remove the "active" class from all links
+            links.forEach(function (link) {
                 link.classList.remove('active');
-
-                // Check if the link's href matches the current page's pathname
                 if (currentPage.includes(link.getAttribute('href'))) {
-                    link.classList.add('active'); // Add "active" class to the current link
+                    link.classList.add('active');
                 }
             });
         }
-        $(document).ready(function () {
-            $("form[asp-action='SignUp']").removeData("validator").find("input, select, textarea").removeClass("valid").removeClass("error");
-        });
-
     </script>
 
 </body>

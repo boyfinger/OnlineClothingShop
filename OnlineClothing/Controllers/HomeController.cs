@@ -12,13 +12,20 @@ namespace OnlineClothing.Controllers
         {
             _logger = logger;
         }
+            
+		public IActionResult Index()
+		{
+            ViewBag.UserId = HttpContext.Session.GetString("UserId");
+            if(ViewBag.UserId != null)
+            {
+                ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
+                ViewBag.AvatarUrl = HttpContext.Session.GetString("AvatarUrl") ?? "/images/default-avatar.jpg";
+            }
+			return View();
+		}
 
-        public IActionResult Index()
-        {
-            return View();
-        }
 
-        public IActionResult Privacy()
+		public IActionResult Privacy()
         {
             return View();
         }

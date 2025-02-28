@@ -22,9 +22,15 @@
 
                 <div style="color: #e09f3e;" asp-validation-summary="All" class="text-danger"></div>
 
+                <select asp-for="UserType" required>
+                    <option value="" disabled selected>Who are you?</option>
+                    <option value="customer">Customer</option>
+                    <option value="seller">Seller</option>
+                </select>
+
                 <input type="text" asp-for="FullName" placeholder="Full Name" required />
                 <input type="email" asp-for="Email" placeholder="Email" required />
-                <input type="email" asp-for="UserName" placeholder="UserName" required />
+                <input type="text" asp-for="UserName" placeholder="UserName" required />
                 <input type="password" asp-for="Password" placeholder="Password" required />
                 <input type="password" asp-for="ConfirmPassword" placeholder="Confirm Password" required />
                 <input type="text" asp-for="PhoneNumber" placeholder="Phone Number" required />
@@ -34,9 +40,11 @@
                     <option value="female">Female</option>
                     <option value="other">Other</option>
                 </select>
+
                 <input style="margin:3px 0;" type="date" asp-for="DateOfBirth" placeholder="Date of Birth" required />
                 <input style="margin:3px 0;" type="text" asp-for="Address" placeholder="Address" required />
-                    <h2><a style="color: #e09f3e" href="/Account/Login">Login</a></h2>
+
+                <h2><a style="color: #e09f3e" href="/Account/Login">Login</a></h2>
                 <button type="submit">Sign Up</button>
                 <h2><a style="color: #e09f3e" href="/Home"> - Back to Home - </a></h2>
             </form>
