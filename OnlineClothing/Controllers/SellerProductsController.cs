@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using OnlineClothing.Models;
+using OnlineClothing.Services;
 
 namespace OnlineClothing.Controllers
 {
@@ -10,57 +11,84 @@ namespace OnlineClothing.Controllers
     {
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IFileUploadService _fileUploadService;
+        private readonly ILogger _logger;
 
-        //assume the sellerId is 2
-        private readonly int sellerId = 2;
+        //assume the sellerId is this?
+        private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
 
-        public SellerProductsController(ClothingShopPrn222G2Context context, IWebHostEnvironment hostEnvironment)
+        public SellerProductsController(
+            ClothingShopPrn222G2Context context,
+            IWebHostEnvironment hostEnvironment,
+            IFileUploadService fileUploadService,
+            ILogger logger)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
+            _fileUploadService = fileUploadService;
+            _logger = logger;
         }
         public async Task<IActionResult> Index()
         {
-            var products = await _context.Products
-                .Where(p => p.SellerId.Equals(sellerId))
-                .Include(p => p.Category)
-                .Include(p => p.StatusNavigation)
-                .ToListAsync();
-            return View(products);
+            try
+            {
+                var products = await _context.Products
+                    .Where(p => p.SellerId.Equals(sellerId))
+                    .Include(p => p.Category)
+                    .Include(p => p.StatusNavigation)
+                    .ToListAsync();
+                return View(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to get products of sellerId = {sellerId}", ex);
+                return RedirectToAction("error", "home");
+            }
         }
 
         public async Task<IActionResult> Add()
         {
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
-            return View("Add");
+            try
+            {
+                ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+                return View("Add");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Failed to get category list to display for ProductAdd page", ex);
+                return RedirectToAction("error", "home");
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(Product product, IFormFile imageFile)
+        public async Task<IActionResult> Add(Product product, IFormFile? imageFile)
         {
             if (ModelState.IsValid)
             {
-                product.Status = 1;
-                product.CreateAt = DateTime.Now;
-                product.SellerId = sellerId;
-
-                if (imageFile != null && imageFile.Length > 0)
+                try
                 {
-                    // Save the image file to a directory
-                    string uploadDir = Path.Combine(_hostEnvironment.WebRootPath, "images");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    string filePath = Path.Combine(uploadDir, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    product.Status = 1;
+                    product.CreateAt = DateTime.Now;
+                    product.SellerId = sellerId;
+                    try
                     {
-                        await imageFile.CopyToAsync(fileStream);
+                        product.ThumbnailUrl = await _fileUploadService.UploadImageAsync(imageFile);
                     }
-                    product.ThumbnailUrl = "/images/" + uniqueFileName;
-                }
+                    catch
+                    {
+                        product.ThumbnailUrl = null;
+                    }
 
-                _context.Products.Add(product);
-                await _context.SaveChangesAsync();
-                TempData["message"] = "Added product successfully!";
-                return RedirectToAction("Index");
+                    _context.Products.Add(product);
+                    await _context.SaveChangesAsync();
+                    TempData["message"] = "Added product successfully!";
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Failed to add product", ex);
+                    return RedirectToAction("error", "home");
+                }
             }
             else
             {
@@ -71,22 +99,34 @@ namespace OnlineClothing.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-
-            ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.StatusNavigation)
-                .FirstOrDefaultAsync(p => p.Id == id);
-            return View(product);
-
+            try
+            {
+                ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+                var product = await _context.Products
+                    .Include(p => p.Category)
+                    .Include(p => p.StatusNavigation)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+                return View(product);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to get details for productId = {id}", ex);
+                return RedirectToAction("error", "home");
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Update(Product product, IFormFile imageFile)
+        public async Task<IActionResult> Update(Product product, IFormFile? imageFile)
         {
-            var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
-            if (existingProduct != null)
+            try
             {
+                var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
+                if (existingProduct == null)
+                {
+                    _logger.LogWarning($"Product with id = {product.Id} not found");
+                    return NotFound();
+                }
+
                 existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;
                 existingProduct.CategoryId = product.CategoryId;
@@ -94,43 +134,47 @@ namespace OnlineClothing.Controllers
                 existingProduct.Quantity = product.Quantity;
                 existingProduct.Status = 2;
 
-                if (imageFile != null && imageFile.Length > 0)
+                try
                 {
-                    // Save the image file to a directory
-                    string uploadDir = Path.Combine(_hostEnvironment.WebRootPath, "images");
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    string filePath = Path.Combine(uploadDir, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(fileStream);
-                    }
-                    existingProduct.ThumbnailUrl = "/images/" + uniqueFileName;
+                    existingProduct.ThumbnailUrl = await _fileUploadService.UploadImageAsync(imageFile);
                 }
+                catch { }
 
                 _context.Update(existingProduct);
                 await _context.SaveChangesAsync();
                 TempData["message"] = "Updated product successfully!";
                 return RedirectToAction("Index");
             }
-            else
+            catch (Exception ex)
             {
-                return NotFound();
+
+                _logger.LogError($"Failed to update product with id = {product.Id}", ex);
+                return RedirectToAction("error", "home");
             }
         }
 
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Deactivate(int id)
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
-            if (product != null)
+            try
             {
-                _context.Products.Remove(product);
+                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+                if (product == null)
+                {
+                    _logger.LogWarning($"Product with id = {id} not found");
+                    return NotFound();
+                }
+
+                //set product to Discontinued
+                product.Status = 3;
+                _context.Update(product);
                 await _context.SaveChangesAsync();
-                TempData["message"] = "Deleted product successfully!";
+                TempData["message"] = "Deactivate product successfully!";
                 return RedirectToAction("Index");
             }
-            else
+            catch (Exception ex)
             {
-                return NotFound();
+                _logger.LogError($"Failed to deactivate product with id = {id}", ex);
+                return RedirectToAction("error", "home");
             }
         }
     }

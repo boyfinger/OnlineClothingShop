@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
+using OnlineClothing.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
+
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -29,4 +32,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
