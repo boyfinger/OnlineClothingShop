@@ -12,7 +12,7 @@ namespace OnlineClothing.Controllers
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly IFileUploadService _fileUploadService;
-        private readonly ILogger _logger;
+        private readonly ILogger<SellerProductsController> _logger;
 
         //assume the sellerId is this?
         private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
@@ -21,7 +21,7 @@ namespace OnlineClothing.Controllers
             ClothingShopPrn222G2Context context,
             IWebHostEnvironment hostEnvironment,
             IFileUploadService fileUploadService,
-            ILogger logger)
+            ILogger<SellerProductsController> logger)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;

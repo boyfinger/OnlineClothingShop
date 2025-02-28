@@ -9,9 +9,12 @@ namespace OnlineClothing.Controllers
     {
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IFileUploadService _fileUploadService;
-        private readonly ILogger _logger;
+        private readonly ILogger<ImagesController> _logger;
 
-        public ImagesController(ClothingShopPrn222G2Context context, IFileUploadService fileUploadService, ILogger logger)
+        public ImagesController(
+            ClothingShopPrn222G2Context context, 
+            IFileUploadService fileUploadService, 
+            ILogger<ImagesController> logger)
         {
             _context = context;
             _fileUploadService = fileUploadService;
