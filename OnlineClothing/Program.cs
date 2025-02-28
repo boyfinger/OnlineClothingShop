@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
+using OnlineClothing.Services;
+using OnlineClothing.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
