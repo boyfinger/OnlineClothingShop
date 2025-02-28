@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
-using OnlineClothing.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure the DbContext to use SQL Server
 builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
+
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 // Register the EmailUtils as a transient service
 builder.Services.AddTransient<EmailUtils>();
@@ -44,4 +45,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.Run(); // Run the application
+app.Run();
+
