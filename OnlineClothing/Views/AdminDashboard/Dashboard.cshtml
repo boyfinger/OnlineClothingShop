@@ -1,0 +1,53 @@
+﻿@{
+    ViewBag.Title = "Admin Dashboard";
+    Layout = "~/Views/AdminDashboard/AdminShared/_AdminLayout.cshtml";
+}
+
+<h2>Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card bg-primary">
+            <h5>Doanh thu hôm nay</h5>
+            <p>@ViewBag.RevenueToday</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success">
+            <h5>Người dùng</h5>
+            <p>@ViewBag.TotalUsers</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning">
+            <h5>Cửa hàng hoạt động</h5>
+            <p>@ViewBag.ActiveStores</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger">
+            <h5>Đơn đăng ký</h5>
+            <p>@ViewBag.PendingRequests</p>
+        </div>
+    </div>
+</div>
+
+<div class="chart-container">
+    <canvas id="revenueChart"></canvas>
+</div>
+
+<script>
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Doanh thu theo tháng',
+                data: @Html.Raw(ViewBag.RevenueData),
+                borderColor: 'blue',
+                backgroundColor: 'rgba(0, 0, 255, 0.2)',
+            }]
+        }
+    });
+</script>

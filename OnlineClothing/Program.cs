@@ -42,6 +42,10 @@ app.UseRouting(); // Routing configuration
 
 app.UseAuthorization(); // Authorization middleware
 
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{controller=AdminDashboard}/{action=Dashboard}/{id?}"
+);
 // Configure MVC route (default route)
 app.MapControllerRoute(
     name: "default",

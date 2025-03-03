@@ -1,0 +1,108 @@
+﻿/* ==== RESET ==== */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f6f9;
+}
+
+/* ==== SIDEBAR ==== */
+.sidebar {
+    width: 330px;
+    height: 100vh;
+    position: fixed;
+    background: #343a40;
+    padding-top: 20px;
+    color: white;
+    transition: all 0.3s;
+    border-radius: 20px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+}
+.sidebar ul li {
+    padding: 12px;
+    font-size: 14px; 
+    font-weight : bold;
+}
+.sidebar h4 {
+    text-align: center;
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.sidebar .nav-item a {
+    display: block;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.sidebar .nav-item a:hover {
+    background: #495057;
+    border-left: 4px solid #17a2b8;
+}
+
+.sidebar .nav-item .sub-item {
+    padding-left: 30px;
+    font-size: 14px;
+}
+
+.sidebar-link {
+    padding: 12px 15px;
+    border-radius: 12px;
+    transition: background 0.3s ease;
+}
+
+    .sidebar-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-link.active {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+/* ==== MAIN CONTENT ==== */
+.main-content {
+    margin-left: 330px;
+    padding: 20px;
+    transition: margin-left 0.3s;
+}
+
+/* ==== DASHBOARD CARDS ==== */
+.card {
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    transition: transform 0.2s;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card.bg-primary { background: linear-gradient(135deg, #007bff, #0056b3); }
+.card.bg-success { background: linear-gradient(135deg, #28a745, #1e7e34); }
+.card.bg-warning { background: linear-gradient(135deg, #ffc107, #d39e00); }
+.card.bg-danger  { background: linear-gradient(135deg, #dc3545, #bd2130); }
+
+.card h5 {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.card p {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* ==== CHART CONTAINER ==== */
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
