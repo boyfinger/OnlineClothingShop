@@ -14,6 +14,9 @@ public partial class ClothingShopPrn222G2Context : DbContext
         : base(options)
     {
     }
+    public virtual DbSet<Cart> Carts { get; set; }
+
+    public virtual DbSet<CartDetail> CartDetails { get; set; }
 
     public virtual DbSet<Category> Categories { get; set; }
 
@@ -62,6 +65,67 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Cart>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__cart__3213E83F4B063680");
+
+            entity.ToTable("cart");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("id");
+            entity.Property(e => e.CreateAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("create_at");
+            entity.Property(e => e.TotalAmount)
+                .HasDefaultValue(0)
+                .HasColumnName("total_amount");
+            entity.Property(e => e.UpdateAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("update_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Carts)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK__cart__user_id__4F7CD00D");
+        });
+
+        modelBuilder.Entity<CartDetail>(entity =>
+        {
+            entity.HasKey(e => new { e.CartId, e.ProductId }).HasName("PK__cart_det__6A850DF80AE697FB");
+
+            entity.ToTable("cart_detail");
+
+            entity.Property(e => e.CartId).HasColumnName("cart_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.CreateAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("create_at");
+            entity.Property(e => e.Quantity)
+                .HasDefaultValue(0)
+                .HasColumnName("quantity");
+            entity.Property(e => e.TotalPrice)
+                .HasDefaultValue(0)
+                .HasColumnName("total_price");
+            entity.Property(e => e.UpdateAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("update_at");
+
+            entity.HasOne(d => d.Cart).WithMany(p => p.CartDetails)
+                .HasForeignKey(d => d.CartId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__cart_deta__cart___5535A963");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.CartDetails)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__cart_deta__produ__5629CD9C");
+        });
+
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__category__3213E83F110F6E97");

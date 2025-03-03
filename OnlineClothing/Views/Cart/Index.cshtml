@@ -1,0 +1,61 @@
+﻿@model OnlineClothing.Models.Cart
+
+@{
+    ViewData["Title"] = "Your Shopping Cart";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+@if (ViewBag.Message != null)
+{
+    <p>@ViewBag.Message</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.CartDetails)
+            {
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td>@item.Quantity</td>
+                    <td>@string.Format("{0:N0} VND", item.Product.Price)</td>
+                    <td>@string.Format("{0:N0} VND", item.Quantity * item.Product.Price)</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="removeFromCart('@item.ProductId')">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>Total Amount: @string.Format("{0:N0} VND", Model.TotalAmount)</h4>
+
+    <a href="/Checkout" class="btn btn-primary">Proceed to Checkout</a>
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function removeFromCart(productId) {
+        $.ajax({
+            url: '/Cart/Remove',
+            type: 'POST',
+            data: { productId: productId },
+            success: function () {
+                location.reload(); // Refresh page after removal
+            },
+            error: function () {
+                alert("Failed to remove product from cart.");
+            }
+        });
+    }
+</script>

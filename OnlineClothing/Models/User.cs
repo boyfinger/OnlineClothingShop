@@ -16,6 +16,7 @@ public partial class User
     public int? Status { get; set; }
 
     public DateTime? CreatedAt { get; set; }
+    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
