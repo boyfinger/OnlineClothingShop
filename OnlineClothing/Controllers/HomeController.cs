@@ -15,12 +15,6 @@ namespace OnlineClothing.Controllers
             
 		public IActionResult Index()
 		{
-            ViewBag.UserId = HttpContext.Session.GetString("UserId");
-            if(ViewBag.UserId != null)
-            {
-                ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
-                ViewBag.AvatarUrl = HttpContext.Session.GetString("AvatarUrl") ?? "/images/default-avatar.jpg";
-            }
 			return View();
 		}
 
