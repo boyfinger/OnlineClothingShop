@@ -1,49 +1,137 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - OnlineClothing</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/OnlineClothing.styles.css" asp-append-version="true" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Online Clothing Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="~/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/fontawesome.css">
+    <link rel="stylesheet" href="~/css/templatemo-lugx-gaming.css">
+    <link rel="stylesheet" href="~/css/owl.css">
+    <link rel="stylesheet" href="~/css/animate.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="~/css/common.css">
+
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">OnlineClothing</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+    <div id="js-preloader" class="js-preloader">
+        <div class="preloader-inner">
+            <span class="dot"></span>
+            <div class="dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+    <!-- ***** Preloader End ***** -->
+    <!-- ***** Header Area Start ***** -->
+    <header class="header-area header-sticky">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <nav class="main-nav">
+                        <!-- ***** Logo Start ***** -->
+                        <a href="/Home" class="logo" style="color: #fff3b0; font-size: 20px; font-weight: bold; width: 300px; margin-top: 10px;">
+                            Online Clothing Shop
+                        </a>
+                        <!-- ***** Logo End ***** -->
+                        <!-- ***** Menu Start ***** -->
+                        <ul class="nav">
+                            <li><a href="/Home" id="home-link" class="active">Home</a></li>
+                            <li><a href="/product" id="shop-link">Our Shop</a></li>
+                            <li><a href="#">Product Details</a></li>
+                            <li><a href="/contact.html">Contact Us</a></li>
+
+                            @if (ViewBag.UserId != null)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a href="#" class="nav-link" id="profileDropdown" onclick="menuToggle();">
+                                        <img src="@ViewBag.AvatarUrl" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                                    </a>
+                                    <ul id="profileMenu" class="dropdown-menu-custom">
+                                        <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> My Profile</a></li>
+                                        <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i> Change Password</a></li>
+                                        <li><a class="dropdown-item" href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+                                        <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <li><a href="/Account/Login" id="sign-in-link">Sign In</a></li>
+                            }
+                        </ul>
+                        <!-- ***** Menu End ***** -->
+                    </nav>
                 </div>
             </div>
-        </nav>
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+    <!-- ***** Header Area End ***** -->
+
+    <div class="main-banner">
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody() <!-- This is where the content of the page will be injected -->
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <!-- ***** Footer Area Start ***** -->
+    <footer>
         <div class="container">
-            &copy; 2025 - OnlineClothing - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="col-lg-12">
+                <p>PRN222 - Online Clothing Shop - Group 2</p>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    <!-- ***** Footer Area End ***** -->
+    <!-- Scripts -->
+    <script src="~/jquery/jquery.min.js"></script>
+    <script src="~/js/custom.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/isotope.min.js"></script>
+    <script src="~/js/owl-carousel.js"></script>
+    <script src="~/js/counter.js"></script>
+    <script src="~/js/header.js"></script>
+
+
+    <!-- Custom JS to hide preloader after content is loaded -->
+    <script>
+        window.onload = function () {
+            document.getElementById("js-preloader").style.display = "none";
+            setActiveLink(); // Set the active link based on the current URL
+        };
+
+        function menuToggle() {
+            let menu = document.getElementById("profileMenu");
+            menu.classList.toggle("show");
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", function (event) {
+            let profileDropdown = document.getElementById("profileDropdown");
+            let menu = document.getElementById("profileMenu");
+
+            if (!profileDropdown.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.remove("show");
+            }
+        });
+
+        function setActiveLink() {
+            var currentPage = window.location.pathname;
+            var links = document.querySelectorAll('.nav a');
+
+            links.forEach(function (link) {
+                link.classList.remove('active');
+                if (currentPage.includes(link.getAttribute('href'))) {
+                    link.classList.add('active');
+                }
+            });
+        }
+    </script>
+
 </body>
 </html>

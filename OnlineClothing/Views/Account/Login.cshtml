@@ -1,0 +1,45 @@
+﻿@model OnlineClothing.Models.LoginViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true">
+</head>
+<body>
+
+    <div class="container" id="container">
+        <div class="form-container sign-in-container">
+            <form method="post" asp-action="Login">
+                <h1>Sign In</h1>
+
+                <div style="color: #e09f3e;" asp-validation-summary="All" class="text-danger"></div>
+
+                <select asp-for="UserType" required>
+                    <option value="" disabled selected>Select your role</option>
+                    <option value="customer">Customer</option>
+                    <option value="seller">Seller</option>
+                </select>
+
+                <input type="email" asp-for="LoginEmail" placeholder="Email" required />
+                <input type="password" asp-for="LoginPassword" placeholder="Password" required />
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <h2><a style="color: #e09f3e" href="/Account/ForgotPassword">Forgot Your Password?</a></h2>
+                    <h2><a style="color: #e09f3e" href="/Account/Signup">Sign Up</a></h2>
+                </div>
+                <button type="submit">Sign In</button>
+                <h2><a style="color: #e09f3e" href="/Home"> - Back to Home - </a></h2>
+            </form>
+        </div>
+    </div>
+
+    <script src="~/js/login.js" asp-append-version="true"></script>
+
+</body>
+</html>

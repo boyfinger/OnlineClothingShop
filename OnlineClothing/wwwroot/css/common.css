@@ -1,0 +1,103 @@
+﻿.header-area {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #335c67;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    padding: 20px 0;
+    box-shadow: 0 4px 2px -2px gray;
+}
+
+.header-area.sticky {
+    padding: 10px 0;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+.dropdown-menu-custom {
+    display: none;
+    position: absolute;
+    background-color: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    width: 250px;
+    right: 0;
+    top: 50px;
+}
+
+    .dropdown-menu-custom li {
+        padding: 8px 10px;
+        list-style: none;
+    }
+
+        .dropdown-menu-custom li a {
+            text-decoration: none;
+            color: black;
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-menu-custom li a {
+            text-decoration: none;
+            color: black;
+            display: flex;
+            align-items: center;
+        }
+
+            .dropdown-menu-custom li a i {
+                margin-right: 8px;
+            }
+
+
+.header-area .main-nav .nav .nav-item.dropdown:last-child a {
+    background-color: transparent;
+    color: inherit;
+}
+/* Disable hover effect when user is logged in */
+.header-area .main-nav .nav .nav-item.dropdown:last-child:hover a {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Style for the avatar dropdown */
+.header-area .main-nav .nav .nav-item.dropdown a img {
+    border: 2px solid transparent;
+    transition: border 0.3s ease;
+}
+
+.header-area .main-nav .nav .nav-item.dropdown:hover a img {
+    border: 2px solid rgb(224, 159, 62);
+}
+    /* Show the menu when .show class is added */
+    .show {
+        display: block;
+    }
+
+.nav-item.dropdown {
+    display: flex;
+    align-items: center; /* Aligns avatar with text links */
+}
+
+    .nav-item.dropdown .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0; /* Removes any extra padding */
+    }
+
+.profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle; /* Ensures alignment */
+    margin-top: -5px; /* Adjust if needed */
+}
+
+

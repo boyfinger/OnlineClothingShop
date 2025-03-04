@@ -1,0 +1,80 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@model List<Product>
+
+<a class="btn btn-primary mb-3" asp-controller="sellerproducts" asp-action="add">Insert product</a>
+
+<h6 class="text-success mb-3">@TempData["message"]</h6>
+
+<table class="table">
+    <thead class="table-primary">
+        <tr>
+            <th>Thumbnail</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>
+                    <img src="@product.ThumbnailUrl" alt="@product.Name"
+                         style="width: 20%; height: auto;" />
+                </td>
+                <td>@product.Name</td>
+                <td>@product.Category.Name</td>
+                <td>@product.Price</td>
+                <td>@product.Quantity</td>
+                <td>
+                    <span class="badge rounded-pill @GetStatusBadgeColor(product.StatusNavigation.Name)">
+                        @product.StatusNavigation.Name
+                    </span>
+                </td>
+                <td>
+                    @if (!"DISCONTINUED".Equals(product.StatusNavigation.Name))
+                    {
+
+                        <a class="btn btn-info mr-1"
+                           asp-controller="sellerproducts" asp-action="details" asp-route-id="@product.Id">
+                            Details
+                        </a>
+                        <a class="btn btn-danger mr-1"
+                           asp-controller="sellerproducts" asp-action="deactivate" asp-route-id="@product.Id">
+                            Deactivate
+                        </a>
+                        <a class="btn btn-primary mr-1"
+                            asp-controller="images" asp-action="getallproductimages" asp-route-productid="@product.Id">
+                            Images list
+                        </a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@functions {
+    public string GetStatusBadgeColor(string name)
+    {
+        switch (name)
+        {
+            case "AVAILABLE":
+                return "bg-success";
+            case "OUT_OF_STOCK":
+                return "bg-warning";
+            case "DISCONTINUED":
+                return "bg-secondary";
+            default:
+                return "";
+        }
+    }
+}
