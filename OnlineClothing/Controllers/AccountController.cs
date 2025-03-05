@@ -107,12 +107,14 @@ namespace OnlineClothing.Controllers
                 return View(model);
             }
             var userInfo = await context.Userinfos.FirstOrDefaultAsync(ui => ui.Id == user.Id);
-            string avtUrl = "/images/default-avatar.jpg";
+
+            string avatarUrl = "/images/default-avatar.jpg";
+
             if (userInfo != null)
             {
-                avtUrl = userInfo.AvatarUrl;
+                avatarUrl = userInfo.AvatarUrl ?? avatarUrl;
             }
-            HttpContext.Session.SetString("AvatarUrl", avtUrl);
+            HttpContext.Session.SetString("AvatarUrl", avatarUrl);
             HttpContext.Session.SetString("UserId", user.Id.ToString());
             HttpContext.Session.SetString("UserRole", model.UserType.ToUpper());
             if (isCustomer)

@@ -1,4 +1,4 @@
-﻿@model ProductDetailViewModel;
+﻿@model ProductDetailViewModel
 
 @{
     ViewData["Title"] = "Product Details";
@@ -67,6 +67,7 @@
                         </div>
                         <button class="btn btn-primary" onclick="addToCart(@Model.Product.Id)">Add to cart</button>
                         <button class="btn btn-success" onclick="placeOrder(@Model.Product.Id)">Order now</button>
+                        <p id="responseMessage"></p>
                     </div>
                 </div>
             </div>
@@ -147,3 +148,28 @@
         </div>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    function addToCart(productId) {
+        var quantity = document.getElementById("quantity").value;
+        var message = document.getElementById("responseMessage");
+
+        $.ajax({
+            url: '/Cart/AddToCart',
+            type: 'POST',
+            data: { productId: productId, quantity: quantity },
+            success: function (response) {
+                message.innerHTML = "Product added to cart successfully!";
+                message.className = "success-message";
+            },
+            error: function (xhr, status, error) {
+                console.error("Error adding product to cart: ", error);
+                message.innerHTML = "Failed to add product to cart.";
+                message.className = "error-message";
+            }
+        });
+    }
+</script>
+
