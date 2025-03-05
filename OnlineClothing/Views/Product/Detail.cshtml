@@ -1,4 +1,4 @@
-﻿@model ProductDetailViewModel;
+﻿@model ProductDetailViewModel
 
 @{
     ViewData["Title"] = "Product Details";
@@ -48,46 +48,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-8">
-                <div class="card-body">
-                    <h3 class="card-title">@Model.Product.Name</h3>
-                    <p class="card-text"><strong>Categorys:</strong> @Model.Product.Category.Name</p>
-                    <p class="card-text"><strong>Description:</strong> @Model.Product.Description</p>
-                    <p class="card-text text-danger"><strong>Price:</strong> @String.Format("{0:N0} VND", Model.Product.Price - (Model.Product.Price * Model.Product.Discount / 100) ?? 0)</p>
-                    @if (Model.Product.Discount != 0)
-                    {
-                        <p class="card-text"><strong>Old Price:</strong> @String.Format("{0:N0} VND", Model.Product.Price ?? 0)</p>
-                        <p class="card-text"><strong>Discount:</strong> @(Model.Product.Discount ?? 0)%</p>
-                    }
-                    <p class="card-text"><strong>Quantity:</strong> @(Model.Product.Quantity ?? 0)</p>
-                    <p class="card-text"><strong>Status:</strong> @(Model.Product.Status == 1 ? "Available" : "Out of Stock")</p>
-                    <div class="mb-3">
-                        <label for="quantity" class="form-label"><strong>Quantity:</strong></label>
-                        <input type="number" id="quantity" class="form-control" value="1" min="1" max="@Model.Product.Quantity" style="width: 120px;" />
-                    </div>
-                    <button class="btn btn-primary" onclick="addToCart(@Model.Product.Id)">Add to cart</button>
-                    <button class="btn btn-success" onclick="placeOrder(@Model.Product.Id)">Order now</button>
-                    <p id="responseMessage"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-lg p-3 mb-5 bg-white rounded mt-4">
-        <div class="seller-info d-flex align-items-center mb-3">
-            <img src="" class="rounded-circle me-2" width="50" height="50" alt="Seller Avatar">
-            <h5 class="mb-0">@Model.Product.Seller.UserName</h5>
-        </div>
-    </div>
-
-    <div class="mt-4">
-        <h3 class="mt-4">Đánh giá và Nhận xét</h3>
-        @if (Model.Product.Feedbacks != null && Model.Product.Feedbacks.Any())
-        {
-            @foreach (var feedback in Model.Product.Feedbacks)
-            {
-                <div class="card mb-3">
+                <div class="col-md-8">
                     <div class="card-body">
                         <h3 class="card-title">@Model.Product.Name</h3>
                         <p class="card-text"><strong>Categorys:</strong> @Model.Product.Category.Name</p>
@@ -106,6 +67,7 @@
                         </div>
                         <button class="btn btn-primary" onclick="addToCart(@Model.Product.Id)">Add to cart</button>
                         <button class="btn btn-success" onclick="placeOrder(@Model.Product.Id)">Order now</button>
+                        <p id="responseMessage"></p>
                     </div>
                 </div>
             </div>
@@ -183,7 +145,9 @@
         </div>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
     function addToCart(productId) {
         var quantity = document.getElementById("quantity").value;
@@ -195,12 +159,12 @@
             data: { productId: productId, quantity: quantity },
             success: function (response) {
                 message.innerHTML = "Product added to cart successfully!";
-                message.className = "success-message"; 
+                message.className = "success-message";
             },
             error: function (xhr, status, error) {
                 console.error("Error adding product to cart: ", error);
                 message.innerHTML = "Failed to add product to cart.";
-                message.className = "error-message"; 
+                message.className = "error-message";
             }
         });
     }
