@@ -1134,13 +1134,13 @@ Footer Style
 */
 
 footer {
-    margin-top: 150px;
     background-color: #335c67;
     background-repeat: no-repeat;
     background-size: cover;
     background-image: url(../images/footer-bg.jpg);
     min-height: 150px;
     border-radius: 150px 150px 0px 0px;
+    margin-top:auto;
 }
 
     footer p {
@@ -1750,4 +1750,12 @@ body {
     }
 
 @media (max-width: 1200px) {
+}
+
+/* Make the body a flex container */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
 }
