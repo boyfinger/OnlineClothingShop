@@ -1,13 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using OnlineClothing.Models;
 using OnlineClothing.Utils;
-using System.CodeDom.Compiler;
-using System.Net;
-using System.Reflection;
 using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace OnlineClothing.Controllers
 {
