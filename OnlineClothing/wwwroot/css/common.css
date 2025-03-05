@@ -23,11 +23,11 @@ html, body {
 .dropdown-menu-custom {
     display: none;
     position: absolute;
-    background-color: white;
+    background-color: #fff3b0;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    padding: 10px;
-    width: 250px;
+    padding-bottom: 15px;
+    width: 200px;
     right: 0;
     top: 50px;
 }
@@ -39,14 +39,7 @@ html, body {
 
         .dropdown-menu-custom li a {
             text-decoration: none;
-            color: black;
-            display: flex;
-            align-items: center;
-        }
-
-        .dropdown-menu-custom li a {
-            text-decoration: none;
-            color: black;
+            color: #335c67;
             display: flex;
             align-items: center;
         }
@@ -55,15 +48,17 @@ html, body {
                 margin-right: 8px;
             }
 
+    .dropdown-menu-custom .dropdown-item:hover {
+        background-color: black;
+    }
 
-.header-area .main-nav .nav .nav-item.dropdown:last-child a {
-    background-color: transparent;
-    color: inherit;
-}
-/* Disable hover effect when user is logged in */
+    .header-area .main-nav .nav .nav-item.dropdown:last-child a {
+        background-color: transparent;
+        color: #335c67;
+    }
 .header-area .main-nav .nav .nav-item.dropdown:last-child:hover a {
     background-color: transparent;
-    color: inherit;
+    color: #335c67;
 }
 
 /* Style for the avatar dropdown */
@@ -99,5 +94,8 @@ html, body {
     vertical-align: middle; /* Ensures alignment */
     margin-top: -5px; /* Adjust if needed */
 }
+
+ 
+
 
 

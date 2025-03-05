@@ -18,6 +18,7 @@ namespace OnlineClothing.Controllers
             this.emailUtils = emailUtils;
         }
 
+        //Check UserId, if they are already logged in, redirect them to their home page
         [HttpGet]
         public IActionResult Login()
         {
@@ -41,6 +42,7 @@ namespace OnlineClothing.Controllers
             return View();
         }
 
+        //Handle Login process
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -48,6 +50,8 @@ namespace OnlineClothing.Controllers
                 return View(model);
             }
             var user = await context.Users.FirstOrDefaultAsync(u => u.Email == model.LoginEmail);
+
+            //check if user is exists in database
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid email or password.");
@@ -295,7 +299,7 @@ namespace OnlineClothing.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpGet]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
