@@ -7,5 +7,6 @@
         public List<ProductStatus> ProductStatuses { get; set; } = new List<ProductStatus>();
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
+        public string SearchQuery { get; set; }
     }
 }

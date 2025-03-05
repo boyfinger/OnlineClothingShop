@@ -77,8 +77,8 @@ header, nav, section, article, aside, footer, hgroup {
 }
 
 html, body {
-    font-family: 'Poppins', sans-serif;
-    -ms-text-size-adjust: 100%;
+/*    font-family: 'Poppins', sans-serif;
+*/    -ms-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -116,7 +116,7 @@ Global Styles
 */
 html,
 body {
-    font-family: 'Poppins', sans-serif;
+   /* font-family: 'Poppins', sans-serif;*/
 }
 
 ::selection {
@@ -1736,11 +1736,11 @@ body {
 }
 
 .banner-left {
-    left: 60px;
+    left: 0vw;
 }
 
 .banner-right {
-    right: 60px;
+    right: 1vw;
 }
 
     .banner-left img, .banner-right img {

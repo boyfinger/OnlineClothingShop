@@ -53,7 +53,7 @@ namespace OnlineClothing.Controllers
                 List<Product> products = await _context.Products
                     .OrderBy(p => p.Id)
                     .Skip((page - 1) * pageSize)
-                    .Take(pageSize) 
+                    .Take(pageSize)
                     .ToListAsync();
                 var viewModel = new ProductViewModel
                 {
@@ -92,11 +92,12 @@ namespace OnlineClothing.Controllers
                 {
                     Id = p.Id,
                     Name = p.Name,
+                    Description = p.Description,
                     Price = p.Price,
                     ThumbnailUrl = p.ThumbnailUrl,
                     Discount = p.Discount,
                 })
-                .Take(4)
+                .Take(5)
                 .ToListAsync();
 
             var viewModel = new ProductDetailViewModel
@@ -114,26 +115,42 @@ namespace OnlineClothing.Controllers
           Parameters: query - The search keyword entered by the user.
           Returns: A view displaying the list of matching products along with categories and statuses.
         */
-        public async Task<IActionResult> Search(string query)
+        public async Task<IActionResult> Search(string query, int page = 1, int pageSize = 8)
         {
-            if (string.IsNullOrWhiteSpace(query))
+            try
             {
-                return RedirectToAction("Index");
-            }
-            var result = await _context.Products
-                .AsNoTracking()
-                .Where(p => p.Status == 1 &&
-                           (p.Name.ToLower().Contains(query.ToLower()) ||
-                            p.Description.ToLower().Contains(query.ToLower())))
-                .ToListAsync();
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    return RedirectToAction("Index");
+                }
+                var queryable = _context.Products
+                    .AsNoTracking()
+                    .Where(p => p.Status == 1 &&
+                                (p.Name.ToLower().Contains(query.ToLower()) ||
+                                 p.Description.ToLower().Contains(query.ToLower())));
+                int totalProducts = await queryable.CountAsync();
+                List<Product> products = await queryable
+                    .OrderBy(p => p.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+                var viewModel = new ProductViewModel
+                {
+                    Products = products,
+                    Categories = await GetCategories(),
+                    ProductStatuses = await GetProductStatuses(),
+                    CurrentPage = page,
+                    TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize),
+                    SearchQuery = query
+                };
 
-            var viewModel = new ProductViewModel
+                return View("Product", viewModel);
+            }
+            catch (Exception ex)
             {
-                Products = result,
-                Categories = await GetCategories(),
-                ProductStatuses = await GetProductStatuses()
-            };
-            return View("Product", viewModel);
+                Console.WriteLine($"Exception when searching products: {ex.Message}");
+                return View("Error");
+            }
         }
 
         [HttpGet]
