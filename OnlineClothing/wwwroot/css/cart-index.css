@@ -1,0 +1,6 @@
+﻿.thumbnail {
+    width: 80px; /* Set width */
+    height: 80px; /* Set height */
+    object-fit: cover; /* Ensures the image maintains aspect ratio and fills the box */
+    border-radius: 5px; /* Optional: adds rounded corners */
+}
