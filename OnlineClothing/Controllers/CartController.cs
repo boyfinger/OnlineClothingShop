@@ -16,15 +16,13 @@ namespace OnlineClothing.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Get the logged-in user ID (Assuming authentication is used)
             var userId = HttpContext.Session.GetString("UserId");
 
             if (string.IsNullOrEmpty(userId))
             {
-                return RedirectToAction("Login", "Account"); // Redirect if user is not logged in
+                return RedirectToAction("Login", "Account"); 
             }
 
-            // Fetch cart with details
             var cart = await _context.Carts
                 .Include(c => c.CartDetails)
                 .ThenInclude(cd => cd.Product)
@@ -42,25 +40,24 @@ namespace OnlineClothing.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(long productId, int quantity)
         {
-            var userIdString = HttpContext.Session.GetString("UserId");
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                return Unauthorized();
-            }
+            var userId = HttpContext.Session.GetString("UserId");
 
-            Guid userId = Guid.Parse(userIdString);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
             // Find or create the user's cart
             var cart = await _context.Carts
                 .Include(c => c.CartDetails)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+                .FirstOrDefaultAsync(c => c.UserId == Guid.Parse(userId));
 
             if (cart == null)
             {
                 cart = new Cart
                 {
                     Id = Guid.NewGuid(),
-                    UserId = userId,
+                    UserId = Guid.Parse(userId),
                     TotalAmount = 0,
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow
@@ -69,26 +66,22 @@ namespace OnlineClothing.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Get the product details
             var product = await _context.Products.FindAsync(productId);
             if (product == null)
             {
                 return NotFound();
             }
 
-            // Check if the product is already in the cart
             var cartDetail = cart.CartDetails.FirstOrDefault(cd => cd.ProductId == productId);
 
             if (cartDetail != null)
             {
-                // Update quantity and recalculate total price
                 cartDetail.Quantity += quantity;
                 cartDetail.TotalPrice = cartDetail.Quantity * product.Price;
                 cartDetail.UpdateAt = DateTime.UtcNow;
             }
             else
             {
-                // Add new product to cart
                 cartDetail = new CartDetail
                 {
                     CartId = cart.Id,
@@ -101,7 +94,6 @@ namespace OnlineClothing.Controllers
                 _context.CartDetails.Add(cartDetail);
             }
 
-            // Recalculate cart's total amount correctly
             cart.TotalAmount = cart.CartDetails.Sum(cd => cd.TotalPrice);
             cart.UpdateAt = DateTime.UtcNow;
 
@@ -113,8 +105,11 @@ namespace OnlineClothing.Controllers
         [HttpPost]
         public async Task<IActionResult> Remove(long productId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, redirectUrl = Url.Action("Login", "Account") });
+            }
 
             var cart = await _context.Carts
                 .Include(c => c.CartDetails)
@@ -126,11 +121,15 @@ namespace OnlineClothing.Controllers
                 if (item != null)
                 {
                     _context.CartDetails.Remove(item);
+                    cart.TotalAmount -= item.TotalPrice;
                     await _context.SaveChangesAsync();
+
+                    return Json(new { success = true, totalAmount = string.Format("{0:N0} VND", cart.TotalAmount) });
                 }
             }
 
-            return RedirectToAction("Index");
+            return Json(new { success = false });
         }
+
     }
 }

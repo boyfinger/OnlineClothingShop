@@ -42,6 +42,10 @@
                             <li><a href="/Home" id="home-link" class="active">Home</a></li>
                             <li><a href="/product" id="shop-link">Our Shop</a></li>
                             <li><a href="#">Product Details</a></li>
+                            @if (Context.Session.GetString("UserId") != null)
+                            {
+                                <li><a href="/Cart" id="cart-link" class="active">Your Cart</a></li>
+                            }
                             <li><a href="/contact.html">Contact Us</a></li>
 
                             @if (ViewBag.UserId != null)
