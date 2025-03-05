@@ -48,11 +48,11 @@
                             }
                             <li><a href="/contact.html">Contact Us</a></li>
 
-                            @if (ViewBag.UserId != null)
+                            @if (Context.Session.GetString("UserId") != null)
                             {
                                 <li class="nav-item dropdown">
                                     <a href="#" class="nav-link" id="profileDropdown" onclick="menuToggle();">
-                                        <img src="@ViewBag.AvatarUrl" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                                        <img src="@Context.Session.GetString("AvatarUrl")" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
                                     </a>
                                     <ul id="profileMenu" class="dropdown-menu-custom">
                                         <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> My Profile</a></li>
@@ -76,11 +76,9 @@
     <!-- ***** Header Area End ***** -->
 
     <div class="main-banner">
-        <div class="container">
-            <main role="main" class="pb-3">
-                @RenderBody() <!-- This is where the content of the page will be injected -->
-            </main>
-        </div>
+        <main role="main" class="pb-3">
+            @RenderBody() <!-- This is where the content of the page will be injected -->
+        </main>
     </div>
 
     <!-- ***** Footer Area Start ***** -->
