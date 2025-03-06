@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OnlineClothing.Models;
 using OnlineClothing.Utils;
 using System.Text;
@@ -69,10 +70,11 @@ namespace OnlineClothing.Controllers
             // Check if the password matches
             if (user.Password != EncryptionUtils.EncodeSha256(model.LoginPassword))
             {
+                //If user login failed more than 5 times, banned account
                 HttpContext.Session.SetInt32($"FailedAttempts_{model.LoginUserName}", failedAttempts + 1);
                 if (failedAttempts + 1 >= 5)
                 {
-                    user.Status = 3; // Lock account after 5 failed attempts
+                    user.Status = 3;
                     await context.SaveChangesAsync();
 
                     ModelState.AddModelError(string.Empty, "Your account has been banned due to too many failed login attempts.");
@@ -84,7 +86,7 @@ namespace OnlineClothing.Controllers
                 return View(model);
             }
 
-            HttpContext.Session.SetInt32($"FailedAttempts_{model.LoginUserName}", 0); // Reset failed attempts after successful login
+            HttpContext.Session.SetInt32($"FailedAttempts_{model.LoginUserName}", 0);
 
             // If account is pending verification
             if (user.Status == 2)
@@ -109,10 +111,8 @@ namespace OnlineClothing.Controllers
                 .Where(ur => ur.UserId == user.Id)
                 .Select(ur => ur.RoleId)
                 .ToListAsync();
-
             bool isSeller = userRoles.Contains(2);
             bool isCustomer = userRoles.Contains(3);
-
             if (model.UserType == "seller" && !isSeller)
             {
                 ModelState.AddModelError(string.Empty, "You are not a seller.");
@@ -125,9 +125,7 @@ namespace OnlineClothing.Controllers
             }
 
             var userInfo = await context.Userinfos.FirstOrDefaultAsync(ui => ui.Id == user.Id);
-
             string avatarUrl = "/images/user-avatar/default-avatar.jpg";
-
             if (userInfo != null)
             {
                 avatarUrl = userInfo.AvatarUrl ?? avatarUrl;
@@ -137,7 +135,6 @@ namespace OnlineClothing.Controllers
             HttpContext.Session.SetString("UserId", user.Id.ToString());
             HttpContext.Session.SetString("UserRole", model.UserType.ToUpper());
 
-            // Redirect based on user type
             if (isCustomer)
             {
                 return RedirectToAction("Index", "Home");
@@ -147,7 +144,6 @@ namespace OnlineClothing.Controllers
                 return RedirectToAction("Index", "SellerProducts");
             }
         }
-
 
         [HttpGet]
         public IActionResult AdminLogin()
@@ -280,9 +276,8 @@ namespace OnlineClothing.Controllers
                 });
             }
             await context.SaveChangesAsync();
-            HttpContext.Session.SetString("UserId", newUser.Id.ToString());
             HttpContext.Session.SetString("UserRole", model.UserType.ToUpper());
-            HttpContext.Session.SetString("AvatarUrl", userInfo.AvatarUrl);
+            HttpContext.Session.SetString("UserId", newUser.Id.ToString());
             string token = GenerateVerificationToken(newUser.Email);
             string verificationLink = $"http://localhost:5222/Account/VerifyEmail?token={token}";
             string subject = "Please Verify Your Email Address";
@@ -297,7 +292,7 @@ namespace OnlineClothing.Controllers
             try
             {
                 var email = DecodeVerificationToken(token);
-                var user = context.Users.FirstOrDefault(u => u.Email == email);
+                var user = context.Users.Include(u => u.Userinfo).FirstOrDefault(u => u.Email == email);
 
                 if (user == null)
                 {
@@ -317,6 +312,7 @@ namespace OnlineClothing.Controllers
                 }
 
                 user.Status = 1;
+                HttpContext.Session.SetString("UserId", user.Id.ToString());
                 context.SaveChanges();
                 return View("Verified");
             }
@@ -395,6 +391,7 @@ namespace OnlineClothing.Controllers
             {
                 return RedirectToAction("NotFound");
             }
+            HttpContext.Session.Remove("UserId");
             return View();
         }
 
@@ -426,14 +423,12 @@ namespace OnlineClothing.Controllers
             return View();
         }
 
-
-
-
-
         //Settings for User
         public IActionResult UserProfile()
         {
             var userId = HttpContext.Session.GetString("UserId");
+            var avatarUrl = HttpContext.Session.GetString("AvatarUrl");
+            if (avatarUrl == null && userId != null) return RedirectToAction("Logout");
             if (userId == null) return RedirectToAction("Login");
 
             var user = context.Users.Include(u => u.Userinfo).FirstOrDefault(u => u.Id.ToString() == userId);
@@ -495,7 +490,7 @@ namespace OnlineClothing.Controllers
                 // Handle avatar file if it is provided
                 if (model.AvatarFile != null && model.AvatarFile.Length > 0)
                 {
-                    string fileName = $"{model.UserName}-avatar.jpg"; // Generate a unique file name
+                    string fileName = $"{userId}-avatar.jpg";
                     string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "user-avatar", fileName);
 
                     // Save the avatar image to the file system
@@ -534,6 +529,60 @@ namespace OnlineClothing.Controllers
             if (!ValidationUtils.IsValidGender(gender: model.Gender)) return "Please choose a gender.";
             if (!ValidationUtils.IsValidDateOfBirth(model.DateOfBirth)) return "You must be older than 18 years old";
             return null;
+        }
+
+        public IActionResult ChangePassword()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId == null) return RedirectToAction("Index", "Home");
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePassViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+            
+            var userId = HttpContext.Session.GetString("UserId");
+            var user = context.Users.FirstOrDefault(u => u.Id.ToString() == userId);
+
+            //compare old password
+            string password_hash = EncryptionUtils.EncodeSha256(model.OldPassword);
+            if(password_hash != user.Password.ToString())
+            {
+                ModelState.AddModelError(string.Empty, "Your current password is wrong.");
+                return View(model);
+            }
+            if(model.OldPassword == model.NewPassword)
+            {
+                ModelState.AddModelError(string.Empty, "Your new password is the same as your old one.");
+                return View(model);
+            }
+            if(model.NewPassword != model.ConfirmPassword)
+            {
+                ModelState.AddModelError(string.Empty, "You new password is not the same as the confirm one.");
+                return View(model);
+            }
+
+            bool validationPassword = ValidationUtils.IsValidPassword(model.NewPassword);
+            if (!validationPassword)
+            {
+                ModelState.AddModelError(string.Empty, "Password must have at least 8 characters long, at least 1 uppercase, at least 1 lowercase, at least 1 number");
+                return View(model);
+            }
+
+            user.Password = EncryptionUtils.EncodeSha256(model.NewPassword);
+            context.Update(user);
+            await context.SaveChangesAsync();
+
+            return RedirectToAction("ChangePasswordSuccess");
+        }
+
+        [HttpGet]
+        public IActionResult ChangePasswordSuccess()
+        {
+            return View();
         }
     }
 }
