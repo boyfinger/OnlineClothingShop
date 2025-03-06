@@ -10,11 +10,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
 
-    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/signup.css" asp-append-version="true">
 </head>
 <body>
 
-    <div class="container" id="container">
+    <div class="container">
         <!-- Sign-Up Form -->
         <div class="form-container sign-in-container">
             <form method="post" asp-action="SignUp">
@@ -44,9 +44,9 @@
                 <input style="margin:3px 0;" type="date" asp-for="DateOfBirth" placeholder="Date of Birth" required />
                 <input style="margin:3px 0;" type="text" asp-for="Address" placeholder="Address" required />
 
-                <h2><a style="color: #e09f3e" href="/Account/Login">Login</a></h2>
+                <h2><a href="/Account/Login">Login</a></h2>
                 <button type="submit">Sign Up</button>
-                <h2><a style="color: #e09f3e" href="/Home"> - Back to Home - </a></h2>
+                <h2><a href="/Home"> - Back to Home - </a></h2>
             </form>
         </div>
     </div>
