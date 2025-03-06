@@ -73,15 +73,18 @@
             </div>
         </div>
 
-        <div class="card shadow-lg p-3 mb-5 bg-white rounded mt-4">
+        @{
+            string AvatarUrl = Model?.Product?.Seller?.Userinfo?.AvatarUrl ?? "/images/default-avatar.jpg";
+        }
+        <div class="card shadow-lg p-3 mb-5 bg-white rounded mt-5">
             <div class="seller-info d-flex align-items-center mb-3">
-                <img src="" class="rounded-circle me-2" width="50" height="50" alt="Seller Avatar">
-                <h5 class="mb-0">@Model.Product.Seller.UserName</h5>
+                <img src="@AvatarUrl" class="rounded-circle me-2 profile-image" alt="Seller Avatar" style="width:50px; height:50px; border-radius:50%;">
+                <h5 class="mx-2">@Model.Product.Seller.UserName</h5>
             </div>
         </div>
 
-        <div class="mt-4">
-            <h3 class="mt-4">Đánh giá và Nhận xét</h3>
+        <div class="mt-5">
+            <h3 class="mt-4 mb-3">Đánh giá và Nhận xét</h3>
             @if (Model.Product.Feedbacks != null && Model.Product.Feedbacks.Any())
             {
                 @foreach (var feedback in Model.Product.Feedbacks)
@@ -111,16 +114,17 @@
             }
         </div>
 
-        <div class="related-products">
+        <div class="related-products mt-5">
             <h3>Sản phẩm tương tự</h3>
-            <div class="row">
+            <div class="row row-cols-1 row-cols-lg-5 g-3 mt-3">
                 @foreach (var product in Model.RelatedProducts)
                 {
-                    <div class="col-md-3 mb-3">
+                    <div class="mb-3">
                         <div class="card h-100 d-flex flex-column">
                             <img src="@product.ThumbnailUrl" class="card-img-top img-fixed" alt="@product.Name">
                             <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@product.Name</h5>
+                                <a asp-action="Detail" asp-route-id="@product.Id" class="card-title"><strong>@product.Name</strong></a>
+                                <p class="card-text flex-grow-1 product-description">@product.Description</p>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     @if (product.Discount != null)
                                     {
@@ -136,7 +140,6 @@
                                 {
                                     <p class="card-text mb-2">&nbsp;</p>
                                 }
-                                <a asp-action="Detail" asp-route-id="@product.Id" class="btn btn-primary mt-auto">Xem chi tiết</a>
                             </div>
                         </div>
                     </div>

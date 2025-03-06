@@ -11,10 +11,6 @@
         object-fit: cover;
     }
 
-    h5 {
-        font-family: system-ui,-apple-system, "Segoe UI", system-ui, sans-serif;
-    }
-
     .pagination .page-link {
         color: black !important;
     }
@@ -25,22 +21,29 @@
         border-color: black !important;
     }
 
+    .container-spec {
+        width: 80%;
+        padding-right: 15px;
+        padding-left: 15px;
+        margin-right: auto;
+        margin-left: auto;
+    }
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<div class="container">
+<div class="container-spec">
     <h2 class="text-center mt-5">Product List</h2>
 
     <form asp-controller="Product" asp-action="Search" method="get" class="mb-3 mt-5 position-relative">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <div style="position: relative; width: 1000px;">
+        <div class="d-flex mb-2">
+            <div style="position: relative; width: 58vw;">
                 <input type="text" id="searchBox" name="query" class="form-control"
-                       placeholder="Nhập tên sản phẩm..." required autocomplete="off" />
+                       placeholder="Nhập tên sản phẩm..." required autocomplete="off" value="@Model.SearchQuery" />
                 <div id="suggestions" class="list-group"
                      style="position: absolute; width: 100%; z-index: 1000; display: none;"></div>
             </div>
-            <div class="d-flex">
-                <button type="submit" class="btn btn-dark ms-2">Tìm kiếm</button>
+            <div class="d-flex mx-3">
+                <button type="submit" class="btn btn-dark ms-2" style="font-size: 14px">Tìm kiếm</button>
                 <a asp-action="Index" class="btn btn-secondary ms-2">Back to list</a>
             </div>
         </div>
@@ -57,17 +60,17 @@
         </ol>
     </nav>
 
-    <div class="container">
+    <div class="">
         <div class="row">
-            <div class="col-xl-9">
+            <div class="col-lg-9">
                 <div class="row">
                     @foreach (var product in Model.Products)
                     {
-                        <div class="col-md-3 mb-3">
+                        <div class="col-lg-3 mb-3">
                             <div class="card h-100 d-flex flex-column">
                                 <img src="@product.ThumbnailUrl" class="card-img-top img-fixed" alt="@product.Name">
                                 <div class="card-body d-flex flex-column">
-                                    <p class="card-title product-name"><strong>@product.Name</strong></p>
+                                    <a asp-action="Detail" asp-route-id="@product.Id" class="card-title product-name"><strong>@product.Name</strong></a>
                                     <p class="card-text flex-grow-1 product-description">@product.Description</p>
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         @if (product.Discount != null)
@@ -87,7 +90,7 @@
                                     {
                                         <p class="card-text mb-2">&nbsp;</p>
                                     }
-                                    <a asp-action="Detail" asp-route-id="@product.Id" class="btn btn-dark mt-auto">Xem chi tiết</a>
+                                    <button class="btn btn-dark mt-auto" onclick="addToCart(@product.Id)">Add to cart</button>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +101,7 @@
             <div class="col-xl-3">
                 <div class="card">
                     <div class="card-header" style="background-color:black">
-                        <p style="color: white; font-size: 20px">Bộ lọc sản phẩm</p>
+                        <p style="color: white; font-size: 16px">Bộ lọc sản phẩm</p>
                     </div>
                     <div class="card-body">
                         <form method="get" asp-action="FilterProducts">
@@ -140,7 +143,6 @@
                                         3 => "Ngừng kinh doanh",
                                         _ => status.Name
                                     };
-
                                     <option value="@status.Id">@statusName</option>
                                 }
                             </select>
@@ -161,19 +163,28 @@
                         @if (Model.CurrentPage > 1)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1 })">← Trước</a>
+                                <a class="page-link"
+                                   href="@Url.Action(Model.SearchQuery == null ? "Index" : "Search", new { query = Model.SearchQuery, page = Model.CurrentPage - 1 })">
+                                    ← Trước
+                                </a>
                             </li>
                         }
                         @for (int i = 1; i <= Model.TotalPages; i++)
                         {
                             <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                                <a class="page-link"
+                                   href="@Url.Action(Model.SearchQuery == null ? "Index" : "Search", new { query = Model.SearchQuery, page = i })">
+                                    @i
+                                </a>
                             </li>
                         }
                         @if (Model.CurrentPage < Model.TotalPages)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1 })">Tiếp →</a>
+                                <a class="page-link"
+                                   href="@Url.Action(Model.SearchQuery == null ? "Index" : "Search", new { query = Model.SearchQuery, page = Model.CurrentPage + 1 })">
+                                    Tiếp →
+                                </a>
                             </li>
                         }
                     </ul>
@@ -183,13 +194,14 @@
     </div>
 </div>
 <div class="banner-left">
-    <img src="./images/skyscraper.png" alt="Left Banner">
+    <img src="/images/skyscraper.png" alt="Left Banner">
 </div>
 
 <div class="banner-right">
-    <img src="./images/skyscraper.png" alt="Right Banner">
+    <img src="/images/skyscraper.png" alt="Right Banner">
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function () {
         $("#searchBox").on("keyup", function () {
@@ -228,4 +240,31 @@
             }
         });
     });
+
+    function addToCart(productId) {
+        var quantity = 1;
+
+        $.ajax({
+            url: '/Cart/AddToCart',
+            type: 'POST',
+            data: { productId: productId, quantity: quantity },
+            success: function (response) {
+                Swal.fire({
+                    title: "Thành công!",
+                    text: "Sản phẩm đã được thêm vào giỏ hàng.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi thêm sản phẩm vào giỏ hàng: ", error);
+                Swal.fire({
+                    title: "Thất bại!",
+                    text: "Không thể thêm sản phẩm vào giỏ hàng.",
+                    icon: "error"
+                });
+            }
+        });
+    }
 </script>
