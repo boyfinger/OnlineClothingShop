@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
 using OnlineClothing.Services;
@@ -25,6 +26,13 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;  // Makes the session cookie HttpOnly
     options.Cookie.IsEssential = true;  // Ensures cookies are essential for the app
 });
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = 104857600;
+});
+
 
 var app = builder.Build();
 

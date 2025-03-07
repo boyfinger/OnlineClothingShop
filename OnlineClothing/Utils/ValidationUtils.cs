@@ -24,6 +24,11 @@ namespace OnlineClothing.Utils
             return gender == "male" || gender == "female" || gender == "other";
         }
 
+        public static bool IsValidGender(int? gender)
+        {
+            return gender == 1 || gender == 2 || gender == 3;
+        }
+
         public static bool IsValidMobile(string mobile)
         {
             string mobileRegex = @"^(09|03|05|07|08)\d{8}$";
@@ -57,6 +62,24 @@ namespace OnlineClothing.Utils
             string pattern = @"^[a-zA-Z0-9_]+$";
             Regex regex = new Regex(pattern);
             if (!regex.IsMatch(userName)) return false;
+            return true;
+        }
+
+        public static bool IsValidAvatar(IFormFile avatarFile)
+        {
+            const long maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
+            if (avatarFile.Length > maxFileSize)
+                return false;
+
+            string[] validExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+            string fileExtension = Path.GetExtension(avatarFile.FileName).ToLower();
+            if (!Array.Exists(validExtensions, ext => ext == fileExtension))
+                return false;
+
+            var mimeType = avatarFile.ContentType.ToLower();
+            if (!mimeType.StartsWith("image/"))
+                return false;
+
             return true;
         }
     }

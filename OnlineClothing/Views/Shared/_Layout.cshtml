@@ -15,6 +15,12 @@
 
 </head>
 <body>
+    @if(Context.Session.GetString("UserId") != null && Context.Session.GetString("AvatarUrl") == null)
+    {
+        <script>
+            window.location.href = "/Account/Logout";
+        </script>
+    }
     <div id="js-preloader" class="js-preloader">
         <div class="preloader-inner">
             <span class="dot"></span>
@@ -56,9 +62,8 @@
                                         <img src="@Context.Session.GetString("AvatarUrl")" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
                                     </a>
                                     <ul id="profileMenu" class="dropdown-menu-custom">
-                                        <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> My Profile</a></li>
-                                        <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i> Change Password</a></li>
-                                        <li><a class="dropdown-item" href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+                                        <li><a class="dropdown-item" href="/Account/UserProfile"><i class="fas fa-cog"></i>Settings</a></li>
+                                        <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i>Change Password</a></li>
                                         <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                                     </ul>
                                 </li>
@@ -91,6 +96,7 @@
         </div>
     </footer>
     <!-- ***** Footer Area End ***** -->
+
     <!-- Scripts -->
     <script src="~/jquery/jquery.min.js"></script>
     <script src="~/js/custom.js"></script>
@@ -100,6 +106,8 @@
     <script src="~/js/counter.js"></script>
     <script src="~/js/header.js"></script>
 
+    <!-- Render Section for Scripts -->
+    @RenderSection("Scripts", required: false)
 
     <!-- Custom JS to hide preloader after content is loaded -->
     <script>
