@@ -1,52 +1,67 @@
 ﻿@model OnlineClothing.Models.Cart
 
 <link rel="stylesheet" href="~/css/cart-index.css" asp-append-version="true" />
-<h2>Your Shopping Cart</h2>
 
-@if (ViewBag.Message != null)
-{
-    <p>@ViewBag.Message</p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Thumbnail</th>
-                <th>Product Name</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Total</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.CartDetails)
-            {
-                <tr id="row-@item.ProductId">
-                    <td>
-                        <img src="@item.Product.ThumbnailUrl" alt="@item.Product.Name" class="thumbnail">
-                    </td>
-                    <td>@item.Product.Name</td>
-                    <td>@item.Quantity</td>
-                    <td>@string.Format("{0:N0} VND", item.Product.Price)</td>
-                    <td>@string.Format("{0:N0} VND", item.Quantity * item.Product.Price)</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm remove-btn" data-product-id="@item.ProductId">Remove</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="container my-4">
+    <h2 class="text-center mb-4">Your Shopping Cart</h2>
 
-    <h4>Total Amount: <span id="total-amount">@string.Format("{0:N0} VND", Model.TotalAmount)</span></h4>
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-info text-center">
+            @ViewBag.Message
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Thumbnail</th>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.CartDetails)
+                    {
+                        <tr id="row-@item.ProductId">
+                            <td>
+                                <img src="@item.Product.ThumbnailUrl" alt="@item.Product.Name" class="img-thumbnail" style="width: 80px; height: 80px;">
+                            </td>
+                            <td>@item.Product.Name</td>
+                            <td>
+                                <input type="number" class="form-control text-center quantity-input" value="@item.Quantity" min="1" max="@item.Product.Quantity" data-product-id="@item.ProductId" style="width: 80px;">
+                            </td>
+                            <td>@string.Format("{0:N0} VND", item.Product.Price)</td>
+                            <td class="total-price">@string.Format("{0:N0} VND", item.Quantity * item.Product.Price)</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm remove-btn" data-product-id="@item.ProductId">
+                                    <i class="fas fa-trash-alt"></i> Remove
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
-    <a href="/Checkout" class="btn btn-primary">Proceed to Checkout</a>
-}
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <h4>Total Amount: <span id="total-amount" class="text-primary">@string.Format("{0:N0} VND", Model.TotalAmount)</span></h4>
+            <a href="/Checkout" class="btn btn-success btn-lg">
+                <i class="fas fa-shopping-cart"></i> Proceed to Checkout
+            </a>
+        </div>
+    }
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script> <!-- FontAwesome Icons -->
 <script>
-        $(document).ready(function () {
+    $(document).ready(function () {
         $(".remove-btn").click(function () {
             var productId = $(this).data("product-id");
             var row = $("#row-" + productId);
@@ -57,7 +72,7 @@ else
                 data: { productId: productId },
                 success: function (response) {
                     if (response.success) {
-                        row.remove();
+                        row.fadeOut(300, function () { $(this).remove(); });
                         $("#total-amount").text(response.totalAmount);
                     } else if (response.redirectUrl) {
                         window.location.href = response.redirectUrl;
@@ -68,6 +83,26 @@ else
                 }
             });
         });
-    });
 
+        $(".quantity-input").on("change", function () {
+            var productId = $(this).data("product-id");
+            var newQuantity = $(this).val();
+            var row = $("#row-" + productId);
+
+            $.ajax({
+                url: "/Cart/UpdateQuantity",
+                type: "POST",
+                data: { productId: productId, quantity: newQuantity },
+                success: function (response) {
+                    if (response.success) {
+                        row.find(".total-price").text(response.newTotalPrice);
+                        $("#total-amount").text(response.totalAmount);
+                    }
+                },
+                error: function () {
+                    alert("Failed to update quantity.");
+                }
+            });
+        });
+    });
 </script>

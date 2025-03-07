@@ -131,5 +131,50 @@ namespace OnlineClothing.Controllers
             return Json(new { success = false });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateQuantity(long productId, int quantity)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, redirectUrl = Url.Action("Login", "Account") });
+            }
+
+            var cart = await _context.Carts
+                .Include(c => c.CartDetails)
+                .ThenInclude(cd => cd.Product) // Include product to access its price
+                .FirstOrDefaultAsync(c => c.UserId == Guid.Parse(userId));
+
+            if (cart == null)
+            {
+                return Json(new { success = false });
+            }
+
+            var item = cart.CartDetails.FirstOrDefault(cd => cd.ProductId == productId);
+            if (item == null || quantity <= 0)
+            {
+                return Json(new { success = false });
+            }
+
+            // Update quantity and total price of the item
+            item.Quantity = quantity;
+            item.TotalPrice = item.Quantity * item.Product.Price;
+            item.UpdateAt = DateTime.UtcNow;
+
+            // Update total cart amount
+            cart.TotalAmount = cart.CartDetails.Sum(cd => cd.TotalPrice);
+            cart.UpdateAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                newTotalPrice = string.Format("{0:N0} VND", item.TotalPrice),
+                totalAmount = string.Format("{0:N0} VND", cart.TotalAmount)
+            });
+        }
+
+
     }
 }
