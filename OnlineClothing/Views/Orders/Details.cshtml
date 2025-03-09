@@ -1,0 +1,65 @@
+﻿@model OnlineClothing.Models.Order
+
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<h2>Order Details</h2>
+
+<table class="table">
+    <tr>
+        <th>Full Name:</th>
+        <td>@Model.FullName</td>
+    </tr>
+    <tr>
+        <th>Phone Number:</th>
+        <td>@Model.PhoneNumber</td>
+    </tr>
+    <tr>
+        <th>Address:</th>
+        <td>@Model.Address</td>
+    </tr>
+    <tr>
+        <th>Order Date:</th>
+        <td>@Model.OrderDate?.ToString("dd-MM-yyyyy")</td>
+    </tr>
+    <tr>
+        <th>Status:</th>
+        <td>@Model.StatusNavigation?.Name</td>
+    </tr>
+    <tr>
+        <th>Total Amount:</th>
+        <td>@string.Format("{0:N0} VND", @Model.TotalAmount)</td>
+    </tr>
+</table>
+
+<h3>Ordered Items</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Thumbnail</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+            <th>Discount</th>
+            <th>Total Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.OrderDetails)
+        {
+            <tr>
+                <td>
+                    <img src="@item.Product?.ThumbnailUrl" alt="@item.Product?.Name" class="img-thumbnail" style="width: 80px; height: 80px;">
+                </td>
+                <td>@item.Product?.Name</td>
+                <td>@item.Quantity</td>
+                <td>@string.Format("{0:N0} VND", @item.UnitPrice)</td>
+                <td>@item.Discount</td>
+                <td>@string.Format("{0:N0} VND", @item.TotalPrice)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a href="@Url.Action("Index", "Orders")" class="btn btn-secondary">Back to Orders</a>
