@@ -436,14 +436,14 @@ namespace OnlineClothing.Controllers
 
             UserViewModel vm = new UserViewModel()
             {
-                AvatarUrl = user.Userinfo.AvatarUrl,
+                AvatarUrl = user.Userinfo.AvatarUrl ?? "/images/user-avatar/default-avatar.jpg",
                 UserName = user.UserName,
                 Email = user.Email,
-                FullName = user.Userinfo.FullName,
-                PhoneNumber = user.Userinfo.PhoneNumber,
+                FullName = user.Userinfo.FullName ?? "",
+                PhoneNumber = user.Userinfo.PhoneNumber ?? "",
                 Gender = user.Userinfo.Gender ?? 1,
                 DateOfBirth = user.Userinfo.DateOfBirth ?? new DateOnly(2000, 1, 1),
-                Address = user.Userinfo.Address,
+                Address = user.Userinfo.Address ?? "",
             };
 
             return View(vm);
