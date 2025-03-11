@@ -35,6 +35,7 @@ namespace OnlineClothing.Controllers
             {
                 return RedirectToAction("Index", "Cart");
             }
+
             _request.orderId = Guid.NewGuid().ToString();
             _request.orderInfo = $"Order [{_request.orderId}]";
             _request.amount = (long)cart.TotalAmount;
@@ -182,8 +183,10 @@ namespace OnlineClothing.Controllers
                         OrderDate = DateTime.Now,
                         Status = 1,
                         TotalAmount = (int)_request.amount,
-
+                        CreateAt = DateTime.Now
                     };
+                    await _context.Orders.AddAsync(order);
+                    await _context.SaveChangesAsync();
                     TempData["response"] = contents;
                     return Redirect(payUrl); // Redirect to the payment page
                 }
@@ -208,11 +211,13 @@ namespace OnlineClothing.Controllers
                 PayUrl = payUrl,
                 ShortLink = shortLink
             };
-
+            if (paymentResult.ResultCode.Equals("0"))
+            {
+                Order order = await _context.Orders.FindAsync(Guid.Parse(orderId));
+                
+            }
             return View(paymentResult);
         }
-
-
 
         private static string getSignature(string text, string key)
         {
