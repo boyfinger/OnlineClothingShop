@@ -9,9 +9,9 @@ public partial class CartDetail
 
     public long ProductId { get; set; }
 
-    public int? Quantity { get; set; }
+    public int Quantity { get; set; }
 
-    public int? TotalPrice { get; set; }
+    public int TotalPrice { get; set; }
 
     public DateTime? CreateAt { get; set; }
 

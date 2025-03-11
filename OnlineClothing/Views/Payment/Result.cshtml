@@ -1,0 +1,64 @@
+﻿@model OnlineClothing.Models.MoMo.PaymentResult
+
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-primary mb-4">Payment Result</h2>
+
+        <table class="table table-bordered table-hover text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Partner Code</td>
+                    <td>String</td>
+                    <td>@Model.PartnerCode</td>
+                </tr>
+                <tr>
+                    <td>Request ID</td>
+                    <td>String</td>
+                    <td>@Model.RequestId</td>
+                </tr>
+                <tr>
+                    <td>Order ID</td>
+                    <td>String</td>
+                    <td>@Model.OrderId</td>
+                </tr>
+                <tr>
+                    <td>Amount</td>
+                    <td>Long</td>
+                    <td>@Model.Amount</td>
+                </tr>
+                <tr>
+                    <td>Response Time</td>
+                    <td>Long</td>
+                    <td>@Model.ResponseTime</td>
+                </tr>
+                <tr>
+                    <td>Message</td>
+                    <td>String</td>
+                    <td>@Model.Message</td>
+                </tr>
+                <tr>
+                    <td>Result Code</td>
+                    <td>Int</td>
+                    <td>@Model.ResultCode</td>
+                </tr>
+                <tr>
+                    <td>Pay URL</td>
+                    <td>String</td>
+                    <td><a href="@Model.PayUrl" target="_blank">@Model.PayUrl</a></td>
+                </tr>
+                <tr>
+                    <td>Short Link</td>
+                    <td>String</td>
+                    <td><a href="@Model.ShortLink" target="_blank">@Model.ShortLink</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
