@@ -38,13 +38,13 @@ namespace OnlineClothing.Controllers
 
         // GET: Orders/Details/5
         [HttpGet]
-        public async Task<IActionResult> Details(long id)
+        public async Task<IActionResult> Details(Guid id)
         {
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
                 .Include(o => o.StatusNavigation)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .FirstOrDefaultAsync(o => o.Id.Equals(id));
 
             if (order == null)
             {
