@@ -584,5 +584,40 @@ namespace OnlineClothing.Controllers
         {
             return View();
         }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotModelView model)
+        {
+            if(!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            //check if email is valid
+            if(!ValidationUtils.IsValidEmail(model.Email))
+            {
+                ModelState.AddModelError(string.Empty, "Please enter valid email!");
+                return View(model);
+            }
+
+            //check in database if the email is exists
+            User user = context.Users.FirstOrDefault(u => u.Email == model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "The email address is not assigned to any user account");
+                return View(model);
+            }
+
+            //send reset email
+
+
+            return View(model);
+        }
     }
 }
