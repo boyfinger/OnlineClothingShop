@@ -1,100 +1,40 @@
 ﻿@model OnlineClothing.Models.MoMo.CollectionLinkRequest
-using System.Net.Json;
-@using System.Text.Json
+
 @{
-    var modelJson = JsonSerializer.Serialize(Model);
+    ViewData["Title"] = "Thanh toán";
 }
-@{
-    ViewData["Title"] = "Checkout";
-}
+
 <div class="container mt-5">
-    <div class="card shadow-lg p-4">
-        <h2 class="text-center text-primary mb-4">Checkout</h2>
-        <h3 class="text-center text-primary mb-4">@TempData["message"]</h3>
-        <div class="alert alert-info text-center">
-            <strong>Order ID:</strong> @Model.orderId
-        </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
 
-        <form asp-action="UpdateOrderDetails" method="post" novalidate>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label asp-for="UserInfo.Name" class="form-label"></label>
-                    <input asp-for="UserInfo.Name" class="form-control" />
-                    <span asp-validation-for="UserInfo.Name" class="text-danger"></span>
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-x-circle"></i> @TempData["error"]
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="UserInfo.PhoneNumber" class="form-label"></label>
-                    <input asp-for="UserInfo.PhoneNumber" class="form-control" />
-                    <span asp-validation-for="UserInfo.PhoneNumber" class="text-danger"></span>
+            }
+            else if (TempData["message"] != null)
+            {
+                var messageType = TempData["messageType"]?.ToString() == "success" ? "alert-success" : "alert-warning";
+                <div class="alert @messageType" role="alert">
+                    <i class="bi bi-info-circle"></i> @TempData["message"]
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="UserInfo.Address" class="form-label"></label>
-                    <input asp-for="UserInfo.Address" class="form-control" />
-                    <span asp-validation-for="UserInfo.Address" class="text-danger"></span>
-                </div>
-            </div>
 
-            <div class="table-responsive mt-4">
-                <table class="table table-bordered table-hover text-center">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>#</th>
-                            <th>Product</th>
-                            <th>Price (VND)</th>
-                            <th>Quantity</th>
-                            <th>Total Price (VND)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Items.Any())
-                        {
-                            int index = 1;
-                            @foreach (var item in Model.Items)
-                            {
-                                <tr>
-                                    <td>@index</td>
-                                    <td>@item.Name</td>
-                                    <td>@string.Format("{0:N0}", item.Price)</td>
-                                    <td>@item.Quantity</td>
-                                    <td class="text-success fw-bold">@string.Format("{0:N0}", item.TotalPrice)</td>
-                                </tr>
-                                index++;
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="5" class="text-center text-danger">Your cart is empty.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="text-end mt-3">
-                <h4 class="text-primary fw-bold">Total Amount: @string.Format("{0:N0}", Model.amount) VND</h4>
-            </div>
-
-            @* <div class="text-center mt-4">
-                <button type="submit" class="btn btn-lg btn-primary">
-                    <i class="bi bi-pencil-square"></i> Update Shipping Information
-                </button>
-            </div> *@
-        </form>
-
-        <div class="text-center mt-4">
-            <form asp-action="CheckOut" method="post">
-                <input type="hidden" name="requestJson" value='@Html.Raw(modelJson)' />
-                <button type="submit" class="btn btn-lg btn-success">
-                    <i class="bi bi-credit-card"></i> Proceed to Payment
-                </button>
-            </form>
+                @if (TempData["paymentLink"] != null)
+                {
+                    <div class="text-center">
+                        <a href="@TempData["paymentLink"]" class="btn btn-primary">🔗 Link thanh toán</a>
+                    </div>
+                }
+                @if (TempData["orderId"] != null)
+                {
+                    <div class="text-center">
+                        <a href="/Orders/Details/@(TempData["orderId"])" class="btn btn-secondary">📜 Xem đơn hàng</a>
+                    </div>
+                }
+            }
         </div>
     </div>
 </div>
 
-@section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
-}
