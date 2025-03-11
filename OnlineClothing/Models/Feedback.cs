@@ -11,7 +11,7 @@ public partial class Feedback
 
     public long? ProductId { get; set; }
 
-    public long? OrderId { get; set; }
+    public Guid? OrderId { get; set; }
 
     public byte? Rating { get; set; }
 
