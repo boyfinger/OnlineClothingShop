@@ -163,9 +163,7 @@ namespace OnlineClothing.Controllers
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(_request), System.Text.Encoding.UTF8, "application/json");
             var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/create", httpContent);
             var contents = await quickPayResponse.Content.ReadAsStringAsync();
-            Console.WriteLine("---------------------------------------------------");
-            Console.WriteLine(contents);
-            Console.WriteLine("---------------------------------------------------");
+
             using JsonDocument doc = JsonDocument.Parse(contents);
             JsonElement root = doc.RootElement;
 
@@ -174,6 +172,18 @@ namespace OnlineClothing.Controllers
                 string payUrl = payUrlElement.GetString() ?? string.Empty;
                 if (!string.IsNullOrEmpty(payUrl))
                 {
+                    Order order = new Order
+                    {
+                        CustomerId = Guid.Parse(userId),
+                        FullName = _request.UserInfo.Name,
+                        PhoneNumber = _request.UserInfo.PhoneNumber,
+                        Address = _request.UserInfo.Address,
+                        Note = "none",
+                        OrderDate = DateTime.Now,
+                        Status = 1,
+                        TotalAmount = (int)_request.amount,
+
+                    };
                     TempData["response"] = contents;
                     return Redirect(payUrl); // Redirect to the payment page
                 }
@@ -185,9 +195,6 @@ namespace OnlineClothing.Controllers
         [HttpGet]
         public async Task<IActionResult> Result(string orderId, string requestId, string resultCode, string message, string partnerCode, long amount, long responseTime, string payUrl, string shortLink)
         {
-            Console.WriteLine("__________________________________________________________");
-            Console.WriteLine("An UwU OwO OvO UvU");
-            Console.WriteLine("__________________________________________________________");
 
             var paymentResult = new PaymentResult
             {
