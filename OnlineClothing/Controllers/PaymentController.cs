@@ -113,28 +113,11 @@ namespace OnlineClothing.Controllers
             var userId = HttpContext.Session.GetString("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
 
-            Guid myuuid = Guid.NewGuid();
-            string myuuidAsString = myuuid.ToString();
             Env.Load();
 
             string accessKey = Env.GetString("MOMO_ACCESS_KEY");
             string secretKey = Env.GetString("MOMO_SECRET_KEY");
 
-            //CollectionLinkRequest request = new CollectionLinkRequest
-            //{
-            //    orderInfo = orderInfo,
-            //    partnerCode = "MOMO",
-            //    redirectUrl = "localhost:8080/Payment/Result",
-            //    ipnUrl = "localhost:8080/Payment/Result", 
-            //    amount = 1000,
-            //    orderId = myuuidAsString,
-            //    requestId = myuuidAsString,
-            //    requestType = "payWithMethod",
-            //    extraData = "",
-            //    storeId = "Online Clothing Shop",
-            //    autoCapture = true,
-            //    lang = "vi"
-            //};
             _request.partnerCode = "MOMO";
             _request.redirectUrl = "http://localhost:5222/Payment/Result";
             _request.ipnUrl = "localhost:8080/Payment/Result";
@@ -144,10 +127,6 @@ namespace OnlineClothing.Controllers
             _request.storeId = "Online Clothing Shop";
             _request.autoCapture = true;
             _request.amount = 1000;
-
-            Console.WriteLine("---------------------------------------------------");
-            Console.WriteLine("ORDER ID: " + _request.orderId);
-            Console.WriteLine("---------------------------------------------------");
 
             var rawSignature = "accessKey=" + accessKey 
                 + "&amount=" + _request.amount 
@@ -185,8 +164,15 @@ namespace OnlineClothing.Controllers
                         TotalAmount = (int)_request.amount,
                         CreateAt = DateTime.Now
                     };
+
+                    
                     await _context.Orders.AddAsync(order);
                     await _context.SaveChangesAsync();
+                    var cart = await _context.Carts.FindAsync(Guid.Parse(userId));
+                    if (cart != null)
+                    {
+                        await clearCart(cart.Id);
+                    }
                     TempData["response"] = contents;
                     return Redirect(payUrl); // Redirect to the payment page
                 }
@@ -211,12 +197,24 @@ namespace OnlineClothing.Controllers
                 PayUrl = payUrl,
                 ShortLink = shortLink
             };
+            Order order = await _context.Orders.FindAsync(Guid.Parse(orderId));
             if (paymentResult.ResultCode.Equals("0"))
             {
-                Order order = await _context.Orders.FindAsync(Guid.Parse(orderId));
-                
+                if(order != null)
+                {
+                    order.Status = 2; //Confirmed payment
+                    await _context.SaveChangesAsync();
+                }
             }
-            return View(paymentResult);
+            else
+            {
+                if (order != null)
+                {
+                    order.Status = 5; //cancled
+                    await _context.SaveChangesAsync();
+                }
+            }
+                return View(paymentResult);
         }
 
         private static string getSignature(string text, string key)
@@ -230,6 +228,17 @@ namespace OnlineClothing.Controllers
             byte[] hashBytes = hash.ComputeHash(textBytes);
 
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+        }
+
+        private async Task clearCart(Guid id)
+        {
+            var cartDetails = _context.CartDetails.Where(cd => cd.CartId.Equals(id));
+
+            if (cartDetails.Any())
+            {
+                _context.CartDetails.RemoveRange(cartDetails);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
