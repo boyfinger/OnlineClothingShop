@@ -19,7 +19,7 @@ public partial class OrderDetail
 
     public int? TotalPrice { get; set; }
 
-    public virtual Order? Order { get; set; }
+    public virtual Order Order { get; set; } = null!;
 
     public virtual Product? Product { get; set; }
 }

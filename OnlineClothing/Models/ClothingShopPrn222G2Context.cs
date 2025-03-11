@@ -68,7 +68,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
     {
         modelBuilder.Entity<Cart>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__cart__3213E83FE67EBB73");
+            entity.HasKey(e => e.Id).HasName("PK__cart__3213E83F1888AF8C");
 
             entity.ToTable("cart");
 
@@ -95,7 +95,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<CartDetail>(entity =>
         {
-            entity.HasKey(e => new { e.CartId, e.ProductId }).HasName("PK__cart_det__6A850DF8E66CB1A7");
+            entity.HasKey(e => new { e.CartId, e.ProductId }).HasName("PK__cart_det__6A850DF83D031BD9");
 
             entity.ToTable("cart_detail");
 
@@ -129,7 +129,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__category__3213E83F37AFCFF7");
+            entity.HasKey(e => e.Id).HasName("PK__category__3213E83F08A5DDA6");
 
             entity.ToTable("category");
 
@@ -141,7 +141,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__feedback__3213E83F75FF0BEF");
+            entity.HasKey(e => e.Id).HasName("PK__feedback__3213E83FBD5ED7CA");
 
             entity.ToTable("feedback");
 
@@ -159,6 +159,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.Order).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__feedback__order___7C4F7684");
 
             entity.HasOne(d => d.Product).WithMany(p => p.Feedbacks)
@@ -173,7 +174,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Image>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__image__3213E83F27E83DE6");
+            entity.HasKey(e => e.Id).HasName("PK__image__3213E83FFF65A884");
 
             entity.ToTable("image");
 
@@ -191,11 +192,13 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__order__3213E83F61FFC926");
+            entity.HasKey(e => e.Id).HasName("PK__order__3213E83F7008668F");
 
             entity.ToTable("order");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
             entity.Property(e => e.Address)
                 .HasMaxLength(255)
                 .HasColumnName("address");
@@ -239,7 +242,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__order_de__3213E83FFA6623F3");
+            entity.HasKey(e => e.Id).HasName("PK__order_de__3213E83F922B8B89");
 
             entity.ToTable("order_details");
 
@@ -253,6 +256,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__order_det__order__02FC7413");
 
             entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
@@ -262,7 +266,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<OrderStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__order_st__3213E83F79098CD4");
+            entity.HasKey(e => e.Id).HasName("PK__order_st__3213E83F390DD0C2");
 
             entity.ToTable("order_status");
 
@@ -277,7 +281,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__product__3213E83FA2A869CB");
+            entity.HasKey(e => e.Id).HasName("PK__product__3213E83FFFB6257C");
 
             entity.ToTable("product");
 
@@ -318,7 +322,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<ProductStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__product___3213E83F837A9704");
+            entity.HasKey(e => e.Id).HasName("PK__product___3213E83F59AF108C");
 
             entity.ToTable("product_status");
 
@@ -333,7 +337,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Report>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__report__3213E83F31562484");
+            entity.HasKey(e => e.Id).HasName("PK__report__3213E83F296E5484");
 
             entity.ToTable("report");
 
@@ -367,7 +371,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<ReportStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__report_s__3213E83F49E5495C");
+            entity.HasKey(e => e.Id).HasName("PK__report_s__3213E83F85CCCF57");
 
             entity.ToTable("report_status");
 
@@ -382,7 +386,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__roles__3213E83FC9F463B4");
+            entity.HasKey(e => e.Id).HasName("PK__roles__3213E83F41644C96");
 
             entity.ToTable("roles");
 
@@ -398,7 +402,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user__3213E83F51850B86");
+            entity.HasKey(e => e.Id).HasName("PK__user__3213E83F1778803A");
 
             entity.ToTable("user");
 
@@ -433,7 +437,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<UserGender>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_gen__3213E83FEA8FA6D8");
+            entity.HasKey(e => e.Id).HasName("PK__user_gen__3213E83F65EEB70B");
 
             entity.ToTable("user_gender");
 
@@ -449,7 +453,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_rol__3213E83F65799857");
+            entity.HasKey(e => e.Id).HasName("PK__user_rol__3213E83FA9577A3D");
 
             entity.ToTable("user_roles");
 
@@ -472,7 +476,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<UserStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_sta__3213E83F24025CDF");
+            entity.HasKey(e => e.Id).HasName("PK__user_sta__3213E83F92A3618B");
 
             entity.ToTable("user_status");
 
@@ -488,7 +492,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<UserVoucher>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_vou__3213E83F0694C097");
+            entity.HasKey(e => e.Id).HasName("PK__user_vou__3213E83F340AC0B3");
 
             entity.ToTable("user_voucher");
 
@@ -516,7 +520,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Userinfo>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__userinfo__3213E83F5E46ABE8");
+            entity.HasKey(e => e.Id).HasName("PK__userinfo__3213E83F6226ACC5");
 
             entity.ToTable("userinfo");
 
@@ -563,7 +567,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Voucher>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__voucher__3213E83FCA50DA6A");
+            entity.HasKey(e => e.Id).HasName("PK__voucher__3213E83F8C094407");
 
             entity.ToTable("voucher");
 
@@ -604,7 +608,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<VoucherStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83F707D45FB");
+            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83FDD528FDA");
 
             entity.ToTable("voucher_status");
 
@@ -619,7 +623,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<VoucherType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83F831CA1E2");
+            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83F614B7F6C");
 
             entity.ToTable("voucher_type");
 
@@ -634,7 +638,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Wishlist>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__wishlist__3213E83F7B36E805");
+            entity.HasKey(e => e.Id).HasName("PK__wishlist__3213E83F33F563F8");
 
             entity.ToTable("wishlist");
 
