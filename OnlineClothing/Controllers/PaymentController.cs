@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿using DotNetEnv;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -16,7 +16,6 @@ namespace OnlineClothing.Controllers
         private readonly ClothingShopPrn222G2Context _context;
         private static readonly HttpClient client = new HttpClient();
         private CollectionLinkRequest _request = new CollectionLinkRequest();
-
         public PaymentController(ClothingShopPrn222G2Context context)
         {
             _context = context;
@@ -115,9 +114,10 @@ namespace OnlineClothing.Controllers
 
             Guid myuuid = Guid.NewGuid();
             string myuuidAsString = myuuid.ToString();
+            Env.Load();
 
-            string accessKey = "F8BBA842ECF85";
-            string secretKey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+            string accessKey = Env.GetString("MOMO_ACCESS_KEY");
+            string secretKey = Env.GetString("MOMO_SECRET_KEY");
 
             //CollectionLinkRequest request = new CollectionLinkRequest
             //{
