@@ -80,7 +80,7 @@ namespace OnlineClothing.Controllers
                 .Include(p => p.Seller)
                     .ThenInclude(p => p.Userinfo)
                 .Include(p => p.Feedbacks)
-                    .ThenInclude(f => f.User)
+                    .ThenInclude(f => f.User).Take(2)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (product == null)
             {
