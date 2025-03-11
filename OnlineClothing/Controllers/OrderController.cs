@@ -27,9 +27,9 @@ namespace OnlineClothing.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            Console.WriteLine(userId);  
             var orders = await _context.Orders
-                .Where(o => o.CustomerId.ToString() == userId)
-                .Include(o => o.StatusNavigation)
+                .Where(o => o.CustomerId.Equals(Guid.Parse(userId)))
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 

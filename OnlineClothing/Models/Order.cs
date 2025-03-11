@@ -9,8 +9,6 @@ public partial class Order
 
     public Guid? CustomerId { get; set; }
 
-    public Guid? SellerId { get; set; }
-
     public long? VoucherId { get; set; }
 
     public string? FullName { get; set; }
@@ -36,8 +34,6 @@ public partial class Order
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
-
-    public virtual User? Seller { get; set; }
 
     public virtual OrderStatus? StatusNavigation { get; set; }
 
