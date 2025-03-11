@@ -16,6 +16,9 @@ namespace OnlineClothing.Controllers
         private readonly ClothingShopPrn222G2Context _context;
         private static readonly HttpClient client = new HttpClient();
         private CollectionLinkRequest _request = new CollectionLinkRequest();
+
+        public MoMoUserInfo ShipInfo;
+        
         public PaymentController(ClothingShopPrn222G2Context context)
         {
             _context = context;
@@ -23,18 +26,58 @@ namespace OnlineClothing.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Validate user
             var userId = HttpContext.Session.GetString("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
 
+            // Get cart
             var cart = await _context.Carts
                 .Include(c => c.CartDetails)
                 .ThenInclude(cd => cd.Product)
                 .FirstOrDefaultAsync(c => c.UserId == Guid.Parse(userId));
 
+            // No items in cart == no payment
             if (cart == null)
             {
                 return RedirectToAction("Index", "Cart");
             }
+
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> CheckOutAsync(string FullName, string PhoneNumber, string Address)
+        {
+            // Validate user
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+
+            // Validate shipping info
+            if (FullName == null || PhoneNumber == null || Address == null)
+            {
+                TempData["error"] = "Please fill in shipping infomation";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            // Get cart
+            var cart = await _context.Carts
+                .Include(c => c.CartDetails)
+                .ThenInclude(cd => cd.Product)
+                .FirstOrDefaultAsync(c => c.UserId == Guid.Parse(userId));
+
+            // No items in cart == no payment
+            if (cart == null || cart.CartDetails.Count() == 0)
+            {
+                TempData["error"] = "You must have items in cart to checkout";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            Env.Load();
+
+            string accessKey = Env.GetString("MOMO_ACCESS_KEY");
+            string secretKey = Env.GetString("MOMO_SECRET_KEY");
 
             _request.orderId = Guid.NewGuid().ToString();
             _request.orderInfo = $"Order [{_request.orderId}]";
@@ -46,8 +89,8 @@ namespace OnlineClothing.Controllers
                 {
                     Id = cd.ProductId,
                     Name = cd.Product.Name,
-                    Price = (long)cd.Product.Price, 
-                    Currency = "VND", 
+                    Price = (long)cd.Product.Price,
+                    Currency = "VND",
                     Quantity = cd.Quantity,
                     TotalPrice = cd.TotalPrice
                 })
@@ -55,69 +98,8 @@ namespace OnlineClothing.Controllers
             _request.lang = "vi";
 
             var userInfo = await _context.Userinfos.FindAsync(Guid.Parse(userId));
-            if (userInfo != null)
-            {
-                _request.UserInfo.Name = userInfo.FullName;
-                _request.UserInfo.PhoneNumber = userInfo.PhoneNumber;
-                _request.UserInfo.Address = userInfo.Address;
-            }
-            return View(_request);
-        }
-
-        //[HttpPost]
-        //public async Task<IActionResult> UpdateOrderDetails(CollectionLinkRequest model)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return View("Index", model); 
-        //    }
-
-        //    var userId = HttpContext.Session.GetString("UserId");
-        //    if (userId == null) return RedirectToAction("Login", "Account");
-
-        //    var userInfo = await _context.Userinfos.FindAsync(Guid.Parse(userId));
-        //    if (userInfo == null)
-        //    {
-        //        userInfo = new Userinfo
-        //        {
-        //            Id = Guid.Parse(userId),
-        //            FullName = model.UserInfo.Name,
-        //            PhoneNumber = model.UserInfo.PhoneNumber,
-        //            Address = model.UserInfo.Address,
-        //        };
-        //        _context.Userinfos.Add(userInfo);
-        //    }
-        //    else
-        //    {
-        //        userInfo.FullName = model.UserInfo.Name;
-        //        userInfo.PhoneNumber = model.UserInfo.PhoneNumber;
-        //        userInfo.Address = model.UserInfo.Address;
-        //        userInfo.UpdateAt = DateTime.Now;
-        //    }
-
-        //    await _context.SaveChangesAsync();
-
-        //    return View("Index");
-        //}
-
-
-        [HttpPost]
-        public async Task<IActionResult> CheckOutAsync(string requestJson)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("Index");
-            }
-            var request = JsonSerializer.Deserialize<CollectionLinkRequest>(requestJson);
-            _request = request;
-            var userId = HttpContext.Session.GetString("UserId");
-            if (userId == null) return RedirectToAction("Login", "Account");
-
-            Env.Load();
-
-            string accessKey = Env.GetString("MOMO_ACCESS_KEY");
-            string secretKey = Env.GetString("MOMO_SECRET_KEY");
-
+            
+            _request.UserInfo = new MoMoUserInfo { Name = FullName, PhoneNumber = PhoneNumber, Address = Address };
             _request.partnerCode = "MOMO";
             _request.redirectUrl = "http://localhost:5222/Payment/Result";
             _request.ipnUrl = "localhost:8080/Payment/Result";
@@ -128,56 +110,73 @@ namespace OnlineClothing.Controllers
             _request.autoCapture = true;
             _request.amount = 1000;
 
-            var rawSignature = "accessKey=" + accessKey 
-                + "&amount=" + _request.amount 
-                + "&extraData=" + _request.extraData 
-                + "&ipnUrl=" + _request.ipnUrl 
-                + "&orderId=" + _request.orderId 
-                + "&orderInfo=" + _request.orderInfo 
-                + "&partnerCode=" + _request.partnerCode   
-                + "&redirectUrl=" + _request.redirectUrl 
-                + "&requestId=" + _request.requestId 
+            var rawSignature = "accessKey=" + accessKey
+                + "&amount=" + _request.amount
+                + "&extraData=" + _request.extraData
+                + "&ipnUrl=" + _request.ipnUrl
+                + "&orderId=" + _request.orderId
+                + "&orderInfo=" + _request.orderInfo
+                + "&partnerCode=" + _request.partnerCode
+                + "&redirectUrl=" + _request.redirectUrl
+                + "&requestId=" + _request.requestId
                 + "&requestType=" + _request.requestType;
             _request.signature = getSignature(rawSignature, secretKey);
 
             StringContent httpContent = new StringContent(JsonSerializer.Serialize(_request), System.Text.Encoding.UTF8, "application/json");
             var quickPayResponse = await client.PostAsync("https://test-payment.momo.vn/v2/gateway/api/create", httpContent);
-            var contents = await quickPayResponse.Content.ReadAsStringAsync();
+            var contentsString = await quickPayResponse.Content.ReadAsStringAsync();
 
-            using JsonDocument doc = JsonDocument.Parse(contents);
-            JsonElement root = doc.RootElement;
+            //Console.WriteLine("-----------------------------------------------------------------");
+            //Console.WriteLine(contentsString);
+            //Console.WriteLine("-----------------------------------------------------------------");
 
-            if (root.TryGetProperty("payUrl", out JsonElement payUrlElement))
+            var response = JsonSerializer.Deserialize<PaymentResult>(contentsString);
+
+            if (response == null)
             {
-                string payUrl = payUrlElement.GetString() ?? string.Empty;
-                if (!string.IsNullOrEmpty(payUrl))
-                {
-                    Order order = new Order
-                    {
-                        CustomerId = Guid.Parse(userId),
-                        FullName = _request.UserInfo.Name,
-                        PhoneNumber = _request.UserInfo.PhoneNumber,
-                        Address = _request.UserInfo.Address,
-                        Note = "none",
-                        OrderDate = DateTime.Now,
-                        Status = 1,
-                        TotalAmount = (int)_request.amount,
-                        CreateAt = DateTime.Now
-                    };
-
-                    
-                    await _context.Orders.AddAsync(order);
-                    await _context.SaveChangesAsync();
-                    var cart = await _context.Carts.FindAsync(Guid.Parse(userId));
-                    if (cart != null)
-                    {
-                        await clearCart(cart.Id);
-                    }
-                    TempData["response"] = contents;
-                    return Redirect(payUrl); // Redirect to the payment page
-                }
+                TempData["error"] = "Không thể tạo link thanh toán";
+                return View("Index");
             }
-            TempData["mesasge"] = "Failed to create payment link";
+
+            if (response.ResultCode == 0)
+            {
+                Order order = new()
+                {
+                    Id = Guid.Parse(response.OrderId),
+                    CustomerId = Guid.Parse(userId),
+                    VoucherId = null,
+                    FullName = _request.UserInfo.Name,
+                    PhoneNumber = _request.UserInfo.PhoneNumber,
+                    Address = _request.UserInfo.Address,
+                    Note = "none",
+                    OrderDate = DateTime.Now,
+                    Status = 1,
+                    TotalAmount = (int)_request.amount,
+                    CreateAt = DateTime.Now
+                };
+                await _context.Orders.AddAsync(order);
+
+                // create order details
+                foreach (CartDetail cd in cart.CartDetails)
+                {
+                    OrderDetail od = new ()
+                    {
+                        OrderId = order.Id,
+                        ProductId = cd.ProductId,
+                        Quantity = cd.Quantity,
+                        UnitPrice = cd.Product.Price,
+                        TotalPrice = cd.TotalPrice,
+                        Discount = 0
+                    };
+                    await _context.OrderDetails.AddAsync(od);
+                }
+
+
+                await _context.SaveChangesAsync();
+                await ClearCartAsync(cart.Id);
+            }
+            TempData["message"] = "Giao dịch của bạn đang được xử lý, nếu bạn không tự động được chuyển đến trang thanh toán, vui lòng nhấn vào đường dẫn.";
+            TempData["paymentLink"] = response.PayUrl;
             return RedirectToAction("Index");
         }
 
@@ -185,36 +184,36 @@ namespace OnlineClothing.Controllers
         public async Task<IActionResult> Result(string orderId, string requestId, string resultCode, string message, string partnerCode, long amount, long responseTime, string payUrl, string shortLink)
         {
 
-            var paymentResult = new PaymentResult
+            bool exist = Guid.TryParse(orderId, out Guid guid);
+
+            if(!exist)
             {
-                OrderId = orderId,
-                RequestId = requestId,
-                ResultCode = int.Parse(resultCode),
-                Message = message,
-                PartnerCode = partnerCode,
-                Amount = amount,
-                ResponseTime = responseTime,
-                PayUrl = payUrl,
-                ShortLink = shortLink
-            };
-            Order order = await _context.Orders.FindAsync(Guid.Parse(orderId));
-            if (paymentResult.ResultCode.Equals("0"))
+                TempData["error"] = "Không tìm thấy Id đơn hàng";
+                return RedirectToAction("Index");
+            }
+
+            Order order = await _context.Orders.FirstOrDefaultAsync(o => o.Id.Equals(guid));
+            if (order == null)
             {
-                if(order != null)
-                {
-                    order.Status = 2; //Confirmed payment
-                    await _context.SaveChangesAsync();
-                }
+                TempData["error"] = "Không tìm thấy Id đơn hàng";
+                return RedirectToAction("Index");
+            }
+            if (resultCode.Equals("0"))
+            {
+                order.Status = 2; //Confirmed payment
+                await _context.SaveChangesAsync();
+                TempData["message"] = "Đơn hàng của bạn đã được đặt thành công.";
+                TempData["orderId"] = guid;
+                return RedirectToAction("Index");
             }
             else
             {
-                if (order != null)
-                {
-                    order.Status = 5; //cancled
-                    await _context.SaveChangesAsync();
-                }
+                order.Status = 5; //cancled
+                await _context.SaveChangesAsync();
+                TempData["message"] = "Đơn hàng của bạn đã bị hủy do quá thời gian thanh toán.";
+                TempData["orderId"] = guid;
+                return RedirectToAction("Index");
             }
-                return View(paymentResult);
         }
 
         private static string getSignature(string text, string key)
@@ -230,15 +229,29 @@ namespace OnlineClothing.Controllers
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         }
 
-        private async Task clearCart(Guid id)
+        private async Task ClearCartAsync(Guid cartId)
         {
-            var cartDetails = _context.CartDetails.Where(cd => cd.CartId.Equals(id));
+            var cartDetails = await _context.CartDetails
+                .Where(cd => cd.CartId == cartId)
+                .ToListAsync();
 
             if (cartDetails.Any())
             {
-                _context.CartDetails.RemoveRange(cartDetails);
-                await _context.SaveChangesAsync();
+                foreach (var cartItem in cartDetails)
+                {
+                    var product = await _context.Products.FindAsync(cartItem.ProductId);
+                    if (product != null)
+                    {
+                        product.Quantity -= cartItem.Quantity; // Subtract the quantity
+                        if (product.Quantity < 0) product.Quantity = 0; // Prevent negative stock
+                        _context.Products.Update(product);
+                    }
+                }
+
+                _context.CartDetails.RemoveRange(cartDetails); // Remove cart items
+                await _context.SaveChangesAsync(); // Save stock update + cart removal
             }
         }
+
     }
 }

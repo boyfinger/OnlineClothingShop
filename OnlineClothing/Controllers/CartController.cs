@@ -8,7 +8,7 @@ namespace OnlineClothing.Controllers
     public class CartController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
-
+        
         public CartController(ClothingShopPrn222G2Context context)
         {
             _context = context;
