@@ -34,8 +34,9 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 104857600;
 });
 
-
 var app = builder.Build();
+
+app.UseStatusCodePagesWithRedirects("/Error/{0}");
 
 // Apply the session middleware
 app.UseSession();
