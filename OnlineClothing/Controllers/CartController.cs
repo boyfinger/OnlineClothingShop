@@ -28,10 +28,18 @@ namespace OnlineClothing.Controllers
                 .ThenInclude(cd => cd.Product)
                 .FirstOrDefaultAsync(c => c.UserId == Guid.Parse(userId));
 
-            if (cart == null)
+            if (cart == null || cart.CartDetails.Count == 0)
             {
                 ViewBag.Message = "Your cart is empty.";
                 return View();
+            }
+
+            var userinfo = await _context.Userinfos.FirstOrDefaultAsync(i => i.Id.Equals(Guid.Parse(userId)));
+            if (userinfo != null)
+            {
+                ViewBag.FullName = userinfo.FullName;
+                ViewBag.PhoneNumber = userinfo.PhoneNumber;
+                ViewBag.Address = userinfo.Address;
             }
 
             return View(cart);

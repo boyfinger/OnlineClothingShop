@@ -21,10 +21,10 @@
                     <i class="bi bi-info-circle"></i> @TempData["message"]
                 </div>
 
-                @if (TempData["paymentLink"] != null)
+                @if (TempData["payUrl"] != null)
                 {
                     <div class="text-center">
-                        <a href="@TempData["paymentLink"]" class="btn btn-primary">🔗 Link thanh toán</a>
+                        <a href="@TempData["payUrl"]" class="btn btn-primary">🔗 Link thanh toán</a>
                     </div>
                 }
                 @if (TempData["orderId"] != null)
@@ -34,7 +34,20 @@
                     </div>
                 }
             }
+            else
+            {
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> You are currently not in a transaction.
+                </div>
+            }
         </div>
     </div>
 </div>
+<script>
+    var url = '@TempData["payUrl"]';
+    if (url) {
+        window.open(url, "_blank");
+    }
+</script>
+
 
