@@ -59,6 +59,10 @@
             </li>
         </ol>
     </nav>
+    @if (!Model.Products.Any())
+    {
+        <p>Không tìm thấy sản phẩm nào!</p>
+    }
 
     <div class="">
         <div class="row">
@@ -90,7 +94,14 @@
                                     {
                                         <p class="card-text mb-2">&nbsp;</p>
                                     }
-                                    <button class="btn btn-dark mt-auto" onclick="addToCart(@product.Id)">Add to cart</button>
+                                    @if (product.Quantity == 0)
+                                    {
+                                        <p style="font-size: 16px">Hết hàng</p>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-dark mt-auto" onclick="addToCart(@product.Id)">Add to cart</button>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -109,47 +120,56 @@
                             <div class="d-flex">
                                 <select name="minPrice" class="form-control me-2">
                                     <option value="">Từ</option>
-                                    <option value="0">0</option>
-                                    <option value="100000">100.000</option>
-                                    <option value="200000">200.000</option>
-                                    <option value="500000">500.000</option>
+                                    <option value="0" selected="@(ViewBag.MinPrice == 0)">0</option>
+                                    <option value="100000" selected="@(ViewBag.MinPrice == 100000)">100.000</option>
+                                    <option value="200000" selected="@(ViewBag.MinPrice == 200000)">200.000</option>
+                                    <option value="500000" selected="@(ViewBag.MinPrice == 500000)">500.000</option>
                                 </select>
                                 <select name="maxPrice" class="form-control">
                                     <option value="">Đến</option>
-                                    <option value="100000">100.000</option>
-                                    <option value="200000">200.000</option>
-                                    <option value="500000">500.000</option>
-                                    <option value="1000000">1.000.000</option>
-                                    <option value="2000000">2.000.000</option>
+                                    <option value="100000" selected="@(ViewBag.MaxPrice == 100000)">100.000</option>
+                                    <option value="200000" selected="@(ViewBag.MaxPrice == 200000)">200.000</option>
+                                    <option value="500000" selected="@(ViewBag.MaxPrice == 500000)">500.000</option>
+                                    <option value="1000000" selected="@(ViewBag.MaxPrice == 1000000)">1.000.000</option>
+                                    <option value="2000000" selected="@(ViewBag.MaxPrice == 2000000)">2.000.000</option>
                                 </select>
                             </div>
+
                             <label class="mt-2">Danh mục:</label>
                             <select name="categoryId" class="form-control">
                                 <option value="">Tất cả</option>
                                 @foreach (var category in Model.Categories)
                                 {
-                                    <option value="@category.Id">@category.Name</option>
+                                    <option value="@category.Id" selected="@(ViewBag.CategoryId == category.Id)">@category.Name</option>
                                 }
                             </select>
+
                             <label class="mt-2">Trạng thái:</label>
                             <select name="status" class="form-control">
                                 <option value="">Tất cả</option>
-                                @foreach (var status in Model.ProductStatuses)
+                                @foreach (var status in Model.ProductStatusCases)
                                 {
-                                    string statusName = status.Id switch
+                                    string statusName = status switch
                                     {
                                         1 => "Còn hàng",
                                         2 => "Hết hàng",
-                                        3 => "Ngừng kinh doanh",
-                                        _ => status.Name
+                                        _ => ""
                                     };
-                                    <option value="@status.Id">@statusName</option>
+                                    <option value="@status" selected="@(ViewBag.Status == status)">@statusName</option>
                                 }
                             </select>
-                            <div class="form-check mt-2">
-                                <input type="checkbox" name="inStock" value="true" class="form-check-input">
-                                <label class="form-check-label">Chỉ còn hàng</label>
-                            </div>
+
+                            <label class="mt-2">Sắp xếp theo:</label>
+                            <select name="sortOrder" class="form-control">
+                                <option value="">Mặc định</option>
+                                <option value="price_asc" selected="@(ViewData["SortOrder"]?.ToString() == "price_asc" ? "selected" : null)">
+                                    Giá thấp đến cao
+                                </option>
+                                <option value="price_desc" selected="@(ViewData["SortOrder"]?.ToString() == "price_desc" ? "selected" : null)">
+                                    Giá cao đến thấp
+                                </option>
+                            </select>
+
                             <button type="submit" class="btn btn-dark mt-3 w-100">Lọc sản phẩm</button>
                             <a asp-action="Index" class="btn btn-secondary mt-2 w-100">Bỏ lọc</a>
                         </form>
@@ -157,39 +177,7 @@
                 </div>
             </div>
 
-            <div class="pagination mt-4 justify-content-center">
-                <nav>
-                    <ul class="pagination justify-content-center">
-                        @if (Model.CurrentPage > 1)
-                        {
-                            <li class="page-item">
-                                <a class="page-link"
-                                   href="@Url.Action(Model.SearchQuery == null ? "Index" : "Search", new { query = Model.SearchQuery, page = Model.CurrentPage - 1 })">
-                                    ← Trước
-                                </a>
-                            </li>
-                        }
-                        @for (int i = 1; i <= Model.TotalPages; i++)
-                        {
-                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                <a class="page-link"
-                                   href="@Url.Action(Model.SearchQuery == null ? "Index" : "Search", new { query = Model.SearchQuery, page = i })">
-                                    @i
-                                </a>
-                            </li>
-                        }
-                        @if (Model.CurrentPage < Model.TotalPages)
-                        {
-                            <li class="page-item">
-                                <a class="page-link"
-                                   href="@Url.Action(Model.SearchQuery == null ? "Index" : "Search", new { query = Model.SearchQuery, page = Model.CurrentPage + 1 })">
-                                    Tiếp →
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </nav>
-            </div>
+            @await Html.PartialAsync("_Pagination", Model)
         </div>
     </div>
 </div>
