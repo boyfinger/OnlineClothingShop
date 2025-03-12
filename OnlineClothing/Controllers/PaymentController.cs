@@ -16,9 +16,8 @@ namespace OnlineClothing.Controllers
         private readonly ClothingShopPrn222G2Context _context;
         private static readonly HttpClient client = new HttpClient();
         private CollectionLinkRequest _request = new CollectionLinkRequest();
+        public bool SaveShippingInfo { get; set; }
 
-        public MoMoUserInfo ShipInfo;
-        
         public PaymentController(ClothingShopPrn222G2Context context)
         {
             _context = context;
@@ -36,30 +35,30 @@ namespace OnlineClothing.Controllers
                 .ThenInclude(cd => cd.Product)
                 .FirstOrDefaultAsync(c => c.UserId == Guid.Parse(userId));
 
-            // No items in cart == no payment
-            if (cart == null)
-            {
-                return RedirectToAction("Index", "Cart");
-            }
-
             return View();
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> CheckOutAsync(string FullName, string PhoneNumber, string Address)
+        public async Task<IActionResult> CheckOutAsync(string FullName, string PhoneNumber, string Address, bool saveShippingInfo)
         {
             // Validate user
             var userId = HttpContext.Session.GetString("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
 
-
-            // Validate shipping info
-            if (FullName == null || PhoneNumber == null || Address == null)
+            if (saveShippingInfo)
             {
-                TempData["error"] = "Please fill in shipping infomation";
-                return RedirectToAction("Index", "Cart");
+                var userinfo = await _context.Userinfos.FirstOrDefaultAsync(i => i.Id.Equals(Guid.Parse(userId)));
+                //user info should be created when registering
+                if (userinfo != null)
+                {
+                    userinfo.FullName = FullName;
+                    userinfo.PhoneNumber = PhoneNumber;
+                    userinfo.Address = Address;
+                    await _context.SaveChangesAsync();
+                }
             }
+            
 
             // Get cart
             var cart = await _context.Carts
@@ -170,13 +169,11 @@ namespace OnlineClothing.Controllers
                     };
                     await _context.OrderDetails.AddAsync(od);
                 }
-
-
                 await _context.SaveChangesAsync();
                 await ClearCartAsync(cart.Id);
             }
             TempData["message"] = "Giao dịch của bạn đang được xử lý, nếu bạn không tự động được chuyển đến trang thanh toán, vui lòng nhấn vào đường dẫn.";
-            TempData["paymentLink"] = response.PayUrl;
+            TempData["payUrl"] = response.PayUrl;
             return RedirectToAction("Index");
         }
 

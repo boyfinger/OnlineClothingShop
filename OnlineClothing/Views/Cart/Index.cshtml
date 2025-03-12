@@ -56,30 +56,39 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="FullName" class="form-label">Full Name</label>
-                        <input type="text" name="FullName" id="FullName" class="form-control">
+                        <input type="text" name="FullName" id="FullName" class="form-control" value="@ViewBag.FullName">
                         <span class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
                         <label for="PhoneNumber" class="form-label">Phone Number</label>
-                        <input type="text" name="PhoneNumber" id="PhoneNumber" class="form-control">
+                        <input type="text" name="PhoneNumber" id="PhoneNumber" class="form-control" value="@ViewBag.PhoneNumber">
                         <span class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
                         <label for="Address" class="form-label">Address</label>
-                        <input type="text" name="Address" id="Address" class="form-control">
+                        <input type="text" name="Address" id="Address" class="form-control" value="@ViewBag.Address">
                         <span class="text-danger"></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Checkout Button -->
+            <!-- Checkout Button and Save Shipping Info -->
             <div class="d-flex justify-content-between align-items-center mt-4">
                 <h4>Total Amount: <span id="total-amount" class="text-primary">@string.Format("{0:N0} VND", Model.TotalAmount)</span></h4>
-                <button type="submit" id="checkoutBtn" class="btn btn-success btn-lg">
-                    <i class="fas fa-shopping-cart"></i> Proceed to Checkout
-                </button>
-                <p>@TempData["error"]</p>
+
+                <div class="d-flex align-items-center">
+                    <div class="form-check me-3">
+                        <input type="hidden" id="saveShippingInfoHidden" name="saveShippingInfo" value="false">
+                        <input class="form-check-input" type="checkbox" id="saveShippingInfo" oninput="saveInfo()">
+                        <label class="form-check-label" for="saveShippingInfo">Save Shipping Information</label>
+                    </div>
+
+                    <button type="submit" id="checkoutBtn" class="btn btn-success btn-lg">
+                        <i class="fas fa-shopping-cart"></i> Proceed to Checkout
+                    </button>
+                </div>
             </div>
+
         </form>
     }
 </div>
@@ -90,6 +99,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
 
 <script>
+    document.getElementById("checkoutForm").addEventListener("submit", function (event) {
+        let isValid = true;
+
+        // Select all input fields to validate
+        const fields = ["FullName", "PhoneNumber", "Address"];
+
+        fields.forEach(field => {
+            const input = document.getElementById(field);
+            const errorSpan = input.nextElementSibling;
+
+            if (input.value.trim() === "") {
+                errorSpan.textContent = field + " is cannot be emtpy";
+                errorSpan.style.display = "block";
+                isValid = false;
+            } else {
+                errorSpan.textContent = "";
+                errorSpan.style.display = "none";
+            }
+        });
+
+        // Prevent form submission if validation fails
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+
     $(document).ready(function () {
         $(".remove-btn").click(function () {
             var productId = $(this).data("product-id");
@@ -134,4 +169,12 @@
             });
         });
     });
+
+    function saveInfo() {
+        let isChecked = document.getElementById("saveShippingInfo").checked;
+        let save = document.getElementById("saveShippingInfoHidden");
+        if (isChecked) {
+            save.value = "true";
+        } else save.value = "false";
+    }
 </script>
