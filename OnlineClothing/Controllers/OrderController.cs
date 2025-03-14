@@ -17,7 +17,6 @@ namespace OnlineClothing.Controllers
             _context = context;
         }
 
-        // GET: Orders/Index
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -27,31 +26,60 @@ namespace OnlineClothing.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            Console.WriteLine(userId);  
+            Console.WriteLine(userId);
             var orders = await _context.Orders
                 .Where(o => o.CustomerId.Equals(Guid.Parse(userId)))
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
-
+            foreach (var order in orders)
+            {
+                if (order.Status == 4)
+                {
+                    var feedbacked = await _context.Feedbacks.FirstOrDefaultAsync(f => f.UserId.Equals(order.CustomerId) && f.OrderId.Equals(order.Id));
+                    if (feedbacked == null)
+                    {
+                        order.CanReview = true;
+                    }
+                }
+            }
             return View(orders);
         }
 
-        // GET: Orders/Details/5
-        [HttpGet]
         public async Task<IActionResult> Details(Guid id)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
                 .Include(o => o.StatusNavigation)
                 .FirstOrDefaultAsync(o => o.Id.Equals(id));
-
             if (order == null)
             {
                 return NotFound();
             }
-
+            var customerId = order.CustomerId;
+            if (order.Status == 4)
+            {
+                foreach (var item in order.OrderDetails)
+                {
+                    var feedbacked = await _context.Feedbacks
+                        .AnyAsync(f => f.UserId == customerId && f.OrderId == order.Id && f.ProductId == item.ProductId);
+                    item.Feedbacked = feedbacked;
+                }
+            }
+            else
+            {
+                foreach (var item in order.OrderDetails)
+                {
+                    item.Feedbacked = false;
+                }
+            }
             return View(order);
         }
+
     }
 }

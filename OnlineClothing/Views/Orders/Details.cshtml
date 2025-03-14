@@ -5,8 +5,7 @@
 }
 
 <div class="container mt-4">
-    <h2 class="fw-bold text-primary text-center mb-4">Order Details</h2>
-
+    <h2 class="fw-bold text-dark text-center mb-4">Order Details</h2>
     <div class="card shadow-lg border-0 rounded-4 p-4">
         <table class="table table-borderless">
             <tbody>
@@ -34,14 +33,13 @@
                 </tr>
                 <tr>
                     <th class="text-muted">Total Amount:</th>
-                    <td class="fw-bold text-success fs-5">@string.Format("{0:N0} VND", Model.TotalAmount)</td>
+                    <td class=" text-success">@string.Format("{0:N0} VND", Model.TotalAmount)</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    <h3 class="fw-bold text-center my-4 text-primary">Ordered Items</h3>
-
+    <h3 class="fw-bold text-center my-4 text-dark">Ordered Items</h3>
     <div class="card shadow-lg border-0 rounded-4 p-4">
         <table class="table table-hover align-middle">
             <thead class="table-light">
@@ -52,6 +50,7 @@
                     <th>Unit Price</th>
                     <th>Discount</th>
                     <th>Total Price</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -62,11 +61,32 @@
                             <img src="@item.Product?.ThumbnailUrl" alt="@item.Product?.Name"
                                  class="img-thumbnail rounded-3 shadow-sm" style="width: 80px; height: 80px;">
                         </td>
-                        <td class="fw-semibold">@item.Product?.Name</td>
-                        <td class="fw-semibold">@item.Quantity</td>
+                        <td>@item.Product?.Name</td>
+                        <td>@item.Quantity</td>
                         <td class="text-muted">@string.Format("{0:N0} VND", item.UnitPrice)</td>
-                        <td class="text-danger fw-bold">-@item.Discount%</td>
-                        <td class="fw-bold text-success">@string.Format("{0:N0} VND", item.TotalPrice)</td>
+                        <td class="text-danger">-@item.Discount%</td>
+                        <td class="text-success">@string.Format("{0:N0} VND", item.TotalPrice)</td>
+                        <td style="width: 8vw">
+                            @if (Model.Status == 4)
+                            {
+                                @if (!item.Feedbacked)
+                                {
+                                    <a asp-controller="Feedback" asp-action="Create" asp-route-orderId="@Model.Id" asp-route-productId="@item.ProductId" class="btn btn-dark" style="font-size:14px">
+                                        Đánh giá sản phẩm
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Feedback" asp-action="Details" asp-route-orderId="@Model.Id" asp-route-productId="@item.ProductId" class="btn btn-info">
+                                        Xem đánh giá
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <span>Đợi hoàn thành</span>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>

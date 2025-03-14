@@ -2,13 +2,11 @@
 
 @{
     ViewData["Title"] = "Orders";
-    string defaultTab = "delivered"; // Default active tab ID (lowercase for matching)
+    string defaultTab = "delivered";
 }
 
-<!-- Page Title -->
-<h1 class="text-center my-4 fw-bold text-primary">My Orders</h1>
+<h1 class="text-center my-4 fw-bold text-dark">My Orders</h1>
 
-<!-- Bootstrap Tabs -->
 <ul class="nav nav-tabs justify-content-center border-0 gap-2" id="orderTabs" role="tablist">
     @foreach (var status in new[] { "Pending Confirmation", "Confirmed", "Shipping", "Delivered", "Cancelled", "Returned" })
     {
@@ -22,7 +20,6 @@
     }
 </ul>
 
-<!-- Tab Content -->
 <div class="tab-content mt-4">
     @foreach (var status in new[] { (1, "Pending Confirmation"), (2, "Confirmed"), (3, "Shipping"), (4, "Delivered"), (5, "Cancelled"), (6, "Returned") })
     {
@@ -38,9 +35,13 @@
                         <div class="col-md-4 px-3">
                             <div class="card shadow-sm mb-4 border-0 rounded-4 order-card">
                                 <div class="card-body">
-                                    <h5 class="card-title fw-bold text-primary">Order #@order.Id</h5>
+                                    <h5 class="card-title fw-bold">Order #@order.Id</h5>
                                     <p class="card-text text-muted"><strong>Date:</strong> @order.OrderDate?.ToString("yyyy-MM-dd")</p>
                                     <p class="card-text text-muted"><strong>Total:</strong> @string.Format("{0:N0} vn₫", order.TotalAmount)</p>
+                                    @if (order.CanReview)
+                                    {
+                                        <p style="font-size: 9px">*Hãy đánh giá sản phẩm để chúng tôi có thể cung cấp dịch vụ tốt hơn!</p>
+                                    }
                                     <a href="@Url.Action("Details", "Orders", new { id = order.Id })" class="btn btn-primary w-100 rounded-3">
                                         View Details
                                     </a>

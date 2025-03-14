@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineClothing.Models;
 
@@ -38,4 +39,7 @@ public partial class Order
     public virtual OrderStatus? StatusNavigation { get; set; }
 
     public virtual Voucher? Voucher { get; set; }
+
+    [NotMapped]
+    public bool CanReview { get; set; }
 }
