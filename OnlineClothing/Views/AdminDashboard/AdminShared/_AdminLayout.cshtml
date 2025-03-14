@@ -18,28 +18,19 @@
                     <i class="fas fa-home"></i> Trang chủ
                 </a>
             </li>
-
+            <li class="nav-item"> <a href="@Url.Action("Manage", "Customer")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "Customer" ? "active" : "")">
+                <i class="fas fa-users"></i> Quản lý khách hàng</a></li>
+            <li class="nav-item"><a href="" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "ManageStoreOwners" ? "active" : "")">
+                <i class="fas fa-store"></i> Quản lý chủ cửa hàng</a> </li>         
+            <li class="nav-item"><a href="" class="nav-link text-light sidebar-link">
+                <i class="fas fa-store"></i> Quản lý cửa hàng</a></li>
             <li class="nav-item">
-                <a class="nav-link text-light sidebar-link dropdown-toggle" data-bs-toggle="collapse" href="#userManagement">
-                    <i class="fas fa-users"></i> Quản lý người dùng
+                <a href="@Url.Action("Manage", "Category")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "Category" ? "active" : "")">
+                    <i class="fas fa-list"></i> Quản lý danh mục
                 </a>
-                <ul class="collapse list-unstyled ps-3" id="userManagement">
-                    <li>
-                        <a href="" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "ManageCustomers" ? "active" : "")">
-                            <i class="fas fa-user"></i> Quản lý khách hàng
-                        </a>
-                    </li>
-                    <li>
-                        <a href="" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "ManageStoreOwners" ? "active" : "")">
-                            <i class="fas fa-store"></i> Quản lý chủ cửa hàng
-                        </a>
-                    </li>
-                </ul>
             </li>
-
-            <li class="nav-item"><a href="#" class="nav-link text-light sidebar-link"><i class="fas fa-store"></i> Quản lý cửa hàng</a></li>
-            <li class="nav-item"><a href="#" class="nav-link text-light sidebar-link"><i class="fas fa-list"></i> Quản lý danh mục</a></li>
             <li class="nav-item"><a href="#" class="nav-link text-light sidebar-link"><i class="fas fa-chart-bar"></i> Quản lý khiếu nại</a></li>
+            <li class="nav-item"><a href="#" class="nav-link text-light sidebar-link"><i class="fas fa-ticket"></i> Quản lý voucher</a></li>
             <li class="nav-item"><a href="#" class="nav-link text-light sidebar-link"><i class="fas fa-key"></i> Đổi mật khẩu</a></li>
 
             <li class="nav-item">

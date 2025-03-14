@@ -1,0 +1,172 @@
+﻿@model List<OnlineClothing.Models.User>
+@{
+    Layout = "~/Views/AdminDashboard/AdminShared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý khách hàng";
+}
+<h2 class="text-center"><i class="fas fa-user"></i> Quản lý khách hàng</h2>
+<div class="row mb-3">
+    <div class="col-md-3 text-right">
+        <button class="btn btn-primary" id="addCustomer">Thêm khách hàng</button>
+    </div>
+    <div class="col-md-6">
+        <input type="text" id="searchBox" class="form-control" placeholder="Tìm kiếm theo username hoặc email..." value="@ViewBag.Search"/>
+    </div>
+    <div class="col-md-3">
+        <select id="statusFilter" class="form-control">
+            <option value="">All Status</option>
+            <option value="1" selected="@(ViewBag.Status == 1 ? "selected" : null)">Active</option>
+            <option value="3" selected="@(ViewBag.Status == 3 ? "selected" : null)">Blocked</option>
+        </select>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="customerTable">
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>
+                    <span class="badge @(user.Status == 1 ? "badge-success" : "badge-danger")">
+                        @(user.Status == 1 ? "Active" : "Blocked")
+                    </span>
+                </td>
+                <td>@user.CreatedAt</td>
+                <td>
+                    <button class="btn btn-warning btn-edit" data-id="@user.Id">Edit</button>
+                    <button class="btn btn-danger btn-block" data-id="@user.Id">
+                        @(user.Status == 1 ? "Block" : "Unblock")
+                    </button>
+                    <button class="btn btn-info btn-view-details" onclick="openDetailsModal('@user.Id')">View Details</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<!--phan trang-->
+<div id="pagination">
+    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+    {
+        <a href="@Url.Action("Manage", new { page = i, search = ViewBag.Search, status = ViewBag.Status })"
+           class="btn btn-outline-primary @(i == ViewBag.CurrentPage ? "active" : "")">@i</a>
+    }
+</div>
+<!-- Modal Chi Tiết Khách Hàng -->
+<div id="detailsModal" class="modal fade" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Customer Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detailsContent">
+                <p><strong>Full Name:</strong> <span id="fullName"></span></p>
+                <p><strong>Phone:</strong> <span id="phoneNumber"></span></p>
+                <p><strong>Avatar:</strong> <img id="avatarUrl" src="" alt="Avatar" style="max-width: 100px; max-height: 100px;" /></p>
+                <p><strong>Gender:</strong> <span id="gender"></span></p>
+                <p><strong>Date of Birth:</strong> <span id="dateOfBirth"></span></p>
+                <p><strong>Address:</strong> <span id="address"></span></p>
+                <p><strong>Updated At:</strong> <span id="updatedAt"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    //modal customer details
+         function openDetailsModal(userId) {
+        $.get('/Admin/Customer/Details/' + userId, function (data) {
+            $('#fullName').text(data.userInfo?.fullName || 'N/A');
+            $('#phoneNumber').text(data.userInfo?.phoneNumber || 'N/A');
+            $('#avatarUrl').attr('src', data.userInfo?.avatarUrl || '');
+            $('#gender').text(data.userInfo?.gender || 'N/A');
+            $('#dateOfBirth').text(data.userInfo?.dateOfBirth || 'N/A');
+            $('#address').text(data.userInfo?.address || 'N/A');
+            $('#updatedAt').text(data.userInfo?.updatedAt || 'N/A');
+
+            $('#detailsModal').modal('show');
+        });
+    }
+     // search and filter
+    $('#searchBox, #statusFilter').on('change keyup', function () {
+        var search = $('#searchBox').val();
+        var status = $('#statusFilter').val();
+        window.location.href = '/Admin/Customer/Manage?search=' + search + '&status=' + status;
+    });
+     $('#addCustomer').click(function () {
+        $.get('/Admin/Customer/Add', function (data) {
+            $('#modalContainer').html(data);
+            $('#addCustomerModal').modal('show');
+        });
+    });
+     $('.btn-edit').click(function () {
+        var userId = $(this).data('id');
+        $.get('/Admin/Customer/Edit/' + userId, function (data) {
+            $('#modalContainer').html(data);
+            $('#editCustomerModal').modal('show');
+        });
+    });
+     $('.btn-block').click(function () {
+        var userId = $(this).data('id');
+        var button = $(this);
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You are about to change the status of this customer!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, change it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/Admin/Customer/BlockUnblock/' + userId, function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message,
+                        }).then(() => {
+                            var newStatus = button.text().trim() === "Block" ? "Unblock" : "Block";
+                            button.text(newStatus);
+
+                            var statusBadge = button.closest('tr').find('.badge');
+                            if (newStatus === "Block") {
+                                statusBadge.removeClass('badge-danger').addClass('badge-success').text('Active');
+                            } else {
+                                statusBadge.removeClass('badge-success').addClass('badge-danger').text('Blocked');
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: response.message,
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>

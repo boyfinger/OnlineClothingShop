@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
 using OnlineClothing.Services;
 using OnlineClothing.Utils;
@@ -6,8 +6,11 @@ using OnlineClothing.Utils;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure the DbContext to use SQL Server
+var connectionString = builder.Configuration.GetConnectionString("DbConnection");
+
+// Đăng ký DbContext với SQL Server
 builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
