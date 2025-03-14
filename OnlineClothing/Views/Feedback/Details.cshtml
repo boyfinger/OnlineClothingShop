@@ -1,0 +1,41 @@
+﻿@model Feedback
+
+@{
+    ViewData["Title"] = "Chi tiết đánh giá";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Chi tiết đánh giá</h2>
+
+    <div class="card">
+        <div class="card-header">
+            <h4>@Model.Product.Name</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="@Model.Product.ThumbnailUrl" alt="Ảnh sản phẩm" class="img-fluid rounded shadow"
+                         style="width: 300px; height: 300px; object-fit: cover;">
+                </div>
+                <div class="col-md-8">
+                    <p><strong>Người đánh giá:</strong> @Model.User.UserName</p>
+                    <p><strong>Ngày đánh giá:</strong> @Model.CreateAt.ToString()</p>
+                    <p>
+                        <strong>Đánh giá:</strong>
+                        <span style="color: gold;">
+                            @for (int i = 0; i < Model.Rating; i++)
+                            {
+                                <i class="fas fa-star"></i>
+                            }
+                        </span>
+                    </p>
+                    <p><strong>Nhận xét:</strong></p>
+                    <p>@Model.Comment</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a asp-controller="Orders" asp-action="Details" asp-route-id="@Model.OrderId" class="btn btn-secondary">Quay lại đơn hàng</a>
+        </div>
+    </div>
+</div>
