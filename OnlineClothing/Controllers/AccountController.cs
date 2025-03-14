@@ -436,14 +436,14 @@ namespace OnlineClothing.Controllers
 
             UserViewModel vm = new UserViewModel()
             {
-                AvatarUrl = user.Userinfo.AvatarUrl,
+                AvatarUrl = user.Userinfo.AvatarUrl ?? "/images/user-avatar/default-avatar.jpg",
                 UserName = user.UserName,
                 Email = user.Email,
-                FullName = user.Userinfo.FullName,
-                PhoneNumber = user.Userinfo.PhoneNumber,
+                FullName = user.Userinfo.FullName ?? "",
+                PhoneNumber = user.Userinfo.PhoneNumber ?? "",
                 Gender = user.Userinfo.Gender ?? 1,
                 DateOfBirth = user.Userinfo.DateOfBirth ?? new DateOnly(2000, 1, 1),
-                Address = user.Userinfo.Address,
+                Address = user.Userinfo.Address ?? "",
             };
 
             return View(vm);
@@ -583,6 +583,41 @@ namespace OnlineClothing.Controllers
         public IActionResult ChangePasswordSuccess()
         {
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotModelView model)
+        {
+            if(!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            //check if email is valid
+            if(!ValidationUtils.IsValidEmail(model.Email))
+            {
+                ModelState.AddModelError(string.Empty, "Please enter valid email!");
+                return View(model);
+            }
+
+            //check in database if the email is exists
+            User user = context.Users.FirstOrDefault(u => u.Email == model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "The email address is not assigned to any user account");
+                return View(model);
+            }
+
+            //send reset email
+
+
+            return View(model);
         }
     }
 }
