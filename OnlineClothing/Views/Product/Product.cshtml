@@ -10,163 +10,186 @@
         height: 300px;
         object-fit: cover;
     }
+
+    .pagination .page-link {
+        color: black !important;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: black !important;
+        color: white !important;
+        border-color: black !important;
+    }
+
+    .container-spec {
+        width: 80%;
+        padding-right: 15px;
+        padding-left: 15px;
+        margin-right: auto;
+        margin-left: auto;
+    }
 </style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<h2 class="text-center">Product List</h2>
 
-<form asp-controller="Product" asp-action="Search" method="get" class="mb-3 mt-lg-5 position-relative">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div style="position: relative; width: 1000px;">
-            <input type="text" id="searchBox" name="query" class="form-control"
-                   placeholder="Nhập tên sản phẩm..." required autocomplete="off" />
-            <div id="suggestions" class="list-group"
-                 style="position: absolute; width: 100%; z-index: 1000; display: none;"></div>
+<div class="container-spec">
+    <h2 class="text-center mt-5">Product List</h2>
+
+    <form asp-controller="Product" asp-action="Search" method="get" class="mb-3 mt-5 position-relative">
+        <div class="d-flex mb-2">
+            <div style="position: relative; width: 58vw;">
+                <input type="text" id="searchBox" name="query" class="form-control"
+                       placeholder="Nhập tên sản phẩm..." required autocomplete="off" value="@Model.SearchQuery" />
+                <div id="suggestions" class="list-group"
+                     style="position: absolute; width: 100%; z-index: 1000; display: none;"></div>
+            </div>
+            <div class="d-flex mx-3">
+                <button type="submit" class="btn btn-dark ms-2" style="font-size: 14px">Tìm kiếm</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Back to list</a>
+            </div>
         </div>
-        <div class="d-flex">
-            <button type="submit" class="btn btn-primary ms-2">Tìm kiếm</button>
-            <a asp-action="Index" class="btn btn-secondary ms-2">Back to list</a>
-        </div>
-    </div>
-</form>
+    </form>
 
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a style="text-decoration: none; color: black;" href="/home">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a style="text-decoration: none; color: black;" href="/product">Product</a>
+            </li>
+        </ol>
+    </nav>
+    @if (!Model.Products.Any())
+    {
+        <p>Không tìm thấy sản phẩm nào!</p>
+    }
 
-<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-            <a style="text-decoration: none; color: black;" href="/home">Home</a>
-        </li>
-        <li class="breadcrumb-item">
-            <a style="text-decoration: none; color: black;" href="/product">Product</a>
-        </li>
-    </ol>
-</nav>
-
-
-<div class="container">
-    <div class="row">
-        <div class="col-xl-9">
-            <div class="row">
-                @foreach (var product in Model.Products)
-                {
-                    <div class="col-md-3 mb-3">
-                        <div class="card h-100 d-flex flex-column">
-                            <img src="@product.ThumbnailUrl" class="card-img-top img-fixed" alt="@product.Name">
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@product.Name</h5>
-                                <p class="card-text flex-grow-1">@product.Description</p>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    @if (product.Discount != null)
-                                    {
-                                        <p class="card-text text-danger mb-0">@String.Format("{0:N0} VND", @product.Price - (product.Price * product.Discount / 100) ?? 0)</p>
-                                    }
+    <div class="">
+        <div class="row">
+            <div class="col-lg-9">
+                <div class="row">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="col-lg-3 mb-3">
+                            <div class="card h-100 d-flex flex-column">
+                                <img src="@product.ThumbnailUrl" class="card-img-top img-fixed" alt="@product.Name">
+                                <div class="card-body d-flex flex-column">
+                                    <a asp-action="Detail" asp-route-id="@product.Id" class="card-title product-name"><strong>@product.Name</strong></a>
+                                    <p class="card-text flex-grow-1 product-description">@product.Description</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        @if (product.Discount != null)
+                                        {
+                                            <p class="card-text text-danger mb-0">@String.Format("{0:N0} VND", @product.Price - (product.Price * product.Discount / 100) ?? 0)</p>
+                                        }
+                                        @if (product.Discount != 0)
+                                        {
+                                            <p class="card-text">-@product.Discount%</p>
+                                        }
+                                    </div>
                                     @if (product.Discount != 0)
                                     {
-                                        <p class="card-text">-@product.Discount%</p>
+                                        <p class="card-text mb-2" style="text-decoration: line-through">@String.Format("{0:N0} VND", @product.Price ?? 0)</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text mb-2">&nbsp;</p>
+                                    }
+                                    @if (product.Quantity == 0)
+                                    {
+                                        <p style="font-size: 16px">Hết hàng</p>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-dark mt-auto" onclick="addToCart(@product.Id)">Add to cart</button>
                                     }
                                 </div>
-                                @if (product.Discount != 0)
-                                {
-                                    <p class="card-text mb-2" style="text-decoration: line-through">@String.Format("{0:N0} VND", @product.Price ?? 0)</p>
-                                }
-                                else
-                                {
-                                    <p class="card-text mb-2">&nbsp;</p>
-                                }
-                                <a asp-action="Detail" asp-route-id="@product.Id" class="btn btn-primary mt-auto">Xem chi tiết</a>
                             </div>
                         </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-xl-3">
+                <div class="card">
+                    <div class="card-header" style="background-color:black">
+                        <p style="color: white; font-size: 16px">Bộ lọc sản phẩm</p>
                     </div>
-                }
-            </div>
-        </div>
+                    <div class="card-body">
+                        <form method="get" asp-action="FilterProducts">
+                            <label>Khoảng giá:</label>
+                            <div class="d-flex">
+                                <select name="minPrice" class="form-control me-2">
+                                    <option value="">Từ</option>
+                                    <option value="0" selected="@(ViewBag.MinPrice == 0)">0</option>
+                                    <option value="100000" selected="@(ViewBag.MinPrice == 100000)">100.000</option>
+                                    <option value="200000" selected="@(ViewBag.MinPrice == 200000)">200.000</option>
+                                    <option value="500000" selected="@(ViewBag.MinPrice == 500000)">500.000</option>
+                                </select>
+                                <select name="maxPrice" class="form-control">
+                                    <option value="">Đến</option>
+                                    <option value="100000" selected="@(ViewBag.MaxPrice == 100000)">100.000</option>
+                                    <option value="200000" selected="@(ViewBag.MaxPrice == 200000)">200.000</option>
+                                    <option value="500000" selected="@(ViewBag.MaxPrice == 500000)">500.000</option>
+                                    <option value="1000000" selected="@(ViewBag.MaxPrice == 1000000)">1.000.000</option>
+                                    <option value="2000000" selected="@(ViewBag.MaxPrice == 2000000)">2.000.000</option>
+                                </select>
+                            </div>
 
-        <div class="col-xl-3">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5>Bộ lọc sản phẩm</h5>
-                </div>
-                <div class="card-body">
-                    <form method="get" asp-action="FilterProducts">
-                        <label>Khoảng giá:</label>
-                        <div class="d-flex">
-                            <select name="minPrice" class="form-control me-2">
-                                <option value="">Từ</option>
-                                <option value="0">0</option>
-                                <option value="100000">100.000</option>
-                                <option value="200000">200.000</option>
-                                <option value="500000">500.000</option>
-                            </select>
-                            <select name="maxPrice" class="form-control">
-                                <option value="">Đến</option>
-                                <option value="100000">100.000</option>
-                                <option value="200000">200.000</option>
-                                <option value="500000">500.000</option>
-                                <option value="1000000">1.000.000</option>
-                                <option value="2000000">2.000.000</option>
-                            </select>
-                        </div>
-                        <label class="mt-2">Danh mục:</label>
-                        <select name="categoryId" class="form-control">
-                            <option value="">Tất cả</option>
-                            @foreach(var category in Model.Categories)
-                            {
-                                <option value="@category.Id">@category.Name</option>
-                            }
-                        </select>
-                        <label class="mt-2">Trạng thái:</label>
-                        <select name="status" class="form-control">
-                            <option value="">Tất cả</option>
-                            @foreach (var status in Model.ProductStatuses)
-                            {
-                                string statusName = status.Id switch
+                            <label class="mt-2">Danh mục:</label>
+                            <select name="categoryId" class="form-control">
+                                <option value="">Tất cả</option>
+                                @foreach (var category in Model.Categories)
                                 {
-                                    1 => "Còn hàng",
-                                    2 => "Hết hàng",
-                                    3 => "Ngừng kinh doanh",
-                                    _ => status.Name
-                                };
+                                    <option value="@category.Id" selected="@(ViewBag.CategoryId == category.Id)">@category.Name</option>
+                                }
+                            </select>
 
-                                <option value="@status.Id">@statusName</option>
-                            }
-                        </select>
-                        <div class="form-check mt-2">
-                            <input type="checkbox" name="inStock" value="true" class="form-check-input">
-                            <label class="form-check-label">Chỉ còn hàng</label>
-                        </div>
-                        <button type="submit" class="btn btn-success mt-3 w-100">Lọc sản phẩm</button>
-                        <a asp-action="Index" class="btn btn-secondary mt-2 w-100">Bỏ lọc</a>
-                    </form>
+                            <label class="mt-2">Trạng thái:</label>
+                            <select name="status" class="form-control">
+                                <option value="">Tất cả</option>
+                                @foreach (var status in Model.ProductStatusCases)
+                                {
+                                    string statusName = status switch
+                                    {
+                                        1 => "Còn hàng",
+                                        2 => "Hết hàng",
+                                        _ => ""
+                                    };
+                                    <option value="@status" selected="@(ViewBag.Status == status)">@statusName</option>
+                                }
+                            </select>
+
+                            <label class="mt-2">Sắp xếp theo:</label>
+                            <select name="sortOrder" class="form-control">
+                                <option value="">Mặc định</option>
+                                <option value="price_asc" selected="@(ViewData["SortOrder"]?.ToString() == "price_asc" ? "selected" : null)">
+                                    Giá thấp đến cao
+                                </option>
+                                <option value="price_desc" selected="@(ViewData["SortOrder"]?.ToString() == "price_desc" ? "selected" : null)">
+                                    Giá cao đến thấp
+                                </option>
+                            </select>
+
+                            <button type="submit" class="btn btn-dark mt-3 w-100">Lọc sản phẩm</button>
+                            <a asp-action="Index" class="btn btn-secondary mt-2 w-100">Bỏ lọc</a>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="pagination mt-4 justify-content-center">
-            <nav>
-                <ul class="pagination justify-content-center">
-                    @if (Model.CurrentPage > 1)
-                    {
-                        <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1 })">← Trước</a>
-                        </li>
-                    }
-                    @for (int i = 1; i <= Model.TotalPages; i++)
-                    {
-                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                            <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
-                        </li>
-                    }
-                    @if (Model.CurrentPage < Model.TotalPages)
-                    {
-                        <li class="page-item">
-                            <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1 })">Tiếp →</a>
-                        </li>
-                    }
-                </ul>
-            </nav>
+            @await Html.PartialAsync("_Pagination", Model)
         </div>
     </div>
 </div>
+<div class="banner-left">
+    <img src="/images/skyscraper.png" alt="Left Banner">
+</div>
 
+<div class="banner-right">
+    <img src="/images/skyscraper.png" alt="Right Banner">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(document).ready(function () {
         $("#searchBox").on("keyup", function () {
@@ -205,4 +228,31 @@
             }
         });
     });
+
+    function addToCart(productId) {
+        var quantity = 1;
+
+        $.ajax({
+            url: '/Cart/AddToCart',
+            type: 'POST',
+            data: { productId: productId, quantity: quantity },
+            success: function (response) {
+                Swal.fire({
+                    title: "Thành công!",
+                    text: "Sản phẩm đã được thêm vào giỏ hàng.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi thêm sản phẩm vào giỏ hàng: ", error);
+                Swal.fire({
+                    title: "Thất bại!",
+                    text: "Không thể thêm sản phẩm vào giỏ hàng.",
+                    icon: "error"
+                });
+            }
+        });
+    }
 </script>

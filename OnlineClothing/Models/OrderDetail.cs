@@ -7,7 +7,7 @@ public partial class OrderDetail
 {
     public long Id { get; set; }
 
-    public long? OrderId { get; set; }
+    public Guid OrderId { get; set; }
 
     public long? ProductId { get; set; }
 
@@ -19,7 +19,7 @@ public partial class OrderDetail
 
     public int? TotalPrice { get; set; }
 
-    public virtual Order? Order { get; set; }
+    public virtual Order Order { get; set; } = null!;
 
     public virtual Product? Product { get; set; }
 }

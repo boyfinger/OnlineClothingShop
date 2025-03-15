@@ -42,7 +42,10 @@ public partial class Product
 
     public DateTime? UpdateAt { get; set; }
 
+    public string Currency = "VND";
+
     public virtual Category? Category { get; set; }
+    public virtual ICollection<CartDetail> CartDetails { get; set; } = new List<CartDetail>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
