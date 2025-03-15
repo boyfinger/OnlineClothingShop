@@ -59,15 +59,21 @@
                             <p class="card-text"><strong>Old Price:</strong> @String.Format("{0:N0} VND", Model.Product.Price ?? 0)</p>
                             <p class="card-text"><strong>Discount:</strong> @(Model.Product.Discount ?? 0)%</p>
                         }
-                        <p class="card-text"><strong>Quantity:</strong> @(Model.Product.Quantity ?? 0)</p>
-                        <p class="card-text"><strong>Status:</strong> @(Model.Product.Status == 1 ? "Available" : "Out of Stock")</p>
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label"><strong>Quantity:</strong></label>
-                            <input type="number" id="quantity" class="form-control" value="1" min="1" max="@Model.Product.Quantity" style="width: 120px;" />
-                        </div>
-                        <button class="btn btn-primary" onclick="addToCart(@Model.Product.Id)">Add to cart</button>
-                        <button class="btn btn-success" onclick="placeOrder(@Model.Product.Id)">Order now</button>
-                        <p id="responseMessage"></p>
+                        <p class="card-text"><strong>Stock remaining:</strong> @(Model.Product.Quantity ?? 0)</p>
+                        @if (Model.Product.Quantity != 0)
+                        {
+                            <div class="mb-3 d-flex justify-content-start">
+                                <label for="quantity" class="form-label mt-1 me-2"><strong>Quantity:</strong></label>
+                                <input type="number" id="quantity" class="form-control" value="1" min="1" max="@Model.Product.Quantity" style="width: 120px;" />
+                            </div>
+                            <button class="btn btn-primary" onclick="addToCart(@Model.Product.Id)">Add to cart</button>
+                            <button class="btn btn-success" onclick="placeOrder(@Model.Product.Id)">Order now</button>
+                            <p id="responseMessage"></p>
+                        }
+                        else
+                        {
+                            <p style="color: red">Sản phẩm đã hết hàng</p>
+                        }
                     </div>
                 </div>
             </div>
@@ -85,9 +91,9 @@
 
         <div class="mt-5">
             <h3 class="mt-4 mb-3">Đánh giá và Nhận xét</h3>
-            @if (Model.Product.Feedbacks != null && Model.Product.Feedbacks.Any())
+            @if (Model.Product.Feedbacks != null && Model.Feedbacks.Any())
             {
-                @foreach (var feedback in Model.Product.Feedbacks)
+                @foreach (var feedback in Model.Feedbacks)
                 {
                     <div class="card mb-3">
                         <div class="card-body">

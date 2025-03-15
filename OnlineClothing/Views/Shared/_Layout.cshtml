@@ -47,14 +47,11 @@
                         <ul class="nav">
                             <li><a href="/Home" id="home-link" class="active">Home</a></li>
                             <li><a href="/product" id="shop-link">Our Shop</a></li>
-                            <li><a href="#">Product Details</a></li>
                             @if (Context.Session.GetString("UserId") != null)
                             {
                                 <li><a href="/Cart" id="cart-link" class="active">Your Cart</a></li>
                                 <li><a href="/Orders" id="pastOrder-link" class="active">Your Orders</a></li>
                             }
-                            <li><a href="/contact.html">Contact Us</a></li>
-
                             @if (Context.Session.GetString("UserId") != null)
                             {
                                 <li class="nav-item dropdown">
@@ -62,7 +59,9 @@
                                         <img src="@Context.Session.GetString("AvatarUrl")" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
                                     </a>
                                     <ul id="profileMenu" class="dropdown-menu-custom">
-                                        <li><a class="dropdown-item" href="/Account/UserProfile"><i class="fas fa-cog"></i>Settings</a></li>
+                                        <li><a class="dropdown-item" href="/Account/UserProfile"><i class="fas fa-cog"></i>User Settings</a></li>
+                                        <li><a class="dropdown-item" href="/Orders"><i class="fas fa-shopping-cart"></i>My Orders</a></li>
+                                        <li><a class="dropdown-item" href="/Feedback"><i class="fas fa-comments"></i>Feedback</a></li>
                                         <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i>Change Password</a></li>
                                         <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                                     </ul>

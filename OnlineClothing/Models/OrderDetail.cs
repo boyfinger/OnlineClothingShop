@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineClothing.Models;
 
@@ -22,4 +23,7 @@ public partial class OrderDetail
     public virtual Order Order { get; set; } = null!;
 
     public virtual Product? Product { get; set; }
+
+    [NotMapped]
+    public bool Feedbacked { get; set; }
 }

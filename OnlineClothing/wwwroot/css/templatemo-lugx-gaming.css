@@ -188,7 +188,7 @@ Pre-loader Style
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #335c67;
+    background-color: black;
     display: -webkit-box;
     display: flex;
     -webkit-box-align: center;
@@ -1134,13 +1134,15 @@ Footer Style
 */
 
 footer {
-    background-color: #335c67;
+    background-color: black;
     background-repeat: no-repeat;
     background-size: cover;
     background-image: url(../images/footer-bg.jpg);
     min-height: 150px;
-    border-radius: 150px 150px 0px 0px;
-    margin-top:auto;
+    margin-top: auto;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0px -5px #fff3b0;
 }
 
     footer p {
@@ -1757,5 +1759,4 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    font-family: 'Poppins', sans-serif;
 }
