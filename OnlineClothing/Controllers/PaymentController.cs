@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OnlineClothing.Models;
 using OnlineClothing.Models.MoMo;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.IdentityModel.Tokens;
 
 namespace OnlineClothing.Controllers
 {
@@ -40,7 +41,7 @@ namespace OnlineClothing.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> CheckOutAsync(string FullName, string PhoneNumber, string Address, bool saveShippingInfo)
+        public async Task<IActionResult> CheckOutAsync(string FullName, string PhoneNumber, string Address, string Note, bool saveShippingInfo)
         {
             // Validate user
             var userId = HttpContext.Session.GetString("UserId");
@@ -107,7 +108,7 @@ namespace OnlineClothing.Controllers
             _request.extraData = "";
             _request.storeId = "Online Clothing Shop";
             _request.autoCapture = true;
-            _request.amount = 1000;
+            //_request.amount = 1000;
 
             var rawSignature = "accessKey=" + accessKey
                 + "&amount=" + _request.amount
@@ -139,6 +140,7 @@ namespace OnlineClothing.Controllers
 
             if (response.ResultCode == 0)
             {
+                if (Note.IsNullOrEmpty()) Note = "none";
                 Order order = new()
                 {
                     Id = Guid.Parse(response.OrderId),
@@ -147,7 +149,7 @@ namespace OnlineClothing.Controllers
                     FullName = _request.UserInfo.Name,
                     PhoneNumber = _request.UserInfo.PhoneNumber,
                     Address = _request.UserInfo.Address,
-                    Note = "none",
+                    Note = Note,
                     OrderDate = DateTime.Now,
                     Status = 1,
                     TotalAmount = (int)_request.amount,

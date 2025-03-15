@@ -11,7 +11,7 @@ builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
-builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
+builder.Services.AddScoped<IOpenAIService, OpenAIService>();
 
 // Register the EmailUtils as a transient service
 builder.Services.AddTransient<EmailUtils>();

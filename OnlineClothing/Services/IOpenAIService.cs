@@ -5,7 +5,7 @@ namespace OnlineClothing.Services
 {
     public interface IOpenAIService
     {
-        Task<string> CheckDescription(string description);
+        Task<string> CheckDescriptionAsync(string description);
 
         Task<string> CheckImage(string image, string description);
     }

@@ -9,7 +9,7 @@ using System.Text;
 namespace OnlineClothing.Services
 {
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-    public class OpenAIService
+    public class OpenAIService : IOpenAIService
     {
         private readonly ChatClient _chatClient;
         private readonly OpenAIClient _openAIClient;
@@ -109,4 +109,6 @@ namespace OnlineClothing.Services
             return result.ToString();
         }
     }
+#pragma warning enable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
 }

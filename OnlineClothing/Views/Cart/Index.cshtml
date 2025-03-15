@@ -56,18 +56,22 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="FullName" class="form-label">Full Name</label>
-                        <input type="text" name="FullName" id="FullName" class="form-control" value="@ViewBag.FullName">
+                        <input type="text" name="FullName" id="FullName" class="form-control" value="@ViewBag.FullName" placeholder="Enter the receiver's name">
                         <span class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
                         <label for="PhoneNumber" class="form-label">Phone Number</label>
-                        <input type="text" name="PhoneNumber" id="PhoneNumber" class="form-control" value="@ViewBag.PhoneNumber">
+                        <input type="text" name="PhoneNumber" id="PhoneNumber" class="form-control" value="@ViewBag.PhoneNumber" placeholder="Enter the receiver's phone number">
                         <span class="text-danger"></span>
                     </div>
                     <div class="col-md-4">
                         <label for="Address" class="form-label">Address</label>
-                        <input type="text" name="Address" id="Address" class="form-control" value="@ViewBag.Address">
+                        <input type="text" name="Address" id="Address" class="form-control" value="@ViewBag.Address" placeholder="Enter the receiver's address">
                         <span class="text-danger"></span>
+                    </div>
+                    <div class="col-md-12">
+                        <label for="Note" class="form-label">Note</label>
+                        <textarea name="Note" id="Note" class="form-control" rows="3" placeholder="Any special instructions?"></textarea>
                     </div>
                 </div>
             </div>
