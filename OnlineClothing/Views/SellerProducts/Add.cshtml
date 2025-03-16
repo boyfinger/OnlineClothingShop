@@ -1,45 +1,224 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿<!-- Cropper.js CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+
+<style>
+    #cropperContainer {
+        width: 600px;
+        height: 600px;
+        margin: 0 auto;
+        position: relative;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border: 1px solid #ccc;
+    }
+
+    .cropper-container {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+    }
+
+    #imagePreview {
+        min-width: 380px;
+        min-height: 570px;
+        object-fit: contain;
+        display: block;
+    }
+</style>
+
+
+<!-- Cropper.js JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
 
 @model OnlineClothing.Models.Product
 
-<div class="container">
-    <h2 class="my-4">Add Product</h2>
-    <form asp-controller="sellerproducts" asp-action="add" method="post" enctype="multipart/form-data">
-        <div class="form-group mb-3">
-            <label asp-for="Name" class="control-label"></label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
+<!-- Crop Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropModalLabel">Thumbnail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="file" id="imageInput" class="form-control" accept="image/*" />
+                </div>
+                <div id="cropperContainer" style="display: none;">
+                    <div class="cropper-container">
+                        <img id="imagePreview" />
+                    </div>
+                </div>
+                <div>
+                    <button id="cropButton" class="btn btn-primary mt-3">Crop & Save</button>
+                </div>
+            </div>
         </div>
-        <div class="form-group mb-3">
-            <label asp-for="CategoryId" class="control-label"></label>
-            <select asp-for="CategoryId" class="form-control"
-                    asp-items="ViewBag.Categories"></select>
+    </div>
+</div>
+
+<div class="container" style="margin-top: 30px;">
+    <!-- Modal Trigger -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cropModal">
+        Set thumbnail
+    </button>
+    <div class="mt-3">
+        <label for="croppedThumbnailPreview" class="form-label">Thumbnail</label>
+        <div>
+            <img id="croppedThumbnailPreview" style="border: 1px solid #ccc; max-width: 200px; height: auto;" alt="" />
+        </div>
+    </div>
+
+    <br />
+    <h2 class="my-4">Add Product</h2>
+    <form id="productForm" asp-controller="sellerproducts" asp-action="add" method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="control-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="form-group mb-3">
+                    <label asp-for="CategoryId" class="control-label"></label>
+                    <select asp-for="CategoryId" class="form-control form-select"
+                            asp-items="ViewBag.Categories"></select>
+                </div>
+            </div>
         </div>
         <div class="form-group mb-3">
             <label asp-for="Description" class="control-label"></label>
             <textarea rows="4" asp-for="Description" class="form-control"></textarea>
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
-        <div class="form-group mb-3">
-            <label asp-for="Price" class="control-label"></label>
-            <input asp-for="Price" class="form-control" />
-            <span asp-validation-for="Price" class="text-danger"></span>
-        </div>
-        <div class="form-group mb-3">
-            <label asp-for="Quantity" class="control-label"></label>
-            <input asp-for="Quantity" class="form-control" />
-            <span asp-validation-for="Quantity" class="text-danger"></span>
-        </div>
-        <div class="form-group mb-3">
-            <label asp-for="ThumbnailUrl" class="control-label"></label>
-            <input type="file" name="imageFile" class="form-control"/>
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Price" class="control-label"></label>
+                    <input asp-for="Price" class="form-control" />
+                    <span asp-validation-for="Price" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Quantity" class="control-label"></label>
+                    <input asp-for="Quantity" class="form-control" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
+            </div>
         </div>
         <div class="form-group">
-            <button type="submit" class="btn btn-primary">Add</button>
+            <button id="submitButton" type="button" class="btn btn-primary">Add</button>
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const imageInput = document.getElementById("imageInput");
+        const cropperContainer = document.getElementById("cropperContainer");
+        const imagePreview = document.getElementById("imagePreview");
+        const cropButton = document.getElementById("cropButton");
+        const submitButton = document.getElementById("submitButton");
+        const productForm = document.getElementById("productForm");
+
+        let croppedBlob = null; // Store the cropped image as a Blob
+        let cropper; // Declare the cropper instance
+
+        // Handle image upload
+        imageInput.addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result; // Load the image into the preview
+
+                    // Ensure the cropper container is visible
+                    cropperContainer.style.display = "flex";
+
+                    // Initialize or replace the cropper instance
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(imagePreview, {
+                        aspectRatio: 2 / 3,       // Fixed 2:3 ratio
+                        viewMode: 1,              // Ensure the crop box fits within the container
+                        dragMode: "move",         // Allow moving the image instead of the crop box
+                        cropBoxResizable: false,  // Disable resizing of the crop box
+                        cropBoxMovable: false,    // Disable movement of the crop box
+                        center: true,             // Keep the crop box centered
+                        background: true,        // Remove the checkerboard background
+                        zoomable: true,           // Allow zooming for better precision
+                        scalable: false,          // Prevent scaling of the image
+                        ready() {
+                            // Get the image data to dynamically set dimensions
+                            const cropBoxData = this.cropper.cropBoxData;
+
+                            // Ensure the image meets the minimum width and height
+                            if (cropBoxData.width < 380 || cropBoxData.height < 570) {
+                                console.log(cropBoxData);
+                                const scaleX = 380 / cropBoxData.width;
+                                const scaleY = 570 / cropBoxData.height;
+                                const scale = Math.max(scaleX, scaleY); // Use the larger scale to meet minimum
+
+                                // Resize the image to meet minimum dimensions
+                                this.cropper.zoomTo(scale);
+                            }
+
+                            // Set the crop box size explicitly
+                            this.cropper.setCropBoxData({
+                                width: 380,   // Fixed width of the crop box
+                                height: 570,  // Fixed height of the crop box (maintain 2:3 ratio)
+                                left: (cropperContainer.offsetWidth - 380) / 2,  // Center horizontally
+                                top: (cropperContainer.offsetHeight - 570) / 2, // Center vertically
+                            });
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        cropButton.addEventListener("click", function () {
+            if (cropper) {
+                cropper.getCroppedCanvas({
+                    width: 300,
+                    height: 450,
+                }).toBlob(function (blob) {
+                    croppedBlob = blob; // Store the cropped image as a Blob
+                    croppedThumbnailPreview.src = URL.createObjectURL(blob); // Display preview
+
+                    // Close the modal
+                    const cropperModal = bootstrap.Modal.getInstance(document.getElementById("cropModal"));
+                    cropperModal.hide();
+                }, "image/jpeg");
+            }
+        });
+
+        submitButton.addEventListener("click", function(){
+            if (croppedBlob) {
+                // Create a new file input to append the Blob
+                const blobInput = document.createElement("input");
+                const dataTransfer = new DataTransfer();
+
+                // Append it as a hidden field to the form
+                blobInput.type = "file";
+                blobInput.name = "imageFile";
+                // Create file-like object and append it
+                const file = new File([croppedBlob], "thumbnail.jpg", { type: "image/jpeg" });
+                dataTransfer.items.add(file);
+                blobInput.files = dataTransfer.files;
+                blobInput.style.display = "none";
+                productForm.appendChild(blobInput);
+            }
+            productForm.submit();
+        });
+    });
+
+</script>

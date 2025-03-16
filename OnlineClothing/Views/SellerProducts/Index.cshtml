@@ -1,150 +1,477 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SweetAlert CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+<!-- SweetAlert JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @model List<Product>
 
-<div class="row">
-    <div class="col-lg-2">
-        <form asp-controller="sellerproducts" asp-action="index">
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" name="searchString"
-                       placeholder="Search" aria-label="Search"
-                       value="@ViewBag.SearchString">
-            </div>
-            <div class="input-group mb-3">
-                <select name="categoryId" class="form-control form-select">
-                    <option value="0" selected="@ViewBag.SelectedCategoryId == 0">None</option>
-                    @foreach (var category in ViewBag.Categories)
-                    {
-                        <option value="@category.Value" selected="@(ViewBag.SelectedCategoryId.ToString() == category.Value)">
-                            @category.Text
-                        </option>
-                    }
-                </select>
-            </div>
-            <div class="input-group mb-3">
-                <button class="btn btn-outline-secondary" type="submit" id="button-search">Search</button>
-            </div>
-        </form>
-    </div>
-    <div class="col-lg-10">
-        <a class="btn btn-primary mb-3" asp-controller="sellerproducts" asp-action="add">Insert product</a>
+@{
+    ViewData["Title"] = $"Seller products - {ViewBag.CurrentPage}";
+}
 
-        <h6 class="text-success mb-3">@TempData["message"]</h6>
+<div class="container-xxl">
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-lg-2">
+            <form asp-controller="sellerproducts" asp-action="index">
+                <div class="mb-3">
+                    <input type="text" class="form-control" name="searchString"
+                           placeholder="Search" aria-label="Search"
+                           value="@ViewBag.SearchString">
+                </div>
+                <div class="mb-3">
+                    <label for="categoryId">Category</label>
+                    <select name="categoryId" class="form-control form-select">
+                        <option value="0" selected="@ViewBag.SelectedCategoryId == 0">None</option>
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <option value="@category.Value" selected="@(ViewBag.SelectedCategoryId.ToString() == category.Value)">
+                                @category.Text
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-outline-primary mr-1" type="submit" id="button-search">Search</button>
+                    <a class="btn btn-outline-secondary" asp-route-controller="sellerproducts">Clear filter</a>
+                </div>
+            </form>
+        </div>
+        <div class="col-lg-10">
+            <a class="btn btn-primary mb-3" asp-controller="sellerproducts" asp-action="add">Insert product</a>
 
-        <table class="table">
-            <thead class="table-primary">
-                <tr>
-                    <th>Thumbnail</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var product in Model)
-                {
+            <h6 class="text-success mb-3">@TempData["message"]</h6>
+
+            <table class="table">
+                <thead class="table-primary">
                     <tr>
-                        <td>
-                            <img src="@product.ThumbnailUrl" alt="@product.Name"
-                                 style="width: auto; height: 50px;" />
-                        </td>
-                        <td>@product.Name</td>
-                        <td>@product.Category.Name</td>
-                        <td>@product.Price</td>
-                        <td>@product.Quantity</td>
-                        <td>
-                            <span class="badge rounded-pill @GetStatusBadgeColor(product.StatusNavigation.Name)">
-                                @product.StatusNavigation.Name
-                            </span>
-                        </td>
-                        <td>
-                            @if (!"DISCONTINUED".Equals(product.StatusNavigation.Name))
-                            {
-
-                                <a class="btn btn-info mr-1"
-                                   asp-controller="sellerproducts" asp-action="details" asp-route-id="@product.Id">
-                                    Details
-                                </a>
-                                <a class="btn btn-danger mr-1"
-                                   asp-controller="sellerproducts" asp-action="deactivate" asp-route-id="@product.Id">
-                                    Deactivate
-                                </a>
-                                <a class="btn btn-primary mr-1"
-                                   asp-controller="images" asp-action="getallproductimages" asp-route-productid="@product.Id">
-                                    Images list
-                                </a>
-                            }
-                        </td>
+                        <th>Thumbnail</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Discount</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@product.ThumbnailUrl" alt="@product.Name"
+                                     style="width: auto; height: 50px;" />
+                            </td>
+                            <td>@product.Name</td>
+                            <td>@product.Category.Name</td>
+                            @if (product.Discount != null && product.Discount != 0)
+                            {
+                                var discountedPrice = product.Price * (100 - product.Discount) / 100;
 
-        <nav>
-            <ul class="pagination justify-content-center">
-                @if (ViewBag.CurrentPage > 1)
-                {
-                    <li class="page-item">
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page="@(ViewBag.CurrentPage - 1)"
-                           asp-route-searchString="@ViewBag.SearchString"
-                           asp-route-categoryId="@ViewBag.SelectedCategoryId">
-                            Previous
-                        </a>
-                    </li>
-                }
+                                <td>@String.Format("{0:N0}", discountedPrice) <span class="text-danger" style="text-decoration: line-through;">@String.Format("{0:N0}", product.Price)</span></td>
+                                <td>@product.Discount%</td>
+                            }
+                            else
+                            {
+                                <td>@String.Format("{0:N0}", product.Price)</td>
+                                <td></td>
+                            }
+                            <td>@product.Quantity</td>
+                            <td>
+                                <span class="badge rounded-pill @GetStatusBadgeColor(product.StatusNavigation.Name)">
+                                    @product.StatusNavigation.Name
+                                </span>
+                            </td>
+                            <td>
+                                @if (!"DISCONTINUED".Equals(product.StatusNavigation.Name))
+                                {
 
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
-                {
-                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page="@i"
-                           asp-route-searchString="@ViewBag.SearchString"
-                           asp-route-categoryId="@ViewBag.SelectedCategoryId">
-                            @i
-                        </a>
-                    </li>
-                }
+                                    <a class="btn btn-outline-info mr-1 mb-1" data-bs-toggle="tooltip" title="Details"
+                                       asp-controller="sellerproducts" asp-action="details" asp-route-id="@product.Id">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z" />
+                                        </svg>
+                                    </a>
+                                    @* <a class="btn btn-outline-danger mr-1 mb-1"
+                                       data-bs-toggle="modal" data-bs-target="#deactivateModal" data-product-id="@product.Id" data-product-name="@product.Name"
+                                       data-bs-placement="top" title="Deactivate">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                        </svg>
+                                    </a> *@
+                                    <a class="btn btn-outline-primary mr-1 mb-1" data-bs-toggle="tooltip" title="Image list"
+                                       asp-controller="images" asp-action="getallproductimages" asp-route-productid="@product.Id">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-image" viewBox="0 0 16 16">
+                                            <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
+                                            <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z" />
+                                        </svg>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-secondary mr-1 mb-1"
+                                            data-bs-toggle="modal" data-bs-target="#discountModal" data-product-id="@product.Id" data-original-price="@product.Price" data-discount="@product.Discount"
+                                            data-bs-placement="top" title="Manage discount">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-percent" viewBox="0 0 16 16">
+                                            <path d="M13.442 2.558a.625.625 0 0 1 0 .884l-10 10a.625.625 0 1 1-.884-.884l10-10a.625.625 0 0 1 .884 0M4.5 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5m7 6a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m0 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5" />
+                                        </svg>
+                                    </button>
+                                    <a class="btn btn-outline-success mr-1 mb-1 view-feedback"
+                                       asp-controller="feedback" asp-route-productId="@product.Id"
+                                       data-bs-placement="top" title="View feedbacks">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left-text" viewBox="0 0 16 16">
+                                            <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
+                                            <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6m0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
+                                        </svg>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
 
-                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                {
-                    <li class="page-item">
-                        <a class="page-link"
-                           asp-action="Index"
-                           asp-route-page="@(ViewBag.CurrentPage + 1)"
-                           asp-route-searchString="@ViewBag.SearchString"
-                           asp-route-categoryId="@ViewBag.SelectedCategoryId">
-                            Next
-                        </a>
-                    </li>
-                }
-            </ul>
-        </nav>
+            <nav>
+                <ul class="pagination justify-content-center">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="1"
+                               asp-route-searchString="@ViewBag.SearchString"
+                               asp-route-categoryId="@ViewBag.SelectedCategoryId">
+                                &laquo;
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(ViewBag.CurrentPage - 1)"
+                               asp-route-searchString="@ViewBag.SearchString"
+                               asp-route-categoryId="@ViewBag.SelectedCategoryId">
+                                &lsaquo;
+                            </a>
+                        </li>
+                    }
 
+
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        if (i == 1 || i == ViewBag.TotalPages || Math.Abs(ViewBag.CurrentPage - i) <= 1)
+                        {
+                            <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-searchString="@ViewBag.SearchString"
+                                   asp-route-categoryId="@ViewBag.SelectedCategoryId">
+                                    @i
+                                </a>
+                            </li>
+                        }
+                        if ((i == 2 && i < ViewBag.CurrentPage - 1) || (i == ViewBag.TotalPages - 1 && i > ViewBag.CurrentPage + 1))
+                        {
+                            <li class="page-item"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(ViewBag.CurrentPage + 1)"
+                               asp-route-searchString="@ViewBag.SearchString"
+                               asp-route-categoryId="@ViewBag.SelectedCategoryId">
+                                &rsaquo;
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@ViewBag.TotalPages"
+                               asp-route-searchString="@ViewBag.SearchString"
+                               asp-route-categoryId="@ViewBag.SelectedCategoryId">
+                                &raquo;
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 
+
+@* <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deactivateModalLabel">Deactivate product</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to deactivate product <span id="productNamePlaceholder"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form id="deactivateForm" method="post" asp-controller="sellerproducts" asp-action="deactivate">
+                    <input type="hidden" id="productIdInput" name="id" value="">
+                    <button type="submit" class="btn btn-warning">Deactivate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+<div class="modal fade" id="discountModal" tabindex="-1" aria-labelledby="discountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="discountModalLabel">Discount</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <form method="post" id="updateDiscountForm" asp-controller="sellerproducts" asp-action="updatediscount">
+                        <input id="productIdInput_1" type="hidden" name="id" value="" />
+                        <h2 class="fs-5">Enter discount</h2>
+                        <div class="mb-3">
+                            <h5 class="fs-5">Original price: <span class="text-danger" id="originalPrice"></span></h5>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="discountInput">Discount</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="discountInput" name="discount" value="" />
+                                <span class="input-group-text" id="basic-addon3">%</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <h5 class="fs-5">New price: <span class="text-success" id="newPrice"></span></h5>
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">Update discount</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="removeDiscountContainer">
+                    <hr />
+                    <form id="deleteDiscountForm" method="post" asp-controller="sellerproducts" asp-action="updatediscount">
+                        <input id="productIdInput_2" type="hidden" name="id" value="" />
+                        <input type="hidden" class="form-control" id="discountInput_2" name="discount" value="0" />
+                        <h2 class="fs-5">Or remove current discount</h2>
+                        <button class="btn btn-danger">Remove current discount</button>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+<script>
+        document.getElementById("updateDiscountForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(this);
+
+        // Send the form data to the backend
+        fetch(this.action, {
+            method: "POST",
+            body: formData,
+        })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Discont Updated!",
+                    text: "The product discount has been successfully updated.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                }).then(() => {
+                    // Redirect to the product index page or reload
+                    window.location.href = "/sellerproducts";
+                });
+            } else {
+                throw new Error("Failed to update the product.");
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: "error",
+                title: "Update Failed!",
+                text: "There was an error updating the discount. Please try again.",
+            });
+            console.error("Error updating discount:", error);
+        });
+    });
+
+    document.getElementById("deleteDiscountForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(this);
+
+        // Send the form data to the backend
+        fetch(this.action, {
+            method: "POST",
+            body: formData,
+        })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Discont Updated!",
+                    text: "The product discount has been successfully updated.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                }).then(() => {
+                    // Redirect to the product index page or reload
+                    window.location.href = "/sellerproducts";
+                });
+            } else {
+                throw new Error("Failed to update the product.");
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: "error",
+                title: "Update Failed!",
+                text: "There was an error updating the discount. Please try again.",
+            });
+            console.error("Error updating discount:", error);
+        });
+    });
+</script>
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "@successMessage"
+        });
+    </script>
+}
+
+
+@* <script>
+    const deactivateModal = document.getElementById('deactivateModal');
+    deactivateModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        const button = event.relatedTarget;
+        // Extract info from data-* attributes
+        const productId = button.getAttribute('data-product-id');
+        const productName = button.getAttribute('data-product-name');
+
+        // Update the modal's content
+        const productNamePlaceholder = deactivateModal.querySelector('#productNamePlaceholder');
+        productNamePlaceholder.textContent = productName;
+
+        // Update the hidden input value in the form
+        const productIdInput = deactivateModal.querySelector('#productIdInput');
+        productIdInput.value = productId;
+    });
+</script> *@
+<script>
+    // Enable the tooltip for the button
+    const tooltipTrigger = document.getElementById('tooltipButton');
+    const tooltip = new bootstrap.Tooltip(tooltipTrigger);
+</script>
+
+<script>
+        const discountModal = document.getElementById('discountModal');
+
+    // Listen for the modal 'show' event
+    discountModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        const button = event.relatedTarget;
+
+        // Extract values from data-* attributes
+        const originalPrice = parseFloat(button.getAttribute('data-original-price')) || 0;
+        const discount = parseFloat(button.getAttribute('data-discount')) || 0;
+        const productId = parseInt(button.getAttribute('data-product-id')) || 0;
+
+        // Calculate the discounted price
+        const discountedPrice = calculateNewPrice(originalPrice, discount);
+
+        // Update modal content
+        const originalPriceElement = discountModal.querySelector('#originalPrice');
+        const discountInput = discountModal.querySelector('#discountInput');
+        const newPriceInput = discountModal.querySelector('#newPrice');
+        const productIdFormInput = discountModal.querySelector('#productIdInput_1');
+
+        if (discount !== 0) {
+            removeDiscountContainer.style.display = "block";
+        } else {
+            removeDiscountContainer.style.display = "none";
+        }
+
+        originalPriceElement.textContent = `${originalPrice.toLocaleString()} VND`;
+        discountInput.value = discount;
+        newPriceInput.textContent = `${discountedPrice.toLocaleString()} VND`;
+
+        productIdFormInput.value = productId;
+        discountModal.querySelector('#productIdInput_2').value = productId;
+
+        // Listen for changes to discountInput to calculate new price
+        discountInput.addEventListener('input', function () {
+            const updatedDiscount = parseFloat(discountInput.value) || 0;
+            const updatedNewPrice = calculateNewPrice(originalPrice, updatedDiscount);
+
+            // Update the new price input field
+            newPriceInput.textContent = `${updatedNewPrice.toLocaleString()} VND`;
+
+            let value = parseInt(discountInput.value, 10);
+
+            if (isNaN(value) || value < 0) {
+                value = 0;
+            }
+
+            // If the value exceeds 100, reset to 100
+            if (value > 100) {
+                value = 100;
+            }
+
+            // Update the input field to show the corrected value
+            discountInput.value = value;
+        });
+    });
+
+    // Function to calculate the new price based on discount
+    function calculateNewPrice(originalPrice, discount) {
+        return originalPrice - (originalPrice * discount / 100);
+    }
+
+    // Function to calculate the discount based on the new price
+    function calculateDiscount(originalPrice, newPrice) {
+        return ((originalPrice - newPrice) / originalPrice) * 100;
+    }
+
+</script>
 
 @functions {
     public string GetStatusBadgeColor(string name)
     {
         switch (name)
         {
-            case "AVAILABLE":
+            case "APPROVED":
                 return "bg-success";
-            case "OUT_OF_STOCK":
+            case "UNAPPROVED":
                 return "bg-warning";
-            case "DISCONTINUED":
-                return "bg-secondary";
+            case "REJECTED":
+                return "bg-danger";
             default:
                 return "";
         }

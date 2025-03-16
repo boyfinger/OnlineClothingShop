@@ -18,9 +18,9 @@ namespace OnlineClothing.Controllers
         public async Task<IActionResult> Index()
         {
             var orderDetails = await _context.OrderDetails
-                .Where(od => od.Product.SellerId == sellerId)
-                .Include(od => od.Order)
+                .Where(od => od.Product.SellerId.Equals(sellerId))
                 .Include(od => od.Product)
+                .Include(od => od.Order)
                 .ToListAsync();
 
             return View(orderDetails);

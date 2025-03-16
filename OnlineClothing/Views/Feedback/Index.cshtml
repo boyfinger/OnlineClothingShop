@@ -1,0 +1,135 @@
+﻿@model List<Feedback>
+@{
+    string avtSrc;
+}
+
+<style>
+    .product-rating .star {
+        font-size: 24px;
+        color: lightgray; /* Default color for empty stars */
+    }
+
+        .product-rating .star.filled {
+            color: gold; /* Yellow color for filled stars */
+        }
+</style>
+
+<div class="container-xxl" style="margin-top: 30px;">
+    <h4>Feedback for product @ViewBag.Product.Name</h4>
+    <div class="row" style="margin-top: 30px;">
+        @if (Model != null)
+        {
+            foreach (var feedback in Model)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <!-- User Info -->
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <!-- Avatar -->
+                            @if (feedback.User.Userinfo != null)
+                            {
+                                avtSrc = feedback.User.Userinfo.AvatarUrl;
+                            }
+                            else
+                            {
+                                avtSrc = "/images/user-avatar/default-avatar.jpg";
+                            }
+                            <img src="@avtSrc" alt="@feedback.User.UserName" class="rounded-circle me-3" style="width: 50px; height: 50px;" />
+                            <!-- Name and Order ID -->
+                            <div>
+                                <h5 class="card-title mb-0">@feedback.User.UserName</h5> <!-- User Name -->
+                                <small class="text-muted">Order ID: @feedback.OrderId</small> <!-- Order ID -->
+                            </div>
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="mb-2">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= feedback.Rating)
+                                {
+                                    <span class="text-warning">&#9733;</span> <!-- Filled Star -->
+                                }
+                                else
+                                {
+                                    <span class="text-warning">&#9734;</span> <!-- Empty Star -->
+                                }
+                            }
+                        </div>
+
+
+                        <!-- Comment -->
+                        <p class="mb-1">
+                            @feedback.Comment
+                        </p>
+
+                        <!-- Date -->
+                        <small class="text-muted">@feedback.CreateAt.Value.ToShortDateString()</small>
+                    </div>
+                </div>
+            }
+        }
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="feedback"
+                           asp-route-page="1"
+                           asp-route-productId="@ViewBag.Product.Id">
+                            &laquo;
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="feedback"
+                           asp-route-page="@(ViewBag.CurrentPage - 1)"
+                           asp-route-productId="@ViewBag.Product.Id">
+                            &lsaquo;
+                        </a>
+                    </li>
+                }
+
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    if (i == 1 || i == ViewBag.TotalPages || Math.Abs(ViewBag.CurrentPage - i) <= 1)
+                    {
+                        <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link"
+                               asp-controller="feedback"
+                               asp-route-page="@i"
+                               asp-route-productId="@ViewBag.Product.Id">
+                                @i
+                            </a>
+                        </li>
+                    }
+                    if ((i == 2 && i < ViewBag.CurrentPage - 1) || (i == ViewBag.TotalPages - 1 && i > ViewBag.CurrentPage + 1))
+                    {
+                        <li class="page-item"><span class="page-link">...</span></li>
+                    }
+                }
+
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="feedback"
+                           asp-route-page="@(ViewBag.CurrentPage + 1)"
+                           asp-route-productId="@ViewBag.Product.Id">
+                            &rsaquo;
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="feedback"
+                           asp-route-page="@ViewBag.TotalPages"
+                           asp-route-productId="@ViewBag.Product.Id">
+                            &raquo;
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
