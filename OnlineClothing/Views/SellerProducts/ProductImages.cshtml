@@ -1,49 +1,329 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿@model List<Image>
 
-@model List<Image>
+<!-- Cropper.js CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 
-<div class="container">
-    <h2 class="my-4">Add Image</h2>
-    <form asp-controller="images" asp-action="addproductimage" asp-route-productid="@ViewBag.Product.Id"
-    method="post" enctype="multipart/form-data">
-        <div class="form-group mb-3">
-            <label class="control-label">Image</label>
-            <input type="file" name="imageFile" class="form-control" />
+<!-- Cropper.js JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<!-- SweetAlert CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+<!-- SweetAlert JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<style>
+    #cropperContainer {
+        width: 600px;
+        height: 600px;
+        margin: 0 auto;
+        position: relative;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border: 1px solid #ccc;
+    }
+
+    .cropper-container {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+    }
+
+    #imagePreview {
+        min-width: 380px;
+        min-height: 570px;
+        object-fit: contain;
+        display: block;
+    }
+</style>
+
+<input id="productId" type="hidden" name="productId" value="@ViewBag.ProductId" />
+<!-- Crop Modal -->
+<div class="modal fade" id="cropModal" tabindex="-1" aria-labelledby="cropModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cropModalLabel">Upload and Crop Thumbnail</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="file" id="imageInput" class="form-control" accept="image/*" />
+                </div>
+                <div id="cropperContainer" style="display: none;">
+                    <div class="cropper-container">
+                        <img id="imagePreview" />
+                    </div>
+                </div>
+                <div>
+                    <button id="cropButton" class="btn btn-primary mt-3">Crop & Save</button>
+                </div>
+                <div id="croppedResult" class="mt-3"></div>
+            </div>
         </div>
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary">Add</button>
-        </div>
-    </form>
+    </div>
 </div>
-<h1>Image list for &quot;@ViewBag.Product.Name&quot;</h1>
-<table class="table">
-    <thead class="table-primary">
-        <tr>
-            <th>Image</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null)
+
+<!-- Crop Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to remove image?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <input id="imageId" type="hidden" name="id" />
+                <button id="deleteButton" type="button" class="btn btn-danger">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-xxl" style="margin-top: 30px;">
+    <div class="mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cropModal">Add image</button>
+    </div>
+    <h1 class="mb-3">Image list for &quot;@ViewBag.Product.Name&quot;</h1>
+    <div class="row mb-3">
+        @foreach (var image in Model)
         {
-            @foreach (var image in Model)
-            {
-                <tr>
-                    <td>
-                        <img class="img-responsive" style="width: 20%; height: auto;"
-                             src="@image.Url" alt="@image.Product.Name" />
-                    </td>
-                    <td>
-                        <a class="btn btn-danger mr-1"
-                        asp-controller="images" asp-action="deleteproductimage"
-                        asp-route-productid="@ViewBag.Product.Id" asp-route-id="@image.Id">Delete image</a>
-                    </td>
-                </tr>
-            }
+            <div class="col-lg-3 mb-3">
+                <div class="card">
+                    <img src="@image.Url" class="card-img-top" alt="@image.Product.Name">
+                    <div class="card-body">
+                        <a class="btn btn-danger mr-1" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                           onclick="document.getElementById('imageId').value = @image.Id">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+    <div>
+        <nav>
+            <ul class="pagination justify-content-center">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="images" asp-action="getallproductimages"
+                           asp-route-page="1"
+                           asp-route-productId="@ViewBag.ProductId">
+                            &laquo;
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="images" asp-action="getallproductimages"
+                           asp-route-page="@(ViewBag.CurrentPage - 1)"
+                           asp-route-productId="@ViewBag.ProductId">
+                            &lsaquo;
+                        </a>
+                    </li>
+                }
+
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    if (i == 1 || i == ViewBag.TotalPages || Math.Abs(ViewBag.CurrentPage - i) <= 1)
+                    {
+                        <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link"
+                               asp-controller="images" asp-action="getallproductimages"
+                               asp-route-page="@i"
+                               asp-route-productId="@ViewBag.ProductId">
+                                @i
+                            </a>
+                        </li>
+                    }
+                    if ((i == 2 && i < ViewBag.CurrentPage - 1) || (i == ViewBag.TotalPages - 1 && i > ViewBag.CurrentPage + 1))
+                    {
+                        <li class="page-item"><span class="page-link">...</span></li>
+                    }
+                }
+
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="images" asp-action="getallproductimages"
+                           asp-route-page="@(ViewBag.CurrentPage + 1)"
+                           asp-route-productId="@ViewBag.ProductId">
+                            &rsaquo;
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                           asp-controller="images" asp-action="getallproductimages"
+                           asp-route-page="@ViewBag.TotalPages"
+                           asp-route-productId="@ViewBag.ProductId">
+                            &raquo;
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+    document.getElementById("deleteButton").addEventListener("click", function (event) {
+        // Send the form data to the backend
+        let imageId = document.getElementById('imageId').value;
+        let url = '/sellerproducts/image/delete/' + imageId;
+        let productId = document.getElementById('productId').value;
+
+        fetch(url, {
+            method: "POST",
+        })
+        .then(response => {
+            if (response.ok) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Image removed!",
+                    text: "The image has been successfully removed.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                }).then(() => {
+                    // Redirect to the product index page or reload
+                    window.location.href = "/sellerproducts/" + productId + "/images";
+                });
+            } else {
+                throw new Error("Failed to remove the image.");
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: "error",
+                title: "Update Failed!",
+                text: "There was an error removing the image. Please try again.",
+            });
+            console.error("Error removing image:", error);
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const imageInput = document.getElementById("imageInput");
+        const cropperContainer = document.getElementById("cropperContainer");
+        const imagePreview = document.getElementById("imagePreview");
+        const cropButton = document.getElementById("cropButton");
+
+        let cropper; // Declare the cropper instance
+
+        // Handle image upload
+        imageInput.addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result; // Load the image into the preview
+
+                    // Ensure the cropper container is visible
+                    cropperContainer.style.display = "flex";
+
+                    // Initialize or replace the cropper instance
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(imagePreview, {
+                        aspectRatio: 2 / 3,       // Fixed 2:3 ratio
+                        viewMode: 1,              // Ensure the crop box fits within the container
+                        dragMode: "move",         // Allow moving the image instead of the crop box
+                        cropBoxResizable: false,  // Disable resizing of the crop box
+                        cropBoxMovable: false,    // Disable movement of the crop box
+                        center: true,             // Keep the crop box centered
+                        background: true,        // Remove the checkerboard background
+                        zoomable: true,           // Allow zooming for better precision
+                        scalable: false,          // Prevent scaling of the image
+                        ready() {
+                            // Get the image data to dynamically set dimensions
+                            const cropBoxData = this.cropper.cropBoxData;
+
+                            // Ensure the image meets the minimum width and height
+                            if (cropBoxData.width < 380 || cropBoxData.height < 570) {
+                                const scaleX = 380 / cropBoxData.width;
+                                const scaleY = 570 / cropBoxData.height;
+                                const scale = Math.max(scaleX, scaleY); // Use the larger scale to meet minimum
+
+                                // Resize the image to meet minimum dimensions
+                                this.cropper.zoomTo(scale);
+                            }
+
+                            // Set the crop box size explicitly
+                            this.cropper.setCropBoxData({
+                                width: 380,   // Fixed width of the crop box
+                                height: 570,  // Fixed height of the crop box (maintain 2:3 ratio)
+                                left: (cropperContainer.offsetWidth - 380) / 2,  // Center horizontally
+                                top: (cropperContainer.offsetHeight - 570) / 2, // Center vertically
+                            });
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        cropButton.addEventListener("click", function () {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas({
+                    width: 380,  // Thumbnail width
+                    height: 570, // Thumbnail height
+                });
+
+                // Convert cropped canvas to a blob
+                canvas.toBlob(function (blob) {
+                    const formData = new FormData();
+                    formData.append("imageFile", blob, "image.jpg");
+
+                    let productId = document.getElementById('productId').value; // Replace with actual product ID
+                    let url = '/sellerproducts/' + productId + '/images/add';
+                    // Send the thumbnail to the backend
+                    fetch(url, {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Uploaded Successfully!",
+                                text: "The image has been uploaded and added successfully.",
+                                timer: 3000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                // Redirect to the index page after success
+                                window.location.href = "/sellerproducts/" + productId + "/images";
+                            });
+                        } else {
+                            throw new Error("Failed to upload image.");
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Upload Failed!",
+                            text: "There was an error uploading the image. Please try again.",
+                        });
+                        console.error("Error uploading image:", error);
+                    });
+                }, "image/jpeg");
+            }
+        });
+    });
+
+</script>

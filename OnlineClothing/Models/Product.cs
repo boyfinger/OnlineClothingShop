@@ -26,7 +26,7 @@ public partial class Product
 
     [Display(Name = "Price")]
     [Required(ErrorMessage = "Please enter price")]
-    [Range(minimum: 1, maximum: int.MaxValue,ErrorMessage = "Please enter price as a positive integer lmao")]
+    [Range(minimum: 1, maximum: int.MaxValue,ErrorMessage = "Please enter price as a positive integer")]
     public int? Price { get; set; }
 
     public int? Discount { get; set; }
