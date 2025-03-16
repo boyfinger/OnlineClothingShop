@@ -36,10 +36,10 @@ namespace OnlineClothing.Controllers
                     return RedirectToAction("error", "home");
                 }
 
-                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == productId);
                 if (product == null)
                 {
-                    _logger.LogWarning($"Product with id = {id} not found");
+                    _logger.LogWarning($"Product with id = {productId} not found");
                     return NotFound();
                 }
 
