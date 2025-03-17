@@ -8,3 +8,4 @@ appsettings.json
 OnlineClothing.sln
 OnlineClothing/appsettings.json
 *.env
+/OnlineClothing/.env
