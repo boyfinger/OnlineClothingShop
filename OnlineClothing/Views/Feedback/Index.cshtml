@@ -1,17 +1,19 @@
 ﻿@model List<Feedback>
 @{
     string avtSrc;
+    Layout = "~/Views/Shared/_SellerLayout.cshtml";
 }
 
 <style>
-    .product-rating .star {
-        font-size: 24px;
-        color: lightgray; /* Default color for empty stars */
+    .star {
+        font-size: 28px; 
+        color: lightgray; 
+        margin-right: 5px;
     }
 
-        .product-rating .star.filled {
-            color: gold; /* Yellow color for filled stars */
-        }
+    .star.filled {
+        color: gold;
+    }
 </style>
 
 <div class="container-xxl" style="margin-top: 30px;">

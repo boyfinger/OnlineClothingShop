@@ -30,9 +30,7 @@ namespace OnlineClothing.Controllers
                 var userRole = HttpContext.Session.GetString("UserRole");
                 if (userRole != "SELLER")
                 {
-                    ViewData["StatusCode"] = 403;
-                    ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 var sellerId = new Guid(userId);
@@ -61,7 +59,7 @@ namespace OnlineClothing.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error while getting orders for seller");
-                return RedirectToAction("Error", "Home");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -82,9 +80,7 @@ namespace OnlineClothing.Controllers
 
                 if (userRole != "SELLER" || orderDetail == null)
                 {
-                    ViewData["StatusCode"] = 403;
-                    ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 orderDetail.Status += 1;
@@ -96,7 +92,7 @@ namespace OnlineClothing.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error while updating status for order detail with id = {id}");
-                return RedirectToAction("Error", "Home");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
     }

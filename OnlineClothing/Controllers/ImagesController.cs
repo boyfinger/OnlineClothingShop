@@ -14,8 +14,8 @@ namespace OnlineClothing.Controllers
         private readonly int pageSize = 4;
 
         public ImagesController(
-            ClothingShopPrn222G2Context context, 
-            IFileUploadService fileUploadService, 
+            ClothingShopPrn222G2Context context,
+            IFileUploadService fileUploadService,
             ILogger<ImagesController> logger)
         {
             _context = context;
@@ -33,23 +33,22 @@ namespace OnlineClothing.Controllers
                 {
                     return RedirectToAction("login", "account");
                 }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+                if (product == null)
+                {
+                    _logger.LogWarning($"Product with id = {productId} not found");
+                    return NotFound();
+                }
 
                 if (!product.SellerId.Equals(new Guid(userId)))
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 ViewBag.Product = product;
@@ -73,8 +72,8 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to get images of productId = {productId}", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, $"Failed to get images of productId = {productId}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -89,23 +88,22 @@ namespace OnlineClothing.Controllers
                 {
                     return RedirectToAction("login", "account");
                 }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+                if (product == null)
+                {
+                    _logger.LogWarning($"Product with id = {productId} not found");
+                    return NotFound();
+                }
 
                 if (!product.SellerId.Equals(new Guid(userId)))
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 var imageUrl = await _fileUploadService.UploadImageAsync(imageFile);
@@ -121,8 +119,8 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to add image for product with id = {productId}", ex);
-                return View("error", "home");
+                _logger.LogError(ex, $"Failed to add image for product with id = {productId}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -132,21 +130,45 @@ namespace OnlineClothing.Controllers
         {
             try
             {
+                string? userId = HttpContext.Session.GetString("UserId");
+                if (userId == null)
+                {
+                    return RedirectToAction("login", "account");
+                }
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
+                {
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
+                }
+
                 var image = await _context.Images.FirstOrDefaultAsync(i => i.Id == id);
                 if (image == null)
                 {
                     _logger.LogWarning($"Image with id = {id} not found");
                     return NotFound();
                 }
-                    _context.Images.Remove(image);
-                    await _context.SaveChangesAsync();
+
+                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == image.ProductId);
+                if (product == null)
+                {
+                    _logger.LogWarning($"Product with id = {image.ProductId} not found");
+                    return NotFound();
+                }
+
+                if (!product.SellerId.Equals(new Guid(userId)))
+                {
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
+                }
+
+                _context.Images.Remove(image);
+                await _context.SaveChangesAsync();
 
                 return Ok();
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to add image with id = {id}", ex);
-                return View("error", "home");
+                _logger.LogError(ex, $"Failed to add image with id = {id}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
     }

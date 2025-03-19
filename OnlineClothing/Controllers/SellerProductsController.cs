@@ -14,8 +14,6 @@ namespace OnlineClothing.Controllers
         private readonly IFileUploadService _fileUploadService;
         private readonly ILogger<SellerProductsController> _logger;
 
-        //assume the sellerId is this?
-        private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
         private readonly int pageSize = 4;
 
         public SellerProductsController(
@@ -30,30 +28,23 @@ namespace OnlineClothing.Controllers
             _logger = logger;
         }
 
-        private bool IsLoggedIn()
-        {
-            return HttpContext.Session.GetString("UserId") != null;
-        }
-
         public async Task<IActionResult> Index(string searchString, int categoryId = 0, int page = 1)
         {
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
+                var userId = HttpContext.Session.GetString("UserId");
                 if (userId == null)
                 {
-                    return RedirectToAction("login", "account");
-                }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
-                {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("Login", "Account");
                 }
 
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
+                {
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
+                }
+
+                var sellerId = new Guid(userId);
                 var query = _context.Products
                     .Where(p => p.SellerId.Equals(sellerId))
                     .Include(p => p.Category)
@@ -89,8 +80,8 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to get products of sellerId = {sellerId}", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, "Error while getting products for seller");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -98,19 +89,16 @@ namespace OnlineClothing.Controllers
         {
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
+                var userId = HttpContext.Session.GetString("UserId");
                 if (userId == null)
                 {
-                    return RedirectToAction("login", "account");
+                    return RedirectToAction("Login", "Account");
                 }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
+
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
@@ -118,8 +106,8 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError("Failed to get category list to display for ProductAdd page", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, "Failed to get category list to display for ProductAdd page");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -128,20 +116,19 @@ namespace OnlineClothing.Controllers
         {
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
+                var userId = HttpContext.Session.GetString("UserId");
                 if (userId == null)
                 {
-                    return RedirectToAction("login", "account");
+                    return RedirectToAction("Login", "Account");
                 }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
+
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
+
+                var sellerId = new Guid(userId);
 
                 if (!ModelState.IsValid)
                 {
@@ -175,8 +162,8 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError("Failed to add product", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, "Failed to add product");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
 
         }
@@ -185,40 +172,32 @@ namespace OnlineClothing.Controllers
         {
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
+                var userId = HttpContext.Session.GetString("UserId");
                 if (userId == null)
                 {
-                    return RedirectToAction("login", "account");
-                }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
-                {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("Login", "Account");
                 }
 
-                ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
+                var sellerId = new Guid(userId);
+                var userRole = HttpContext.Session.GetString("UserRole");
+
                 var product = await _context.Products
                     .Include(p => p.Category)
                     .Include(p => p.StatusNavigation)
-                    .FirstOrDefaultAsync(p => p.Id == id);
+                    .FirstOrDefaultAsync(p => p.Id == id && p.SellerId.Equals(sellerId));
 
-                if (!product.SellerId.Equals(new Guid(userId)))
+                if (userRole != "SELLER" || product == null)
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
+                ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
                 return View(product);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to get details for productId = {id}", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, $"Failed to get details for productId = {id}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -227,39 +206,26 @@ namespace OnlineClothing.Controllers
         {
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
+                var userId = HttpContext.Session.GetString("UserId");
                 if (userId == null)
                 {
-                    return RedirectToAction("login", "account");
+                    return RedirectToAction("Login", "Account");
                 }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
+
+                var sellerId = new Guid(userId);
+                var userRole = HttpContext.Session.GetString("UserRole");
+
+                var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == product.Id && p.SellerId.Equals(sellerId));
+
+                if (userRole != "SELLER" || product == null)
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 if (!ModelState.IsValid)
                 {
                     ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
                     return View("Details", product);
-                }
-
-                var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == product.Id);
-                if (existingProduct == null)
-                {
-                    _logger.LogWarning($"Product with id = {product.Id} not found");
-                    return NotFound();
-                }
-
-                if (!existingProduct.SellerId.Equals(new Guid(userId)))
-                {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
                 }
 
                 existingProduct.Name = product.Name;
@@ -282,7 +248,7 @@ namespace OnlineClothing.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Failed to update product with id = {product.Id}", ex);
-                return RedirectToAction("error", "home");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -291,33 +257,20 @@ namespace OnlineClothing.Controllers
         {
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
+                var userId = HttpContext.Session.GetString("UserId");
                 if (userId == null)
                 {
-                    return RedirectToAction("login", "account");
-                }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
-                {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("Login", "Account");
                 }
 
-                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
-                if (product == null)
-                {
-                    _logger.LogWarning($"Product with id = {id} not found");
-                    return NotFound();
-                }
+                var sellerId = new Guid(userId);
+                var userRole = HttpContext.Session.GetString("UserRole");
 
-                if (!product.SellerId.Equals(new Guid(userId)))
+                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id && p.SellerId.Equals(sellerId));
+
+                if (userRole != "SELLER" || product == null)
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 product.Discount = discount;
@@ -329,8 +282,8 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to deactivate product with id = {id}", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, $"Failed to deactivate product with id = {id}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 
@@ -339,35 +292,23 @@ namespace OnlineClothing.Controllers
         {
             try
             {
-                string? userId = HttpContext.Session.GetString("UserId");
+                var userId = HttpContext.Session.GetString("UserId");
                 if (userId == null)
                 {
-                    return RedirectToAction("login", "account");
+                    return RedirectToAction("Login", "Account");
                 }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
+
+                var sellerId = new Guid(userId);
+                var userRole = HttpContext.Session.GetString("UserRole");
+
+                var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == id && p.SellerId.Equals(sellerId));
+
+                if (userRole != "SELLER" || existingProduct == null)
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 var url = await _fileUploadService.UploadImageAsync(imageFile);
-                var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
-                if (existingProduct == null)
-                {
-                    _logger.LogWarning($"Product with id = {id} not found");
-                    return NotFound();
-                }
-
-                if (!existingProduct.SellerId.Equals(new Guid(userId)))
-                {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
-                }
 
                 existingProduct.ThumbnailUrl = url;
                 existingProduct.Status = 2;
@@ -379,8 +320,8 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to set thumbnail for product with id = {id}", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, $"Failed to set thumbnail for product with id = {id}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
     }

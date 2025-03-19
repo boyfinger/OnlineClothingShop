@@ -26,14 +26,10 @@ namespace OnlineClothing.Controllers
                 {
                     return RedirectToAction("login", "account");
                 }
-                var roles = await _context.UserRoles
-                    .Where(ur => ur.RoleId == 2 && ur.UserId.Equals(new Guid(userId)))
-                    .ToListAsync();
-                if (roles == null || roles.Count == 0)
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == productId);
@@ -45,9 +41,7 @@ namespace OnlineClothing.Controllers
 
                 if (!product.SellerId.Equals(new Guid(userId)))
                 {
-                    ViewData["StatusCode"] = 403;
-                    @ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
-                    return RedirectToAction("error", "home");
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
                 var query = _context.Feedbacks
@@ -67,13 +61,13 @@ namespace OnlineClothing.Controllers
 
                 ViewBag.CurrentPage = page;
                 ViewBag.TotalPages = totalPages;
-                ViewBag.Product = await _context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+                ViewBag.Product = product;
                 return View(feedbacks);
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to get feedbacks of product with id = {productId}", ex);
-                return RedirectToAction("error", "home");
+                _logger.LogError(ex, $"Failed to get feedbacks of product with id = {productId}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
 

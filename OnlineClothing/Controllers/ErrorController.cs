@@ -13,6 +13,10 @@ namespace OnlineClothing.Controllers
             {
                 ViewData["ErrorMessage"] = "Không tìm thấy trang hoặc sản phẩm.";
             }
+            else if (statusCode == 403)
+            {
+                ViewData["ErrorMessage"] = "Bạn không có quyền truy cập trang này.";
+            }
             else
             {
                 ViewData["ErrorMessage"] = "Đã có lỗi xảy ra.";
