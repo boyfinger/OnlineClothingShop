@@ -7,23 +7,97 @@ namespace OnlineClothing.Controllers
     public class SellerOrdersController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
+        private readonly ILogger<SellerOrdersController> _logger;
 
-        private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
+        private readonly int pageSize = 3;
 
-        public SellerOrdersController(ClothingShopPrn222G2Context context)
+        public SellerOrdersController(ClothingShopPrn222G2Context context, ILogger<SellerOrdersController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var orderDetails = await _context.OrderDetails
-                .Where(od => od.Product.SellerId.Equals(sellerId))
-                .Include(od => od.Product)
-                .Include(od => od.Order)
-                .ToListAsync();
+            try
+            {
+                var userId = HttpContext.Session.GetString("UserId");
+                if (userId == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
 
-            return View(orderDetails);
+                var userRole = HttpContext.Session.GetString("UserRole");
+                if (userRole != "SELLER")
+                {
+                    ViewData["StatusCode"] = 403;
+                    ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
+                    return RedirectToAction("error", "home");
+                }
+
+                var sellerId = new Guid(userId);
+
+                var query = _context.OrderDetails
+                    .Where(od => od.Product.SellerId.Equals(sellerId))
+                    .Include(od => od.Product)
+                    .Include(od => od.Order)
+                    .Include(od => od.Order.Customer)
+                    .Include(od => od.StatusNavigation)
+                    .AsQueryable();
+
+                var totalProducts = await query.CountAsync();
+                var totalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+
+                var orderDetails = await query
+                    .OrderByDescending(od => od.Order.OrderDate)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                return View(orderDetails);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error while getting orders for seller");
+                return RedirectToAction("Error", "Home");
+            }
+        }
+
+        public async Task<IActionResult> UpdateStatus(long id)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetString("UserId");
+                if (userId == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var sellerId = new Guid(userId);
+                var userRole = HttpContext.Session.GetString("UserRole");
+
+                var orderDetail = await _context.OrderDetails.FirstOrDefaultAsync(od => od.Id == id && od.Product.SellerId.Equals(sellerId));
+
+                if (userRole != "SELLER" || orderDetail == null)
+                {
+                    ViewData["StatusCode"] = 403;
+                    ViewData["ErrorMessage"] = "You don't have the permission to access this page.";
+                    return RedirectToAction("error", "home");
+                }
+
+                orderDetail.Status += 1;
+                _context.Update(orderDetail);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Update status successfully";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error while updating status for order detail with id = {id}");
+                return RedirectToAction("Error", "Home");
+            }
         }
     }
 }

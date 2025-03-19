@@ -20,9 +20,13 @@ public partial class OrderDetail
 
     public int? TotalPrice { get; set; }
 
+    public int? Status { get; set; }
+
     public virtual Order Order { get; set; } = null!;
 
     public virtual Product? Product { get; set; }
+
+    public virtual OrderdetailStatus? StatusNavigation { get; set; }
 
     [NotMapped]
     public bool Feedbacked { get; set; }

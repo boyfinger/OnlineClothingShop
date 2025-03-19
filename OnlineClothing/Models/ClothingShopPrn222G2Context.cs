@@ -31,6 +31,8 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
     public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
 
+    public virtual DbSet<OrderdetailStatus> OrderdetailStatuses { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<ProductStatus> ProductStatuses { get; set; }
@@ -61,14 +63,11 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
     public virtual DbSet<Wishlist> Wishlists { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DbConnection");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Cart>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__cart__3213E83F1888AF8C");
+            entity.HasKey(e => e.Id).HasName("PK__cart__3213E83F3C96CA7F");
 
             entity.ToTable("cart");
 
@@ -90,12 +89,12 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.User).WithMany(p => p.Carts)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__cart__user_id__4F7CD00D");
+                .HasConstraintName("FK__cart__user_id__7B5B524B");
         });
 
         modelBuilder.Entity<CartDetail>(entity =>
         {
-            entity.HasKey(e => new { e.CartId, e.ProductId }).HasName("PK__cart_det__6A850DF83D031BD9");
+            entity.HasKey(e => new { e.CartId, e.ProductId }).HasName("PK__cart_det__6A850DF8412A24E6");
 
             entity.ToTable("cart_detail");
 
@@ -119,17 +118,17 @@ public partial class ClothingShopPrn222G2Context : DbContext
             entity.HasOne(d => d.Cart).WithMany(p => p.CartDetails)
                 .HasForeignKey(d => d.CartId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__cart_deta__cart___5535A963");
+                .HasConstraintName("FK__cart_deta__cart___7C4F7684");
 
             entity.HasOne(d => d.Product).WithMany(p => p.CartDetails)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__cart_deta__produ__5629CD9C");
+                .HasConstraintName("FK__cart_deta__produ__7D439ABD");
         });
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__category__3213E83F08A5DDA6");
+            entity.HasKey(e => e.Id).HasName("PK__category__3213E83FCE289736");
 
             entity.ToTable("category");
 
@@ -141,7 +140,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__feedback__3213E83FBD5ED7CA");
+            entity.HasKey(e => e.Id).HasName("PK__feedback__3213E83FCF3F171E");
 
             entity.ToTable("feedback");
 
@@ -160,21 +159,21 @@ public partial class ClothingShopPrn222G2Context : DbContext
             entity.HasOne(d => d.Order).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__feedback__order___7C4F7684");
+                .HasConstraintName("FK__feedback__order___7E37BEF6");
 
             entity.HasOne(d => d.Product).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK__feedback__produc__7D439ABD");
+                .HasConstraintName("FK__feedback__produc__7F2BE32F");
 
             entity.HasOne(d => d.User).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__feedback__user_i__7E37BEF6");
+                .HasConstraintName("FK__feedback__user_i__00200768");
         });
 
         modelBuilder.Entity<Image>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__image__3213E83FFF65A884");
+            entity.HasKey(e => e.Id).HasName("PK__image__3213E83FCD7DC46F");
 
             entity.ToTable("image");
 
@@ -187,12 +186,12 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.Product).WithMany(p => p.Images)
                 .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK__image__product_i__7F2BE32F");
+                .HasConstraintName("FK__image__product_i__01142BA1");
         });
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__order__3213E83F7008668F");
+            entity.HasKey(e => e.Id).HasName("PK__order__3213E83F5006D89C");
 
             entity.ToTable("order");
 
@@ -229,20 +228,20 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomerId)
-                .HasConstraintName("FK__order__customer___00200768");
+                .HasConstraintName("FK__order__customer___02084FDA");
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__order__status__01142BA1");
+                .HasConstraintName("FK__order__status__02FC7413");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.VoucherId)
-                .HasConstraintName("FK__order__voucher_i__02084FDA");
+                .HasConstraintName("FK__order__voucher_i__03F0984C");
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__order_de__3213E83F922B8B89");
+            entity.HasKey(e => e.Id).HasName("PK__order_de__3213E83F017DE487");
 
             entity.ToTable("order_details");
 
@@ -251,22 +250,27 @@ public partial class ClothingShopPrn222G2Context : DbContext
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.TotalPrice).HasColumnName("total_price");
             entity.Property(e => e.UnitPrice).HasColumnName("unit_price");
 
             entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__order_det__order__02FC7413");
+                .HasConstraintName("FK__order_det__order__04E4BC85");
 
             entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK__order_det__produ__03F0984C");
+                .HasConstraintName("FK__order_det__produ__05D8E0BE");
+
+            entity.HasOne(d => d.StatusNavigation).WithMany(p => p.OrderDetails)
+                .HasForeignKey(d => d.Status)
+                .HasConstraintName("FK__order_det__statu__06CD04F7");
         });
 
         modelBuilder.Entity<OrderStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__order_st__3213E83F390DD0C2");
+            entity.HasKey(e => e.Id).HasName("PK__order_st__3213E83F821562B3");
 
             entity.ToTable("order_status");
 
@@ -279,9 +283,24 @@ public partial class ClothingShopPrn222G2Context : DbContext
                 .HasColumnName("name");
         });
 
+        modelBuilder.Entity<OrderdetailStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__orderdet__3213E83FA4C36669");
+
+            entity.ToTable("orderdetail_status");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(25)
+                .IsUnicode(false)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__product__3213E83FFFB6257C");
+            entity.HasKey(e => e.Id).HasName("PK__product__3213E83FEC03FD4B");
 
             entity.ToTable("product");
 
@@ -309,20 +328,20 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
-                .HasConstraintName("FK__product__categor__04E4BC85");
+                .HasConstraintName("FK__product__categor__07C12930");
 
             entity.HasOne(d => d.Seller).WithMany(p => p.Products)
                 .HasForeignKey(d => d.SellerId)
-                .HasConstraintName("FK__product__seller___05D8E0BE");
+                .HasConstraintName("FK__product__seller___08B54D69");
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Products)
                 .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__product__status__06CD04F7");
+                .HasConstraintName("FK__product__status__09A971A2");
         });
 
         modelBuilder.Entity<ProductStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__product___3213E83F59AF108C");
+            entity.HasKey(e => e.Id).HasName("PK__product___3213E83F70D84D00");
 
             entity.ToTable("product_status");
 
@@ -337,7 +356,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Report>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__report__3213E83F296E5484");
+            entity.HasKey(e => e.Id).HasName("PK__report__3213E83F540A6CE4");
 
             entity.ToTable("report");
 
@@ -357,21 +376,21 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.Product).WithMany(p => p.Reports)
                 .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK__report__product___07C12930");
+                .HasConstraintName("FK__report__product___0A9D95DB");
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Reports)
                 .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__report__status__08B54D69");
+                .HasConstraintName("FK__report__status__0B91BA14");
 
             entity.HasOne(d => d.User).WithMany(p => p.Reports)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__report__user_id__09A971A2");
+                .HasConstraintName("FK__report__user_id__0C85DE4D");
         });
 
         modelBuilder.Entity<ReportStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__report_s__3213E83F85CCCF57");
+            entity.HasKey(e => e.Id).HasName("PK__report_s__3213E83FA091AB73");
 
             entity.ToTable("report_status");
 
@@ -386,7 +405,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__roles__3213E83F41644C96");
+            entity.HasKey(e => e.Id).HasName("PK__roles__3213E83F72FC2AFC");
 
             entity.ToTable("roles");
 
@@ -402,7 +421,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user__3213E83F1778803A");
+            entity.HasKey(e => e.Id).HasName("PK__user__3213E83F4D2059FC");
 
             entity.ToTable("user");
 
@@ -432,12 +451,12 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Users)
                 .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__user__status__0A9D95DB");
+                .HasConstraintName("FK__user__status__0D7A0286");
         });
 
         modelBuilder.Entity<UserGender>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_gen__3213E83F65EEB70B");
+            entity.HasKey(e => e.Id).HasName("PK__user_gen__3213E83F6386616C");
 
             entity.ToTable("user_gender");
 
@@ -453,7 +472,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_rol__3213E83FA9577A3D");
+            entity.HasKey(e => e.Id).HasName("PK__user_rol__3213E83FAF941AC7");
 
             entity.ToTable("user_roles");
 
@@ -467,16 +486,16 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.RoleId)
-                .HasConstraintName("FK__user_role__role___0B91BA14");
+                .HasConstraintName("FK__user_role__role___0E6E26BF");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__user_role__user___0C85DE4D");
+                .HasConstraintName("FK__user_role__user___0F624AF8");
         });
 
         modelBuilder.Entity<UserStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_sta__3213E83F92A3618B");
+            entity.HasKey(e => e.Id).HasName("PK__user_sta__3213E83F43847CEA");
 
             entity.ToTable("user_status");
 
@@ -492,7 +511,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<UserVoucher>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__user_vou__3213E83F340AC0B3");
+            entity.HasKey(e => e.Id).HasName("PK__user_vou__3213E83F89ABF30D");
 
             entity.ToTable("user_voucher");
 
@@ -511,16 +530,16 @@ public partial class ClothingShopPrn222G2Context : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.UserVouchers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__user_vouc__user___0D7A0286");
+                .HasConstraintName("FK__user_vouc__user___10566F31");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.UserVouchers)
                 .HasForeignKey(d => d.VoucherId)
-                .HasConstraintName("FK__user_vouc__vouch__0E6E26BF");
+                .HasConstraintName("FK__user_vouc__vouch__114A936A");
         });
 
         modelBuilder.Entity<Userinfo>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__userinfo__3213E83F6226ACC5");
+            entity.HasKey(e => e.Id).HasName("PK__userinfo__3213E83F05F1E1BC");
 
             entity.ToTable("userinfo");
 
@@ -557,17 +576,17 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.GenderNavigation).WithMany(p => p.Userinfos)
                 .HasForeignKey(d => d.Gender)
-                .HasConstraintName("FK__userinfo__gender__0F624AF8");
+                .HasConstraintName("FK__userinfo__gender__123EB7A3");
 
             entity.HasOne(d => d.IdNavigation).WithOne(p => p.Userinfo)
                 .HasForeignKey<Userinfo>(d => d.Id)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__userinfo__id__10566F31");
+                .HasConstraintName("FK__userinfo__id__1332DBDC");
         });
 
         modelBuilder.Entity<Voucher>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__voucher__3213E83F8C094407");
+            entity.HasKey(e => e.Id).HasName("PK__voucher__3213E83F740DF29C");
 
             entity.ToTable("voucher");
 
@@ -599,16 +618,16 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Vouchers)
                 .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__voucher__status__114A936A");
+                .HasConstraintName("FK__voucher__status__14270015");
 
             entity.HasOne(d => d.TypeNavigation).WithMany(p => p.Vouchers)
                 .HasForeignKey(d => d.Type)
-                .HasConstraintName("FK__voucher__type__123EB7A3");
+                .HasConstraintName("FK__voucher__type__151B244E");
         });
 
         modelBuilder.Entity<VoucherStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83FDD528FDA");
+            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83F981745F9");
 
             entity.ToTable("voucher_status");
 
@@ -623,7 +642,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<VoucherType>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83F614B7F6C");
+            entity.HasKey(e => e.Id).HasName("PK__voucher___3213E83F0907F0DB");
 
             entity.ToTable("voucher_type");
 
@@ -638,7 +657,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Wishlist>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__wishlist__3213E83F33F563F8");
+            entity.HasKey(e => e.Id).HasName("PK__wishlist__3213E83FB6B7D982");
 
             entity.ToTable("wishlist");
 
@@ -656,12 +675,12 @@ public partial class ClothingShopPrn222G2Context : DbContext
             entity.HasOne(d => d.Product).WithMany(p => p.Wishlists)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__wishlist__produc__1332DBDC");
+                .HasConstraintName("FK__wishlist__produc__160F4887");
 
             entity.HasOne(d => d.User).WithMany(p => p.Wishlists)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__wishlist__user_i__14270015");
+                .HasConstraintName("FK__wishlist__user_i__17036CC0");
         });
 
         OnModelCreatingPartial(modelBuilder);

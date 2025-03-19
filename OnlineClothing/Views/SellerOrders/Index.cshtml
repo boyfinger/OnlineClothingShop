@@ -1,26 +1,210 @@
 ﻿@model List<OrderDetail>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Order ID</th>
-            <th>Order Date</th>
-            <th>Product Name</th>
-            <th>Quantity</th>
-            <th>Unit Price</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var orderDetail in Model)
+<!-- SweetAlert CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+<!-- SweetAlert JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@{
+    string avtSrc;
+}
+
+<style>
+    .parent > * {
+        display: block;
+    }
+</style>
+
+<div class="container-xxl" style="margin-top: 30px;">
+    @foreach (var orderDetail in Model)
+    {
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-lg-2">
+                        <img class="img-fluid" src="@orderDetail.Product.ThumbnailUrl" alt="@orderDetail.Product.Name" />
+                    </div>
+                    <div class="col-lg-10 parent">
+                        <div class="d-flex align-items-center mb-2">
+                            <!-- Avatar -->
+                            @if (orderDetail.Order.Customer.Userinfo != null)
+                            {
+                                avtSrc = orderDetail.Order.Customer.Userinfo.AvatarUrl;
+                            }
+                            else
+                            {
+                                avtSrc = "/images/user-avatar/default-avatar.jpg";
+                            }
+                            <img src="@avtSrc" alt="@orderDetail.Order.Customer.UserName" class="rounded-circle me-3" style="width: 50px; height: 50px;" />
+                            <!-- Name and Order ID -->
+                            <div>
+                                <h5 class="card-title mb-0">@orderDetail.Order.Customer.UserName</h5>
+                            </div>
+                            <div class="ms-auto">
+                                <span class="badge rounded-pill @GetStatusColor(orderDetail.StatusNavigation.Name)">@orderDetail.StatusNavigation.Name</span>
+                            </div>
+                        </div>
+                        <hr />
+                        <h5>@orderDetail.Product.Name</h5>
+                        <small>&times;@orderDetail.Quantity</small>
+                        <div class="text-end">
+                            @if (orderDetail.Discount != 0)
+                            {
+                                var discountedPrice = orderDetail.UnitPrice - (orderDetail.UnitPrice * orderDetail.Discount / 100);
+                                <h6><small><del class="text-danger">@String.Format("đ{0:N0}", orderDetail.UnitPrice)</del></small>@String.Format(" đ{0:N0}", discountedPrice)</h6>
+                            }
+                            else
+                            {
+                                <h6>@String.Format("đ{0:N0}", orderDetail.UnitPrice)</h6>
+                            }
+                        </div>
+                        <div class="text-end mb-2">
+                            <span>Total: <strong>@String.Format("đ{0:N0}", orderDetail.TotalPrice)</strong></span>
+                        </div>
+                        @if (!new[] { "SHIPPING", "DELIVERED", "RETURNED" }.Contains(orderDetail.StatusNavigation.Name))
+                        {
+                            <div class="text-end">
+                                <a class="btn @GetButtonColor(orderDetail.StatusNavigation.Name)" asp-controller="sellerorders" asp-action="updatestatus" asp-route-id="@orderDetail.Id"
+                                   onclick="return confirmAction();">
+                                    @GetButtonName(orderDetail.StatusNavigation.Name)
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    <nav>
+        <ul class="pagination justify-content-center">
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="1">
+                        &laquo;
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@(ViewBag.CurrentPage - 1)">
+                        &lsaquo;
+                    </a>
+                </li>
+            }
+
+
+
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                if (i == 1 || i == ViewBag.TotalPages || Math.Abs(ViewBag.CurrentPage - i) <= 1)
+                {
+                    <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-page="@i">
+                            @i
+                        </a>
+                    </li>
+                }
+                if ((i == 2 && i < ViewBag.CurrentPage - 1) || (i == ViewBag.TotalPages - 1 && i > ViewBag.CurrentPage + 1))
+                {
+                    <li class="page-item"><span class="page-link">...</span></li>
+                }
+            }
+
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@(ViewBag.CurrentPage + 1)">
+                        &rsaquo;
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@ViewBag.TotalPages">
+                        &raquo;
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+
+<script>
+    function confirmAction() {
+        return confirm("Are you sure you want to perform this action?");
+    }
+</script>
+
+@{
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "@successMessage"
+        });
+    </script>
+}
+
+@functions {
+    public string GetStatusColor(string status)
+    {
+        switch (status)
         {
-            <tr>
-                <td>@orderDetail.Order.Id</td>
-                <td>@orderDetail.Order.OrderDate</td>
-                <td>@orderDetail.Product.Name</td>
-                <td>@orderDetail.Quantity</td>
-                <td>@orderDetail.UnitPrice</td>
-            </tr>
+            case "PENDING CONFIRMATION":
+                return "bg-warning text-dark";
+            case "CONFIRMED":
+                return "bg-primary text-white";
+            case "SHIPPING":
+                return "bg-info text-white";
+            case "DELIVERED":
+                return "bg-success text-white";
+            case "CANCELLED":
+                return "bg-danger text-white";
+            default:
+                return "bg-secondary text-white";
         }
-    </tbody>
-</table>
+    }
+
+    public string GetButtonName(string status)
+    {
+        switch (status)
+        {
+            case "PENDING CONFIRMATION":
+                return "Confirm";
+            case "CONFIRMED":
+                return "Ship";
+            case "CANCELLED":
+                return "Receive";
+            default:
+                return "Unknown";
+        }
+    }
+
+    public string GetButtonColor(string status)
+    {
+        switch (status)
+        {
+            case "PENDING CONFIRMATION":
+                return "btn-primary";
+            case "CONFIRMED":
+                return "btn-info";
+            case "CANCELLED":
+                return "btn-secondary";
+            default:
+                return "btn-warning";
+        }
+    }
+}
