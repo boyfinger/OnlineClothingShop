@@ -52,6 +52,7 @@ namespace OnlineClothing.Controllers
             {
                 int totalProducts = await _context.Products.CountAsync();
                 List<Product> products = await _context.Products
+                    .Where(p => p.Status == 1)
                     .OrderBy(p => p.Id)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
