@@ -57,10 +57,20 @@
 </table>
 <!--phan trang-->
 <div id="pagination">
+    @if (ViewBag.CurrentPage > 1)
+    {
+        <a href="@Url.Action("Manage", new { page = ViewBag.CurrentPage - 1, search = ViewBag.Search, status = ViewBag.Status})"
+           class="btn btn-outline-primary">Trang trước</a>
+    }
     @for (int i = 1; i <= ViewBag.TotalPages; i++)
     {
         <a href="@Url.Action("Manage", new { page = i, search = ViewBag.Search, status = ViewBag.Status })"
            class="btn btn-outline-primary @(i == ViewBag.CurrentPage ? "active" : "")">@i</a>
+    }
+    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+    {
+        <a href="@Url.Action("Manage", new { page = ViewBag.CurrentPage + 1, search = ViewBag.Search, status = ViewBag.Status})"
+           class="btn btn-outline-primary">Trang sau</a>
     }
 </div>
 <!-- Modal Chi Tiết Khách Hàng -->

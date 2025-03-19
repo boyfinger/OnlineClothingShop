@@ -1,0 +1,47 @@
+﻿@model IEnumerable<OnlineClothing.Models.VoucherUsage>
+<div class="modal fade" id="infoVoucherModal" tabindex="-1" aria-labelledby="editVoucherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+<div class="modal-header">
+    <h5 class="modal-title">Thông tin khách hàng đã sử dụng voucher</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    @if (Model != null && Model.Any())
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Tên khách hàng</th>
+                    <th>Email</th>
+                    <th>Ngày sử dụng</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var usage in Model)
+                {
+                    <tr>
+                        <td>@usage.User.UserName</td>
+                        <td>@usage.User.Email</td>
+                        <td>@(usage.UsedAt?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center">
+            Không có dữ liệu
+        </div>
+    }
+</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+

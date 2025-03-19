@@ -35,5 +35,7 @@ public partial class User
 
     public virtual Userinfo? Userinfo { get; set; }
 
+    public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = new List<VoucherUsage>();
+
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 }

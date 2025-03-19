@@ -126,7 +126,7 @@ namespace OnlineClothing.Controllers.Admin
                     _context.UserRoles.Add(userRole);
                     await _context.SaveChangesAsync();
 
-                    return Json(new { success = true, userId = user.Id });
+                    return Json(new { success = true, userId = user.Id, message = "Thêm khách hàng thành công !" });
                 }
                 catch (Exception ex)
                 {
