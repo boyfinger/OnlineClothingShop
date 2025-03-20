@@ -11,10 +11,12 @@ namespace OnlineClothing.Controllers
     public class OrdersController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(ClothingShopPrn222G2Context context)
+        public OrdersController(ClothingShopPrn222G2Context context, ILogger<OrdersController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -79,6 +81,39 @@ namespace OnlineClothing.Controllers
                 }
             }
             return View(order);
+        }
+
+        public async Task<IActionResult> UpdateStatus(long id, int status)
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetString("UserId");
+                if (userId == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var customerId = new Guid(userId);
+                var userRole = HttpContext.Session.GetString("UserRole");
+
+                var orderDetail = await _context.OrderDetails.FirstOrDefaultAsync(od => od.Id == id && od.Order.CustomerId.Equals(customerId));
+
+                if (userRole != "CUSTOMER" || orderDetail == null)
+                {
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
+                }
+
+                orderDetail.Status = status;
+                _context.Update(orderDetail);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Update status successfully";
+                return RedirectToAction(nameof(Details), new { id = orderDetail.OrderId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error while updating status for order detail with id = {id}");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
+            }
         }
 
     }
