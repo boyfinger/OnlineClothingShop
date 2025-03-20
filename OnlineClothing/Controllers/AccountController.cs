@@ -167,7 +167,7 @@ namespace OnlineClothing.Controllers
                 return View(model);
             }
             var adminUser = await context.Users
-                .FirstOrDefaultAsync(u => u.Email == model.LoginUserName && u.Password == model.LoginPassword);
+                .FirstOrDefaultAsync(u => u.Email == model.LoginUserName && u.Password == EncryptionUtils.EncodeSha256(model.LoginPassword));
             if (adminUser == null)
             {
                 ModelState.AddModelError(string.Empty, "Wrong email or password.");

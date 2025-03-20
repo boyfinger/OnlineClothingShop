@@ -54,7 +54,10 @@
             <div class="card border shadow-none mb-3 p-3 no-hover-effect">
                 <div class="d-flex flex-row align-items-center gap-3">
                     <!-- Avatar -->
-                    <img src="@(shop.AvatarUrl ?? "/images/default-shop.png")" class="rounded me-3" width="100" height="100" alt="Shop Logo">
+                    @{
+                        string avatar = shop.AvatarUrl ?? "/images/user-avatar/default-avatar.jpg";
+                    }
+                    <img src="@avatar" class="rounded me-3" width="100" height="100" alt="Shop Logo">
 
                     <!-- Info -->
                     <div class="flex-grow-1 text-dark">
