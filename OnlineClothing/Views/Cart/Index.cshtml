@@ -75,10 +75,34 @@
                     </div>
                 </div>
             </div>
+            <!-- Voucher Selection -->
+            <div class="mt-4">
+                <h4>Apply Voucher</h4>
+                <select name="VoucherId" id="VoucherId" class="form-select">
+                    <option value=0>No Voucher</option>
+                    @if (TempData["vouchers"] != null)
+                    {
+                        var vouchers = TempData["vouchers"] as List<OnlineClothing.Models.Voucher>;
+                        @foreach (var voucher in vouchers)
+                        {
+                            int voucherValue = voucher.Value == null ? 0 : (int)voucher.Value;
+                            if (voucher.TypeNavigation?.Id == 1)
+                            {
+                                <option value="@voucher.Id">@voucher.Code: Giảm @voucherValue %</option>
+                            }
+                            else if (voucher.TypeNavigation?.Id == 2)
+                            {
+                                <option value="@voucher.Id">@voucher.Code: Giảm @string.Format("{0:N0} VND", @voucherValue)</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+
 
             <!-- Checkout Button and Save Shipping Info -->
             <div class="d-flex justify-content-between align-items-center mt-4">
-                <h4>Total Amount: <span id="total-amount" class="text-primary">@string.Format("{0:N0} VND", Model.TotalAmount)</span></h4>
+                <h4>Total Amount: <span id="total-amount" class="text-primary" data-original-total="@Model.TotalAmount">@string.Format("{0:N0} VND", Model.TotalAmount)</span></h4>
 
                 <div class="d-flex align-items-center">
                     <div class="form-check me-3">
@@ -101,6 +125,36 @@
 <script src="https://kit.fontawesome.com/your-kit-code.js" crossorigin="anonymous"></script> <!-- FontAwesome Icons -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const voucherSelect = document.getElementById("VoucherId");
+        const totalAmountElement = document.getElementById("total-amount");
+        const originalTotal = parseInt(totalAmountElement.dataset.originalTotal, 10); // Ensure integer
+
+        voucherSelect.addEventListener("change", function () {
+            let discount = 0;
+            let selectedOption = voucherSelect.options[voucherSelect.selectedIndex];
+
+            if (selectedOption.value) {
+                let text = selectedOption.textContent;
+                if (text.includes("%")) {
+                    // Percentage discount
+                    let percentage = parseInt(text.match(/\d+/)[0], 10); // Extract as integer
+                    discount = Math.floor((percentage * originalTotal) / 100); // Integer division
+                } else if (text.includes("VND")) {
+                    // Fixed amount discount
+                    discount = parseInt(text.match(/\d+/)[0], 10) * 1000;
+                }
+            }
+
+            let newTotal = Math.max(0, originalTotal - discount); // Prevent negative total
+            totalAmountElement.textContent = newTotal.toLocaleString() + " VND";
+        });
+    });
+</script>
+
+
 
 <script>
     document.getElementById("checkoutForm").addEventListener("submit", function (event) {

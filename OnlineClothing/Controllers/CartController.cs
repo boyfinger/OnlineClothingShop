@@ -42,6 +42,17 @@ namespace OnlineClothing.Controllers
                 ViewBag.Address = userinfo.Address;
             }
 
+            var vouchers = await _context.Vouchers
+                .Include(v => v.TypeNavigation)
+                .Include(v => v.UserVouchers)
+                .Where(v => v.Status == 1
+                    && v.EndDate.HasValue
+                    && v.EndDate > DateTime.Now
+                    && !v.UserVouchers.Any(uv => uv.UserId == Guid.Parse(userId))) 
+                .ToListAsync();
+
+
+            TempData["vouchers"] = vouchers;
             return View(cart);
         }
 
