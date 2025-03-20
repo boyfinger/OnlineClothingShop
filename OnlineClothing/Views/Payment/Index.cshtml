@@ -43,11 +43,10 @@
         </div>
     </div>
 </div>
+
 <script>
-    var url = '@TempData["payUrl"]';
-    if (url) {
+    var url = @Html.Raw(Json.Serialize(TempData["payUrl"]));
+    if (url && url !== "null") { // Ensuring it's not null or an invalid value
         window.open(url, "_blank");
     }
 </script>
-
-

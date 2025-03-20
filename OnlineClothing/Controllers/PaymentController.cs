@@ -99,7 +99,7 @@ namespace OnlineClothing.Controllers
             //    .FirstOrDefaultAsync(uv => uv.UserId == Guid.Parse(userId));
 
             int? discount = 0;
-            if(VoucherId != 0)
+            if (VoucherId != -1)
             {
                 var voucher = await _context.Vouchers
                 .Include(v => v.TypeNavigation)
@@ -110,15 +110,15 @@ namespace OnlineClothing.Controllers
                 {
                     if (voucher?.TypeNavigation?.Id == 1)
                     {
-                        discount = (int) (cart.TotalAmount * voucher.Value / 100);
+                        discount = (int)(cart.TotalAmount * voucher.Value / 100);
                     }
                     if (voucher.TypeNavigation.Id == 2)
                     {
-                        discount = (int) voucher.Value;
+                        discount = (int)voucher.Value;
                     }
-                } 
+                }
             }
-            _request.amount = (long) (cart.TotalAmount - discount);
+            _request.amount = (long)(cart.TotalAmount - discount);
             _request.Items = await _context.CartDetails
                 .Where(cd => cd.CartId == cart.Id)
                 .Include(cd => cd.Product)
@@ -135,7 +135,7 @@ namespace OnlineClothing.Controllers
             _request.lang = "vi";
 
             var userInfo = await _context.Userinfos.FindAsync(Guid.Parse(userId));
-            
+
             _request.UserInfo = new MoMoUserInfo { Name = FullName, PhoneNumber = PhoneNumber, Address = Address };
             _request.partnerCode = "MOMO";
             _request.redirectUrl = "http://localhost:5222/Payment/Result";
@@ -182,7 +182,7 @@ namespace OnlineClothing.Controllers
                 {
                     Id = Guid.Parse(response.OrderId),
                     CustomerId = Guid.Parse(userId),
-                    VoucherId = VoucherId,
+                    VoucherId = VoucherId == -1 ? null : VoucherId,
                     FullName = _request.UserInfo.Name,
                     PhoneNumber = _request.UserInfo.PhoneNumber,
                     Address = _request.UserInfo.Address,
@@ -197,7 +197,7 @@ namespace OnlineClothing.Controllers
                 // create order details
                 foreach (CartDetail cd in cart.CartDetails)
                 {
-                    OrderDetail od = new ()
+                    OrderDetail od = new()
                     {
                         OrderId = order.Id,
                         ProductId = cd.ProductId,
@@ -211,7 +211,7 @@ namespace OnlineClothing.Controllers
                 }
                 await _context.SaveChangesAsync();
                 await ClearCartAsync(cart.Id);
-               
+
             }
             TempData["message"] = "Giao dịch của bạn đang được xử lý, nếu bạn không tự động được chuyển đến trang thanh toán, vui lòng nhấn vào đường dẫn.";
             TempData["payUrl"] = response.PayUrl;
@@ -226,7 +226,7 @@ namespace OnlineClothing.Controllers
 
             bool exist = Guid.TryParse(orderId, out Guid guid);
 
-            if(!exist)
+            if (!exist)
             {
                 TempData["error"] = "Không tìm thấy Id đơn hàng";
                 return RedirectToAction("Index");
@@ -242,7 +242,7 @@ namespace OnlineClothing.Controllers
             {
                 order.Status = 2; //Confirmed payment
 
-                foreach(OrderDetail od in order.OrderDetails)
+                foreach (OrderDetail od in order.OrderDetails)
                 {
                     od.Status = 2;
                 }
@@ -252,21 +252,15 @@ namespace OnlineClothing.Controllers
                     Voucher voucher = _context.Vouchers.FirstOrDefault(v => v.Id == order.VoucherId);
                     if (voucher != null)
                     {
-                        UserVoucher userVoucher = new UserVoucher()
+                        VoucherUsage userVoucher = new VoucherUsage()
                         {
                             UserId = Guid.Parse(userId),
 
                             VoucherId = voucher.Id,
 
-                            Quantity = 1,
-
-                            StartDate = voucher.StartDate,
-
-                            EndDate = voucher.EndDate,
-
-                            Status = 2,
+                            UsedAt = DateTime.Now,
                         };
-                        await _context.UserVouchers.AddAsync(userVoucher);
+                        await _context.VoucherUsages.AddAsync(userVoucher);
                         await _context.SaveChangesAsync();
                     }
                 }
@@ -287,7 +281,7 @@ namespace OnlineClothing.Controllers
 
         private static string getSignature(string text, string key)
         {
-            UTF8Encoding encoding = new UTF8Encoding(); 
+            UTF8Encoding encoding = new UTF8Encoding();
 
             byte[] textBytes = encoding.GetBytes(text);
             byte[] keyBytes = encoding.GetBytes(key);

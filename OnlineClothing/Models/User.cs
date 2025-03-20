@@ -31,8 +31,6 @@ public partial class User
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
-    public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
-
     public virtual Userinfo? Userinfo { get; set; }
 
     public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = new List<VoucherUsage>();
