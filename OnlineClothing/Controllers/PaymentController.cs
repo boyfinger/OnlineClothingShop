@@ -41,7 +41,7 @@ namespace OnlineClothing.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> CheckOutAsync(string FullName, string PhoneNumber, string Address, string Note, bool saveShippingInfo)
+        public async Task<IActionResult> CheckOutAsync(string FullName, string PhoneNumber, string Address, string Note, bool saveShippingInfo, long VoucherId)
         {
             // Validate user
             var userId = HttpContext.Session.GetString("UserId");
@@ -58,8 +58,20 @@ namespace OnlineClothing.Controllers
                     userinfo.Address = Address;
                     await _context.SaveChangesAsync();
                 }
+                else if (userinfo == null)
+                {
+                    userinfo = new Userinfo()
+                    {
+                        Id = Guid.Parse(userId),
+                        FullName = FullName,
+                        PhoneNumber = PhoneNumber,
+                        Address = Address,
+                    };
+                    _context.Add(userinfo);
+                    await _context.SaveChangesAsync();
+                }
             }
-            
+
 
             // Get cart
             var cart = await _context.Carts
@@ -81,7 +93,32 @@ namespace OnlineClothing.Controllers
 
             _request.orderId = Guid.NewGuid().ToString();
             _request.orderInfo = $"Order [{_request.orderId}]";
-            _request.amount = (long)cart.TotalAmount;
+
+            //UserVoucher userVoucher = await _context.UserVouchers
+            //    .Where(uv => uv.Status == 1 && uv.EndDate < DateTime.UtcNow)
+            //    .FirstOrDefaultAsync(uv => uv.UserId == Guid.Parse(userId));
+
+            int? discount = 0;
+            if(VoucherId != 0)
+            {
+                var voucher = await _context.Vouchers
+                .Include(v => v.TypeNavigation)
+                .Where(v => v.Status == 1 && v.EndDate.HasValue && v.EndDate > DateTime.Now)
+                .FirstOrDefaultAsync(v => v.Id == VoucherId);
+
+                if (voucher != null)
+                {
+                    if (voucher?.TypeNavigation?.Id == 1)
+                    {
+                        discount = (int) (cart.TotalAmount * voucher.Value / 100);
+                    }
+                    if (voucher.TypeNavigation.Id == 2)
+                    {
+                        discount = (int) voucher.Value;
+                    }
+                } 
+            }
+            _request.amount = (long) (cart.TotalAmount - discount);
             _request.Items = await _context.CartDetails
                 .Where(cd => cd.CartId == cart.Id)
                 .Include(cd => cd.Product)
@@ -145,7 +182,7 @@ namespace OnlineClothing.Controllers
                 {
                     Id = Guid.Parse(response.OrderId),
                     CustomerId = Guid.Parse(userId),
-                    VoucherId = null,
+                    VoucherId = VoucherId,
                     FullName = _request.UserInfo.Name,
                     PhoneNumber = _request.UserInfo.PhoneNumber,
                     Address = _request.UserInfo.Address,
@@ -167,12 +204,14 @@ namespace OnlineClothing.Controllers
                         Quantity = cd.Quantity,
                         UnitPrice = cd.Product.Price,
                         TotalPrice = cd.TotalPrice,
-                        Discount = 0
+                        Discount = 0,
+                        Status = 1,
                     };
                     await _context.OrderDetails.AddAsync(od);
                 }
                 await _context.SaveChangesAsync();
                 await ClearCartAsync(cart.Id);
+               
             }
             TempData["message"] = "Giao dịch của bạn đang được xử lý, nếu bạn không tự động được chuyển đến trang thanh toán, vui lòng nhấn vào đường dẫn.";
             TempData["payUrl"] = response.PayUrl;
@@ -182,6 +221,8 @@ namespace OnlineClothing.Controllers
         [HttpGet]
         public async Task<IActionResult> Result(string orderId, string requestId, string resultCode, string message, string partnerCode, long amount, long responseTime, string payUrl, string shortLink)
         {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
 
             bool exist = Guid.TryParse(orderId, out Guid guid);
 
@@ -200,6 +241,35 @@ namespace OnlineClothing.Controllers
             if (resultCode.Equals("0"))
             {
                 order.Status = 2; //Confirmed payment
+
+                foreach(OrderDetail od in order.OrderDetails)
+                {
+                    od.Status = 2;
+                }
+
+                if (order.VoucherId != null)
+                {
+                    Voucher voucher = _context.Vouchers.FirstOrDefault(v => v.Id == order.VoucherId);
+                    if (voucher != null)
+                    {
+                        UserVoucher userVoucher = new UserVoucher()
+                        {
+                            UserId = Guid.Parse(userId),
+
+                            VoucherId = voucher.Id,
+
+                            Quantity = 1,
+
+                            StartDate = voucher.StartDate,
+
+                            EndDate = voucher.EndDate,
+
+                            Status = 2,
+                        };
+                        await _context.UserVouchers.AddAsync(userVoucher);
+                        await _context.SaveChangesAsync();
+                    }
+                }
                 await _context.SaveChangesAsync();
                 TempData["message"] = "Đơn hàng của bạn đã được đặt thành công.";
                 TempData["orderId"] = guid;
