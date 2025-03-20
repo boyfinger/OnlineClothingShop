@@ -6,11 +6,14 @@ using OnlineClothing.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+var connectionString = builder.Configuration.GetConnectionString("DbConnection");
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
+    options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
@@ -52,6 +55,10 @@ app.UseAuthorization();
 
 builder.Services.AddMemoryCache();
 
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{controller=AdminDashboard}/{action=Dashboard}/{id?}"
+);
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

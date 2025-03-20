@@ -1,0 +1,45 @@
+﻿@model IEnumerable<OnlineClothing.Models.VoucherUsage>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div class="modal fade" id="infoVoucherModal" tabindex="-1" role="dialog" aria-labelledby="infoVoucherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thông tin khách hàng đã sử dụng voucher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Model != null && Model.Any())
+                {
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Tên khách hàng</th>
+                                <th>Email</th>
+                                <th>Ngày sử dụng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var usage in Model)
+                            {
+                                <tr>
+                                    <td>@usage.User.UserName</td>
+                                    <td>@usage.User.Email</td>
+                                    <td>@(usage.UsedAt?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-warning text-center">
+                        Không có dữ liệu tưởng ứng !
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,122 @@
+﻿@model List<OnlineClothing.Models.AdminUserViewModel>
+@{
+    Layout = "~/Views/AdminDashboard/AdminShared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý cửa hàng";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<h2 class="text-center my-3"><i class="fas fa-store"></i> Quản lý cửa hàng</h2>
+
+<!-- Filter by Status -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <select id="statusFilter" class="form-control">
+            <option value="">Tất cả trạng thái</option>
+            <option value="1">Hoạt động</option>
+            <option value="2">Chưa chấp thuận</option>
+            <option value="3">Bị cấm</option>
+        </select>
+    </div>
+</div>
+<style>
+    .no-hover-effect:hover {
+        transform: none !important;
+    }
+
+    .btn-status {
+        transition: all 0.3s ease;
+    }
+
+        .btn-status:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+    }
+</style>
+<!-- List Shop Cards -->
+<div id="shopContainer" class="row">
+    @foreach (var shop in Model)
+    {
+        <div class="col-12">
+            <div class="card border shadow-none mb-3 p-3 no-hover-effect">
+                <div class="d-flex flex-row align-items-center gap-3">
+                    <!-- Avatar -->
+                    <img src="@(shop.AvatarUrl ?? "/images/default-shop.png")" class="rounded me-3" width="100" height="100" alt="Shop Logo">
+
+                    <!-- Info -->
+                    <div class="flex-grow-1 text-dark">
+                        <strong class="fs-5 text-danger fw-bold">@shop.FullName</strong>
+                        <p class="mb-1 fs-6 fw-normal">
+                            <strong>Email:</strong> @shop.Email <br>
+                            <strong>SĐT:</strong> @(shop.PhoneNumber ?? "N/A") <br>
+                            <strong>Địa chỉ:</strong> @(shop.Address ?? "N/A") <br>
+                            <strong>Ngày thành lập:</strong> @(shop.DateOfBirth?.ToString("dd/MM/yyyy") ?? "N/A")
+                        </p>
+                    </div>
+
+                    <!-- Badge Status -->
+                    <span class="badge badge-status @(shop.Status == 1 ? "bg-success" : shop.Status == 2 ? "bg-warning text-dark" : "bg-danger") fs-6">
+                        @(shop.Status == 1 ? "Hoạt động" : shop.Status == 2 ? "Chưa chấp thuận" : "Bị cấm")
+                    </span>
+
+                    <div class="ms-3 d-flex gap-2">
+                        @if (shop.Status == 2)
+                        {
+ 
+                            <button class="btn btn-success btn-sm btn-status fw-bold" data-id="@shop.Id" data-action="approve">
+                                <i class="fas fa-check-circle"></i> Chấp thuận
+                            </button>
+                            <button class="btn btn-danger btn-sm btn-status fw-bold" data-id="@shop.Id" data-action="reject">
+                                <i class="fas fa-times-circle"></i> Từ chối
+                            </button>
+                        }
+                        @if (shop.Status == 1 || shop.Status == 3)
+                        {
+                            @if (shop.Status == 1)
+                            {
+                                <button class="btn btn-danger btn-sm btn-status fw-bold" data-id="@shop.Id" data-action="ban">
+                                    <i class="fas fa-ban"></i> Cấm
+                                </button>
+                            }
+                            @if (shop.Status == 3)
+                            {
+                                <button class="btn btn-warning btn-sm btn-status fw-bold" data-id="@shop.Id" data-action="unban">
+                                    <i class="fas fa-unlock"></i> Bỏ cấm
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                <a class="page-link" href="?page=@i&search=@ViewBag.Search&status=@ViewBag.Status">@i</a>
+            </li>
+        }
+    </ul>
+</nav>
+
+<p id="noDataMessage" class="alert alert-warning text-center" style="display: none;">Không có dữ liệu tương ứng !</p>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/shop.js"></script>

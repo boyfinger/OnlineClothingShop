@@ -1,4 +1,5 @@
-﻿using System;
+using OnlineClothing.Models;
+using System;
 using System.Collections.Generic;
 
 namespace OnlineClothing.Models;
@@ -25,15 +26,17 @@ public partial class Voucher
 
     public DateTime? UpdateAt { get; set; }
 
-    public int? UsageLimit { get; set; }
+    public int UsageLimit { get; set; }
 
-    public int? UsageCount { get; set; }
+    public int UsageCount { get; set; }
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     public virtual VoucherStatus? StatusNavigation { get; set; }
 
     public virtual VoucherType? TypeNavigation { get; set; }
+
+    public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
 
     public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = new List<VoucherUsage>();
 }

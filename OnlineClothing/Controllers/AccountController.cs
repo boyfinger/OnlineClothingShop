@@ -36,7 +36,7 @@ namespace OnlineClothing.Controllers
                 }
                 else if (userRole == "ADMIN")
                 {
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Dashboard", "AdminDashboard");
                 }
             }
             return View();
@@ -149,18 +149,13 @@ namespace OnlineClothing.Controllers
         public IActionResult AdminLogin()
         {
             var userId = HttpContext.Session.GetString("UserId");
-            if (userId != null)
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            if (userId != null && userRole == "ADMIN")
             {
-                var userRole = HttpContext.Session.GetString("UserRole");
-                if (userRole == "ADMIN")
-                {
-                    return RedirectToAction("Index", "AdminDashboard");
-                }
-                else
-                {
-                    return RedirectToAction("Index", "Home");
-                }
+                return RedirectToAction("Dashboard", "AdminDashboard");
             }
+
             return View();
         }
 
@@ -171,23 +166,27 @@ namespace OnlineClothing.Controllers
             {
                 return View(model);
             }
-            var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == model.LoginUserName && u.Password == model.LoginPassword);
+            var adminUser = await context.Users
+                .FirstOrDefaultAsync(u => u.Email == model.LoginUserName && u.Password == model.LoginPassword);
             if (adminUser == null)
             {
                 ModelState.AddModelError(string.Empty, "Wrong email or password.");
                 return View(model);
             }
-            var userRoles = await context.UserRoles.Where(ur => ur.UserId == adminUser.Id).Select(ur => ur.RoleId).ToListAsync();
-            var userRole = await context.UserRoles.Where(ur => ur.UserId == adminUser.Id && ur.RoleId == 1).FirstOrDefaultAsync();
-            bool isAdmin = userRoles.Contains(1);
+
+            var isAdmin = await context.UserRoles
+                .AnyAsync(ur => ur.UserId == adminUser.Id && ur.RoleId == 1);
+
             if (!isAdmin)
             {
                 ModelState.AddModelError(string.Empty, "You are not an admin.");
-                return View(model); ;
+                return View(model);
             }
+
             HttpContext.Session.SetString("UserId", adminUser.Id.ToString());
             HttpContext.Session.SetString("UserRole", "ADMIN");
-            return RedirectToAction("Index", "Home");
+
+            return RedirectToAction("Dashboard", "AdminDashboard");
         }
 
         [HttpGet]
@@ -202,10 +201,6 @@ namespace OnlineClothing.Controllers
                     return RedirectToAction("Index", "SellerProducts");
                 }
                 else if (userRole == "CUSTOMER")
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-                else if (userRole == "ADMIN")
                 {
                     return RedirectToAction("Index", "Home");
                 }
@@ -421,6 +416,12 @@ namespace OnlineClothing.Controllers
         public IActionResult NotFound()
         {
             return View();
+        }
+        [HttpPost]
+        public IActionResult LogoutAdmin()
+        {
+            HttpContext.Session.Clear(); // Xóa toàn bộ Session
+            return RedirectToAction("AdminLogin", "Account"); // Chuyển về trang đăng nhập
         }
 
         //Settings for User
