@@ -44,11 +44,11 @@ namespace OnlineClothing.Controllers
 
             var vouchers = await _context.Vouchers
                 .Include(v => v.TypeNavigation)
-                .Include(v => v.UserVouchers)
+                .Include(v => v.VoucherUsages)
                 .Where(v => v.Status == 1
                     && v.EndDate.HasValue
                     && v.EndDate > DateTime.Now
-                    && !v.UserVouchers.Any(uv => uv.UserId == Guid.Parse(userId))) 
+                    && !v.VoucherUsages.Any(uv => uv.UserId == Guid.Parse(userId))) 
                 .ToListAsync();
 
 
