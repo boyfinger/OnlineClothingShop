@@ -36,7 +36,5 @@ public partial class Voucher
 
     public virtual VoucherType? TypeNavigation { get; set; }
 
-    public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
-
     public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = new List<VoucherUsage>();
 }
