@@ -226,18 +226,13 @@ input, select {
                         <tr>
                             <td>@voucher.Code</td>
                             <td>
-                                @if (voucher.Type == 1)
-                                {
-                                    <span class="badge" style="background-color: #007bff; color: white;">Giảm giá theo phần trăm</span>
-                                }
-                                else if (voucher.Type == 2)
-                                {
-                                    <span class="badge" style="background-color: #28a745; color: white;">Giảm giá theo giá tiền</span>
-                                }
-                                else if (voucher.Type == 3)
-                                {
-                                    <span class="badge" style="background-color: #ff851b; color: white;">Miễn phí vận chuyển</span>
-                                }
+                                <span class="badge badge-type @(voucher.Type == 1 ? "bg-primary" :
+                                    voucher.Type == 2 ? "bg-success" :
+                                    "bg-warning")">
+                                    @(voucher.Type == 1 ? "Giảm giá theo phần trăm" :
+                                        voucher.Type == 2 ? "Giảm giá theo giá tiền" :
+                                        "Miễn phí vận chuyển")
+                                </span>
                             </td>
 
                             <td>
@@ -260,41 +255,23 @@ input, select {
                             <td>@voucher.UsageLimit</td>
                             <td>@voucher.UsageCount</td>
                             <td>
-                                @if (voucher.Status == 1)
-                                {
-                                    <span class="badge" style="background-color: #28a745; color: white;">Đang hoạt động</span>
-                                }
-                                else if (voucher.Status == 2)
-                                {
-                                    <span class="badge" style="background-color: #dc3545; color: white;">Hết hạn</span>
-                                }
-                                else if (voucher.Status == 3 || voucher.UsageCount >= voucher.UsageLimit)
-                                {
-                                    <span class="badge" style="background-color: #6c757d; color: white;">Đã hết lượt sử dụng</span>
-                                }
-                                else if (voucher.Status == 4)
-                                {
-                                    <span class="badge" style="background-color: #343a40; color: white;">Vô hiệu hóa</span>
-                                }
-                                else if (voucher.Status == 5)
-                                {
-                                    <span class="badge" style="background-color: #ffc107; color: black;">Chờ xử lý</span>
-                                }
+                                <span class="badge badge-status @(voucher.Status == 1 ? "bg-success" :
+                                      voucher.Status == 2 ? "bg-danger" :
+                                      voucher.Status == 3 || voucher.UsageCount >= voucher.UsageLimit ? "bg-secondary" :
+                                      voucher.Status == 4 ? "bg-dark" :
+                                      "bg-warning")">
+                                    @(voucher.Status == 1 ? "Đang hoạt động" :
+                                        voucher.Status == 2 ? "Hết hạn" :
+                                        voucher.Status == 3 || voucher.UsageCount >= voucher.UsageLimit ? "Đã hết lượt sử dụng" :
+                                        voucher.Status == 4 ? "Vô hiệu hóa" :
+                                        "Chờ xử lý")
+                                </span>
                             </td>
 
                             <td>
-                                @if (voucher.Status == 5 || voucher.Status == 4)
-                                {
-                                    <button class="btn btn-change-status btn-success" data-id="@voucher.Id">
-                                        Active
-                                    </button>
-                                }
-                                else if (voucher.Status == 1)
-                                {
-                                    <button class="btn btn-change-status btn-secondary" data-id="@voucher.Id">
-                                        Disable
-                                    </button>
-                                }
+                                <button class="btn btn-change-status @(voucher.Status == 1 ? "btn-secondary" : "btn-success") text-white" data-id="@voucher.Id">
+                                    @(voucher.Status == 1 ? "Disable" : "Active")
+                                </button>
                                 <button class="btn btn-warning btn-edit" data-id="@voucher.Id">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -335,34 +312,40 @@ input, select {
 <script>
     $(document).ready(function () {
         // Hàm tải danh sách voucher bằng AJAX
-        function loadVouchers(page = 1) {
-            var search = $('#search').val();
-            var status = $('#statusFilter').val();
-            var type = $('#typeFilter').val();
+            function loadVouchers(page = 1) {
+        var search = $('#search').val();
+        var status = $('#statusFilter').val();
+        var type = $('#typeFilter').val();
 
-            $.ajax({
-                url: '@Url.Action("Manage", "Voucher")',
-                type: 'GET',
-                data: {
-                    search: search,
-                    status: status,
-                    type: type,
-                    page: page
-                },
-                success: function (response) {
-                    var newBody = $(response).find("#voucherTableBody").html();
+        $.ajax({
+            url: '@Url.Action("Manage", "Voucher")',
+            type: 'GET',
+            data: {
+                search: search,
+                status: status,
+                type: type,
+                page: page
+            },
+            success: function (response) {
+                var newBody = $(response).find("#voucherTableBody").html().trim();
+                var newPagination = $(response).find("#pagination").html().trim();
+
+                if (newBody.length === 0 || newBody === "") {
+                    $('#voucherTableBody').html('<tr><td colspan="9"><div class="alert alert-warning text-center">Không có dữ liệu tương ứng!</div></td></tr>');
+                    $('#pagination').html(''); 
+                } else {
                     $('#voucherTableBody').html(newBody);
-
-                    var newPagination = $(response).find("#pagination").html();
                     $('#pagination').html(newPagination);
-
-                    attachEvents(); // Gắn lại sự kiện sau khi tải dữ liệu
-                },
-                error: function (xhr, status, error) {
-                    console.error("Lỗi khi tải dữ liệu: " + error);
                 }
-            });
-        }
+
+                attachEvents(); // Gắn lại sự kiện sau khi tải dữ liệu
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi tải dữ liệu: " + error);
+            }
+        });
+    }
+
 
         // Gắn lại sự kiện sau khi AJAX load dữ liệu
         function attachEvents() {
@@ -433,55 +416,87 @@ input, select {
         }
 
         // Hàm xử lý sự kiện thay đổi trạng thái voucher
-        function attachChangeStatusEvent() {
-            $('.btn-change-status').off('click').on('click', function () {
-                var voucherId = $(this).data('id');
-                var button = $(this);
-                var statusCell = button.closest('tr').find('td:nth-child(8)'); // Ô chứa trạng thái
+               function attachChangeStatusEvent() {
+        $('.btn-change-status').off('click').on('click', function () {
+            var voucherId = $(this).data('id');
+            var button = $(this);
+            var statusBadge = button.closest('tr').find('.badge-status'); // Chỉ chọn badge trạng thái
 
-                Swal.fire({
-                    title: 'Bạn có chắc chắn?',
-                    text: "Bạn đang thay đổi trạng thái của voucher này!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Đồng ý',
-                    cancelButtonText: 'Hủy'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.post('/Admin/Voucher/ChangeStatus/' + voucherId, function (response) {
-                            if (response.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Thành công!',
-                                    text: response.message,
-                                }).then(() => {
-                                    // Cập nhật nút và trạng thái trong bảng
-                                    if (button.text().trim() === "Active") {
-                                        button.text("Disable")
-                                            .removeClass('btn-success')
-                                            .addClass('btn-secondary');
-                                    } else {
-                                        button.text("Active")
-                                            .removeClass('btn-secondary')
-                                            .addClass('btn-success');
-                                    }
+            Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: "Bạn đang thay đổi trạng thái của voucher này!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Voucher/ChangeStatus/' + voucherId, function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: 'Trạng thái đã được cập nhật.',
+                            }).then(() => {
+                                // Cập nhật nút Active / Disable
+                                if (button.text().trim() === "Active") {
+                                    button.text("Disable")
+                                        .removeClass('btn-success')
+                                        .addClass('btn-secondary');
+                                } else {
+                                    button.text("Active")
+                                        .removeClass('btn-secondary')
+                                        .addClass('btn-success');
+                                }
 
-                                    statusCell.html(`<span class="badge badge-${response.newStatus === 1 ? 'success' : 'secondary'}">${response.newStatusText}</span>`);
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Lỗi!',
-                                    text: response.message,
-                                });
-                            }
+                                // Cập nhật badge trạng thái
+                                var statusText = response.newStatusText;
+                                var statusClass = "";
+
+                                switch (response.newStatus) {
+                                    case 1:
+                                        statusClass = "bg-success text-white";
+                                        break;
+                                    case 2:
+                                        statusClass = "bg-danger text-white";
+                                        break;
+                                    case 3:
+                                        statusClass = "bg-secondary text-white";
+                                        break;
+                                    case 4:
+                                        statusClass = "bg-dark text-white";
+                                        break;
+                                    case 5:
+                                        statusClass = "bg-warning text-dark";
+                                        break;
+                                }
+
+                                statusBadge
+                                    .removeClass()
+                                    .addClass(`badge badge-status ${statusClass}`)
+                                    .text(statusText);
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi!',
+                                text: response.message,
+                            });
+                        }
+                    }).fail(function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: 'Không thể kết nối đến server!',
                         });
-                    }
-                });
+                    });
+                }
             });
-        }
+        });
+    }
+
 
         // Xử lý sự kiện khi tìm kiếm hoặc lọc dữ liệu
         $('#search, #statusFilter, #typeFilter').on('input change', function () {

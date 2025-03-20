@@ -13,7 +13,7 @@ namespace OnlineClothing.Controllers.AdminController
         }
 
         [HttpGet]
-        public IActionResult Dashboard()
+        public async Task<IActionResult> DashboardAsync()
         {
             var userRole = HttpContext.Session.GetString("UserRole");
 
@@ -21,8 +21,14 @@ namespace OnlineClothing.Controllers.AdminController
             {
                 return RedirectToAction("AdminLogin", "Account"); 
             }
-            var totalUsers = _context.Users.Count();
+            var totalUsers = await _context.Users.CountAsync();
+            var totalProducts = await _context.Products.CountAsync();
+            var totalShops = await _context.Users
+                .Include(u => u.UserRoles)
+                .CountAsync(u => u.UserRoles.Any(ur => ur.RoleId == 2));
             ViewBag.TotalUsers = totalUsers;
+            ViewBag.TotalProducts = totalProducts;
+            ViewBag.TotalShops = totalShops;
             return View();
         }
     }

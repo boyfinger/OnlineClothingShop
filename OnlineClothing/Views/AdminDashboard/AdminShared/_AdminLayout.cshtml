@@ -19,10 +19,9 @@
                 </a>
             </li>
             <li class="nav-item"> <a href="@Url.Action("Manage", "Customer")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "Customer" ? "active" : "")">
-                <i class="fas fa-users"></i> Quản lý khách hàng</a></li>
-            @* <li class="nav-item"><a href="" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "ManageStoreOwners" ? "active" : "")"> *@
-            @*     <i class="fas fa-store"></i> Quản lý chủ cửa hàng</a> </li>          *@
-            <li class="nav-item"><a href="" class="nav-link text-light sidebar-link">
+                <i class="fas fa-users"></i> Quản lý khách hàng</a></li>       
+            <li class="nav-item">
+                <a href="@Url.Action("Manage", "Shop")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "Shop" ? "active" : "")">
                 <i class="fas fa-store"></i> Quản lý cửa hàng</a></li>
             <li class="nav-item">
                 <a href="@Url.Action("Manage", "Category")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "Category" ? "active" : "")">
@@ -36,8 +35,6 @@
             </li>
             <li class="nav-item"><a href="@Url.Action("Manage","Voucher")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "Voucher" ? "active" : "")">
                 <i class="fas fa-ticket"></i> Quản lý voucher cửa hàng</a></li>
-            <li class="nav-item"><a href="#" class="nav-link text-light sidebar-link">
-                <i class="fas fa-ticket"></i> Quản lý voucher người dùng</a></li>
             <li class="nav-item">
                 <a href="#" class="nav-link text-light sidebar-link">
                     <i class="fas fa-chart-bar"></i> Quản lý khiếu nại
