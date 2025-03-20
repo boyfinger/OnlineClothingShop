@@ -1,25 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
 using OnlineClothing.Services;
 using OnlineClothing.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure the DbContext to use SQL Server
+
 var connectionString = builder.Configuration.GetConnectionString("DbConnection");
 
-// Đăng ký DbContext với SQL Server
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
 
-// Register the EmailUtils as a transient service
+// Add services to the container.
 builder.Services.AddTransient<EmailUtils>();
 
-// Add services to the container for MVC Controllers and Views
 builder.Services.AddControllersWithViews();
-
 // Configure session settings
 builder.Services.AddDistributedMemoryCache(); // Necessary for session storage
 builder.Services.AddSession(options =>
@@ -29,30 +31,36 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;  // Ensures cookies are essential for the app
 });
 
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = 104857600;
+});
+
 var app = builder.Build();
 
-// Apply the session middleware
-app.UseSession();
+app.UseStatusCodePagesWithRedirects("/Error/{0}");
 
-// Configure the HTTP request pipeline
+// Apply the session middleware
+app.UseSession(); 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error"); // Error handling in production
+    app.UseExceptionHandler("/Home/Error");
 }
-app.UseStaticFiles(); // Serve static files (e.g., CSS, JavaScript)
+app.UseStaticFiles();
 
-app.UseRouting(); // Routing configuration
+app.UseRouting();
 
-app.UseAuthorization(); // Authorization middleware
+app.UseAuthorization();
+
+builder.Services.AddMemoryCache();
 
 app.MapControllerRoute(
     name: "admin",
     pattern: "admin/{controller=AdminDashboard}/{action=Dashboard}/{id?}"
 );
-// Configure MVC route (default route)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-

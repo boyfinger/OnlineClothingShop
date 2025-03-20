@@ -14,12 +14,12 @@
 </head>
 <body>
 
-    <div class="container" id="container">
+    <div class="container">
         <div class="form-container sign-in-container">
             <form method="post" asp-action="Login">
                 <h1>Sign In</h1>
 
-                <div style="color: #e09f3e;" asp-validation-summary="All" class="text-danger"></div>
+                <div asp-validation-summary="All" class="text-danger"></div>
 
                 <select asp-for="UserType" required>
                     <option value="" disabled selected>Select your role</option>
@@ -27,14 +27,14 @@
                     <option value="seller">Seller</option>
                 </select>
 
-                <input type="email" asp-for="LoginEmail" placeholder="Email" required />
+                <input type="text" asp-for="LoginUserName" placeholder="Email" required />
                 <input type="password" asp-for="LoginPassword" placeholder="Password" required />
                 <div style="display: flex; justify-content: space-between; width: 100%;">
-                    <h2><a style="color: #e09f3e" href="/Account/ForgotPassword">Forgot Your Password?</a></h2>
-                    <h2><a style="color: #e09f3e" href="/Account/Signup">Sign Up</a></h2>
+                    <h2><a href="/Account/ForgotPassword">Forgot Your Password?</a></h2>
+                    <h2><a href="/Account/Signup">Sign Up</a></h2>
                 </div>
                 <button type="submit">Sign In</button>
-                <h2><a style="color: #e09f3e" href="/Home"> - Back to Home - </a></h2>
+                <h2><a href="/Home"> - Back to Home - </a></h2>
             </form>
         </div>
     </div>

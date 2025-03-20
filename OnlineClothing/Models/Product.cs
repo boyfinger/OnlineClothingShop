@@ -26,7 +26,7 @@ public partial class Product
 
     [Display(Name = "Price")]
     [Required(ErrorMessage = "Please enter price")]
-    [Range(minimum: 1, maximum: int.MaxValue,ErrorMessage = "Please enter price as a positive integer lmao")]
+    [Range(minimum: 1, maximum: int.MaxValue,ErrorMessage = "Please enter price as a positive integer")]
     public int? Price { get; set; }
 
     public int? Discount { get; set; }
@@ -42,7 +42,10 @@ public partial class Product
 
     public DateTime? UpdateAt { get; set; }
 
+    public string Currency = "VND";
+
     public virtual Category? Category { get; set; }
+    public virtual ICollection<CartDetail> CartDetails { get; set; } = new List<CartDetail>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 

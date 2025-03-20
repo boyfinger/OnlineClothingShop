@@ -15,6 +15,12 @@
 
 </head>
 <body>
+    @if(Context.Session.GetString("UserId") != null && Context.Session.GetString("AvatarUrl") == null)
+    {
+        <script>
+            window.location.href = "/Account/Logout";
+        </script>
+    }
     <div id="js-preloader" class="js-preloader">
         <div class="preloader-inner">
             <span class="dot"></span>
@@ -41,19 +47,22 @@
                         <ul class="nav">
                             <li><a href="/Home" id="home-link" class="active">Home</a></li>
                             <li><a href="/product" id="shop-link">Our Shop</a></li>
-                            <li><a href="#">Product Details</a></li>
-                            <li><a href="/contact.html">Contact Us</a></li>
-
-                            @if (ViewBag.UserId != null)
+                            @if (Context.Session.GetString("UserId") != null)
+                            {
+                                <li><a href="/Cart" id="cart-link" class="active">Your Cart</a></li>
+                                <li><a href="/Orders" id="pastOrder-link" class="active">Your Orders</a></li>
+                            }
+                            @if (Context.Session.GetString("UserId") != null)
                             {
                                 <li class="nav-item dropdown">
                                     <a href="#" class="nav-link" id="profileDropdown" onclick="menuToggle();">
-                                        <img src="@ViewBag.AvatarUrl" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                                        <img src="@Context.Session.GetString("AvatarUrl")" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
                                     </a>
                                     <ul id="profileMenu" class="dropdown-menu-custom">
-                                        <li><a class="dropdown-item" href="/Account/Profile"><i class="fas fa-user"></i> My Profile</a></li>
-                                        <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i> Change Password</a></li>
-                                        <li><a class="dropdown-item" href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+                                        <li><a class="dropdown-item" href="/Account/UserProfile"><i class="fas fa-cog"></i>User Settings</a></li>
+                                        <li><a class="dropdown-item" href="/Orders"><i class="fas fa-shopping-cart"></i>My Orders</a></li>
+                                        <li><a class="dropdown-item" href="/Feedback"><i class="fas fa-comments"></i>Feedback</a></li>
+                                        <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i>Change Password</a></li>
                                         <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                                     </ul>
                                 </li>
@@ -72,11 +81,9 @@
     <!-- ***** Header Area End ***** -->
 
     <div class="main-banner">
-        <div class="container">
-            <main role="main" class="pb-3">
-                @RenderBody() <!-- This is where the content of the page will be injected -->
-            </main>
-        </div>
+        <main role="main" class="pb-3">
+            @RenderBody() <!-- This is where the content of the page will be injected -->
+        </main>
     </div>
 
     <!-- ***** Footer Area Start ***** -->
@@ -88,6 +95,7 @@
         </div>
     </footer>
     <!-- ***** Footer Area End ***** -->
+
     <!-- Scripts -->
     <script src="~/jquery/jquery.min.js"></script>
     <script src="~/js/custom.js"></script>
@@ -97,6 +105,8 @@
     <script src="~/js/counter.js"></script>
     <script src="~/js/header.js"></script>
 
+    <!-- Render Section for Scripts -->
+    @RenderSection("Scripts", required: false)
 
     <!-- Custom JS to hide preloader after content is loaded -->
     <script>

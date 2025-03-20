@@ -11,7 +11,7 @@ public partial class Feedback
 
     public long? ProductId { get; set; }
 
-    public long? OrderId { get; set; }
+    public Guid OrderId { get; set; }
 
     public byte? Rating { get; set; }
 
@@ -19,7 +19,7 @@ public partial class Feedback
 
     public DateTime? CreateAt { get; set; }
 
-    public virtual Order? Order { get; set; }
+    public virtual Order Order { get; set; } = null!;
 
     public virtual Product? Product { get; set; }
 

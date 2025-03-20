@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using OnlineClothing.Models;
+using System.Linq;
 
 namespace OnlineClothing.Controllers
 {
@@ -51,9 +52,10 @@ namespace OnlineClothing.Controllers
             {
                 int totalProducts = await _context.Products.CountAsync();
                 List<Product> products = await _context.Products
+                    .Where(p => p.Status == 1)
                     .OrderBy(p => p.Id)
                     .Skip((page - 1) * pageSize)
-                    .Take(pageSize) 
+                    .Take(pageSize)
                     .ToListAsync();
                 var viewModel = new ProductViewModel
                 {
@@ -63,6 +65,7 @@ namespace OnlineClothing.Controllers
                     CurrentPage = page,
                     TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize)
                 };
+                ViewData["ActionName"] = "Index";
                 return View("Product", viewModel);
             }
             catch (Exception ex)
@@ -79,12 +82,10 @@ namespace OnlineClothing.Controllers
                 .Include(p => p.Category)
                 .Include(p => p.Seller)
                     .ThenInclude(p => p.Userinfo)
-                .Include(p => p.Feedbacks)
-                    .ThenInclude(f => f.User)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return RedirectToAction("HandleError", "Error", new { statusCode = 404 });
             }
             var relatedProducts = await _context.Products
                 .Where(p => p.CategoryId == product.CategoryId || p.SellerId == product.SellerId && p.Id != product.Id)
@@ -92,17 +93,25 @@ namespace OnlineClothing.Controllers
                 {
                     Id = p.Id,
                     Name = p.Name,
+                    Description = p.Description,
                     Price = p.Price,
                     ThumbnailUrl = p.ThumbnailUrl,
                     Discount = p.Discount,
                 })
-                .Take(4)
+                .Take(5)
                 .ToListAsync();
-
+            var feedbacks = await _context.Feedbacks
+                .Where(f => f.ProductId == id)
+                .Include(f => f.User)
+                .ThenInclude(f => f.Userinfo)
+                .OrderByDescending(f => f.CreateAt)
+                .Take(3)
+                .ToListAsync();
             var viewModel = new ProductDetailViewModel
             {
                 Product = product,
                 RelatedProducts = relatedProducts,
+                Feedbacks = feedbacks
             };
 
             return View("Detail", viewModel);
@@ -114,26 +123,42 @@ namespace OnlineClothing.Controllers
           Parameters: query - The search keyword entered by the user.
           Returns: A view displaying the list of matching products along with categories and statuses.
         */
-        public async Task<IActionResult> Search(string query)
+        public async Task<IActionResult> Search(string query, int page = 1, int pageSize = 8)
         {
-            if (string.IsNullOrWhiteSpace(query))
+            try
             {
-                return RedirectToAction("Index");
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    return RedirectToAction("Index");
+                }
+                var queryable = _context.Products
+                    .AsNoTracking()
+                    .Where(p => p.Status == 1 &&
+                                (p.Name.ToLower().Contains(query.ToLower()) ||
+                                 p.Description.ToLower().Contains(query.ToLower())));
+                int totalProducts = await queryable.CountAsync();
+                List<Product> products = await queryable
+                    .OrderBy(p => p.Id)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+                var viewModel = new ProductViewModel
+                {
+                    Products = products,
+                    Categories = await GetCategories(),
+                    ProductStatuses = await GetProductStatuses(),
+                    CurrentPage = page,
+                    TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize),
+                    SearchQuery = query
+                };
+                ViewData["ActionName"] = "Search";
+                return View("Product", viewModel);
             }
-            var result = await _context.Products
-                .AsNoTracking()
-                .Where(p => p.Status == 1 &&
-                           (p.Name.ToLower().Contains(query.ToLower()) ||
-                            p.Description.ToLower().Contains(query.ToLower())))
-                .ToListAsync();
-
-            var viewModel = new ProductViewModel
+            catch (Exception ex)
             {
-                Products = result,
-                Categories = await GetCategories(),
-                ProductStatuses = await GetProductStatuses()
-            };
-            return View("Product", viewModel);
+                Console.WriteLine($"Exception when searching products: {ex.Message}");
+                return View("Error");
+            }
         }
 
         [HttpGet]
@@ -156,29 +181,70 @@ namespace OnlineClothing.Controllers
             maxPrice   - The maximum price of products (optional).
             categoryId - The ID of the category to filter by (optional).
             status     - The status of the product to filter by (optional).
-            inStock    - A boolean indicating whether to filter in-stock products (optional).
+            sortOrder  - The sort type(optional).
           Returns: A view displaying the filtered products along with categories and statuses.
         */
-        public async Task<IActionResult> FilterProducts(int? minPrice, int? maxPrice, int? categoryId, int? status, bool? inStock)
+        public async Task<IActionResult> FilterProducts(int? minPrice, int? maxPrice, int? categoryId, string sortOrder, int? status, int page = 1, int pageSize = 8)
         {
-            List<Product> products = await _context.Products.Include(p => p.Category).ToListAsync();
-            var filteredProducts = products.AsQueryable();
+            ViewBag.MinPrice = minPrice;
+            ViewBag.MaxPrice = maxPrice;
+            ViewBag.CategoryId = categoryId;
+            ViewBag.Status = status;
+            var validStatuses = new HashSet<int> { 1, 2 };
+            if (status.HasValue && !validStatuses.Contains(status.Value))
+            {
+                return RedirectToAction("HandleError", "Error", new { statusCode = 400, errorMessage = "Trạng thái sản phẩm không hợp lệ!" });
+            }
+            IQueryable<Product> filteredProducts = _context.Products.Include(p => p.Category);
             if (minPrice.HasValue)
-                filteredProducts = filteredProducts.Where(p => p.Price >= minPrice.Value);
+                filteredProducts = filteredProducts.Where(p => (p.Price * (1 - p.Discount / 100.0)) >= minPrice.Value);
             if (maxPrice.HasValue)
-                filteredProducts = filteredProducts.Where(p => p.Price <= maxPrice.Value);
+                filteredProducts = filteredProducts.Where(p => (p.Price * (1 - p.Discount / 100.0)) <= maxPrice.Value);
             if (categoryId.HasValue)
                 filteredProducts = filteredProducts.Where(p => p.Category.Id == categoryId.Value);
             if (status.HasValue)
-                filteredProducts = filteredProducts.Where(p => p.Status == status.Value);
-            if (inStock.HasValue)
-                filteredProducts = filteredProducts.Where(p => inStock.Value ? p.Quantity > 0 : p.Quantity == 0);
+            {
+                if (status == 1)
+                {
+                    filteredProducts = filteredProducts.Where(p => p.Quantity > 0);
+                }
+                else if (status == 2)
+                {
+                    filteredProducts = filteredProducts.Where(p => p.Quantity == 0);
+                }
+            }
+            switch (sortOrder)
+            {
+                case "price_asc":
+                    filteredProducts = filteredProducts.OrderBy(p => (p.Price * (1 - p.Discount / 100.0)));
+                    break;
+                case "price_desc":
+                    filteredProducts = filteredProducts.OrderByDescending(p => (p.Price * (1 - p.Discount / 100.0)));
+                    break;
+                default:
+                    filteredProducts = filteredProducts.OrderBy(p => p.Id);
+                    break;
+            }
+            int totalProducts = await filteredProducts.CountAsync();
+            List<Product> PagingProducts = await filteredProducts
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
             var viewModel = new ProductViewModel
             {
-                Products = filteredProducts.ToList(),
+                Products = PagingProducts,
                 Categories = await GetCategories(),
-                ProductStatuses = await GetProductStatuses()
+                ProductStatuses = await GetProductStatuses(),
+                CurrentPage = page,
+                TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize),
+                SearchQuery = null
             };
+            ViewData["ActionName"] = "FilterProducts";
+            ViewData["MinPrice"] = minPrice;
+            ViewData["MaxPrice"] = maxPrice;
+            ViewData["CategoryId"] = categoryId;
+            ViewData["Status"] = status;
+            ViewData["SortOrder"] = sortOrder;
             return View("Product", viewModel);
         }
     }

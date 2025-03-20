@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OnlineClothing.Models;
 
 public partial class Order
 {
-    public long Id { get; set; }
+    public Guid Id { get; set; }
 
     public Guid? CustomerId { get; set; }
-
-    public Guid? SellerId { get; set; }
 
     public long? VoucherId { get; set; }
 
@@ -37,9 +36,10 @@ public partial class Order
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
-    public virtual User? Seller { get; set; }
-
     public virtual OrderStatus? StatusNavigation { get; set; }
 
     public virtual Voucher? Voucher { get; set; }
+
+    [NotMapped]
+    public bool CanReview { get; set; }
 }

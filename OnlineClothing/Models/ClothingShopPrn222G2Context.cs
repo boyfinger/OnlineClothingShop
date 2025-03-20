@@ -135,58 +135,58 @@ public partial class ClothingShopPrn222G2Context : DbContext
                 .HasConstraintName("FK__image__product_i__5DCAEF64");
         });
 
-        modelBuilder.Entity<Order>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__order__3213E83F7BF0A0C2");
+        //modelBuilder.Entity<Order>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("PK__order__3213E83F7BF0A0C2");
 
-            entity.ToTable("order");
+        //    entity.ToTable("order");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Address)
-                .HasMaxLength(255)
-                .HasColumnName("address");
-            entity.Property(e => e.CreateAt)
-                .HasColumnType("datetime")
-                .HasColumnName("create_at");
-            entity.Property(e => e.CustomerId).HasColumnName("customer_id");
-            entity.Property(e => e.FullName)
-                .HasMaxLength(127)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnName("full_name");
-            entity.Property(e => e.Note)
-                .HasMaxLength(511)
-                .HasColumnName("note");
-            entity.Property(e => e.OrderDate)
-                .HasColumnType("datetime")
-                .HasColumnName("order_date");
-            entity.Property(e => e.PhoneNumber)
-                .HasMaxLength(25)
-                .HasDefaultValueSql("(NULL)")
-                .HasColumnName("phone_number");
-            entity.Property(e => e.SellerId).HasColumnName("seller_id");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.TotalAmount).HasColumnName("total_amount");
-            entity.Property(e => e.UpdateAt)
-                .HasColumnType("datetime")
-                .HasColumnName("update_at");
-            entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
+        //    entity.Property(e => e.Id).HasColumnName("id");
+        //    entity.Property(e => e.Address)
+        //        .HasMaxLength(255)
+        //        .HasColumnName("address");
+        //    entity.Property(e => e.CreateAt)
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("create_at");
+        //    entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+        //    entity.Property(e => e.FullName)
+        //        .HasMaxLength(127)
+        //        .HasDefaultValueSql("(NULL)")
+        //        .HasColumnName("full_name");
+        //    entity.Property(e => e.Note)
+        //        .HasMaxLength(511)
+        //        .HasColumnName("note");
+        //    entity.Property(e => e.OrderDate)
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("order_date");
+        //    entity.Property(e => e.PhoneNumber)
+        //        .HasMaxLength(25)
+        //        .HasDefaultValueSql("(NULL)")
+        //        .HasColumnName("phone_number");
+        //    entity.Property(e => e.SellerId).HasColumnName("seller_id");
+        //    entity.Property(e => e.Status).HasColumnName("status");
+        //    entity.Property(e => e.TotalAmount).HasColumnName("total_amount");
+        //    entity.Property(e => e.UpdateAt)
+        //        .HasColumnType("datetime")
+        //        .HasColumnName("update_at");
+        //    entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
 
-            entity.HasOne(d => d.Customer).WithMany(p => p.OrderCustomers)
-                .HasForeignKey(d => d.CustomerId)
-                .HasConstraintName("FK__order__customer___5EBF139D");
+        //    entity.HasOne(d => d.Customer).WithMany(p => p.OrderCustomers)
+        //        .HasForeignKey(d => d.CustomerId)
+        //        .HasConstraintName("FK__order__customer___5EBF139D");
 
-            entity.HasOne(d => d.Seller).WithMany(p => p.OrderSellers)
-                .HasForeignKey(d => d.SellerId)
-                .HasConstraintName("FK__order__seller_id__5FB337D6");
+        //    entity.HasOne(d => d.Seller).WithMany(p => p.OrderSellers)
+        //        .HasForeignKey(d => d.SellerId)
+        //        .HasConstraintName("FK__order__seller_id__5FB337D6");
 
-            entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__order__status__60A75C0F");
+        //    entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Orders)
+        //        .HasForeignKey(d => d.Status)
+        //        .HasConstraintName("FK__order__status__60A75C0F");
 
-            entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.VoucherId)
-                .HasConstraintName("FK__order__voucher_i__619B8048");
-        });
+        //    entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
+        //        .HasForeignKey(d => d.VoucherId)
+        //        .HasConstraintName("FK__order__voucher_i__619B8048");
+        //});
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {

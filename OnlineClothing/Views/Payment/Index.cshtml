@@ -1,0 +1,53 @@
+﻿@model OnlineClothing.Models.MoMo.CollectionLinkRequest
+
+@{
+    ViewData["Title"] = "Thanh toán";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            @if (TempData["error"] != null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-x-circle"></i> @TempData["error"]
+                </div>
+            }
+            else if (TempData["message"] != null)
+            {
+                var messageType = TempData["messageType"]?.ToString() == "success" ? "alert-success" : "alert-warning";
+                <div class="alert @messageType" role="alert">
+                    <i class="bi bi-info-circle"></i> @TempData["message"]
+                </div>
+
+                @if (TempData["payUrl"] != null)
+                {
+                    <div class="text-center">
+                        <a href="@TempData["payUrl"]" class="btn btn-primary">🔗 Link thanh toán</a>
+                    </div>
+                }
+                @if (TempData["orderId"] != null)
+                {
+                    <div class="text-center">
+                        <a href="/Orders/Details/@(TempData["orderId"])" class="btn btn-secondary">📜 Xem đơn hàng</a>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> You are currently not in a transaction.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<script>
+    var url = '@TempData["payUrl"]';
+    if (url) {
+        window.open(url, "_blank");
+    }
+</script>
+
+
