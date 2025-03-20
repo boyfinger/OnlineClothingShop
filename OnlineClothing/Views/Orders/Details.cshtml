@@ -1,5 +1,13 @@
 ﻿@model OnlineClothing.Models.Order
 
+<!-- SweetAlert CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+<!-- SweetAlert JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 @{
     ViewData["Title"] = "Order Details";
 }
@@ -26,12 +34,6 @@
                     <td class="fw-semibold">@Model.OrderDate?.ToString("dd-MM-yyyy")</td>
                 </tr>
                 <tr>
-                    <th class="text-muted">Status:</th>
-                    <td>
-                        <span class="badge bg-primary px-3 py-2 fs-6">@Model.StatusNavigation?.Name</span>
-                    </td>
-                </tr>
-                <tr>
                     <th class="text-muted">Total Amount:</th>
                     <td class=" text-success">@string.Format("{0:N0} VND", Model.TotalAmount)</td>
                 </tr>
@@ -54,6 +56,7 @@
                     <th>Unit Price</th>
                     <th>Discount</th>
                     <th>Total Price</th>
+                    <th>Status</th>
                     <th></th>
                 </tr>
             </thead>
@@ -70,13 +73,56 @@
                         <td class="text-muted">@string.Format("{0:N0} VND", item.UnitPrice)</td>
                         <td class="text-danger">-@item.Discount%</td>
                         <td class="text-success">@string.Format("{0:N0} VND", item.TotalPrice)</td>
+                        <td>
+                            @if (item.Status == 1)
+                            {
+                                <span class="badge bg-warning text-dark">Đang chờ xác nhận</span>
+                            }
+                            else if (item.Status == 2)
+                            {
+                                <span class="badge bg-primary">Đã xác nhận</span>
+                            }
+                            else if (item.Status == 3)
+                            {
+                                <span class="badge bg-info">Đang giao hàng</span>
+                            }
+                            else if (item.Status == 4)
+                            {
+                                <span class="badge bg-success">Đã giao hàng</span>
+                            }
+                            else if (item.Status == 5)
+                            {
+                                <span class="badge bg-danger">Đã hủy</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Đã trả hàng</span>
+                            }
+                        </td>
                         <td style="width: 8vw">
-                            @if (Model.Status == 4)
+                            @if (item.Status < 3)
+                            {
+                                <span>Đợi hoàn thành</span>
+                            }
+                            else if (item.Status == 3)
+                            {
+                                <a asp-controller="Orders" asp-action="UpdateStatus" asp-route-id="@item.Id" asp-route-status="4" class="btn btn-success"
+                                   onclick="return confirm('Bạn xác nhận việc đã nhận được hàng?');">
+                                    Đã nhận hàng
+                                </a>
+                            }
+                            else if (item.Status == 4)
                             {
                                 @if (!item.Feedbacked)
                                 {
-                                    <a asp-controller="Feedback" asp-action="Create" asp-route-orderId="@Model.Id" asp-route-productId="@item.ProductId" class="btn btn-dark" style="font-size:14px">
-                                        Đánh giá sản phẩm
+                                    <a asp-controller="orders" asp-action="updatestatus" asp-route-id="@item.Id" asp-route-status="5" class="btn btn-danger"
+                                       onclick="return confirm('Bạn xác nhận việc trả hàng?');"
+                                       data-bs-toggle="tooltip" title="Trả hàng">
+                                        <i class="bi bi-box-arrow-left"></i>
+                                    </a>
+                                    <a asp-controller="Feedback" asp-action="Create" asp-route-orderId="@Model.Id" asp-route-productId="@item.ProductId"
+                                       class="btn btn-dark" data-bs-toggle="tooltip" title="Đánh giá sản phẩm">
+                                        <i class="bi bi-star-fill"></i>
                                     </a>
                                 }
                                 else
@@ -85,10 +131,6 @@
                                         Xem đánh giá
                                     </a>
                                 }
-                            }
-                            else
-                            {
-                                <span>Đợi hoàn thành</span>
                             }
                         </td>
                     </tr>
@@ -106,6 +148,21 @@
 
 <!-- Bootstrap Icons (for back button icon) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+@{
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "@successMessage"
+        });
+    </script>
+}
 
 <!-- Custom Styles -->
 <style>
