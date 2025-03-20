@@ -3,8 +3,6 @@
     top: 0;
     z-index: 1000;
     background-color: black;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
     padding: 20px 0;
     box-shadow: 0 4px 2px -2px #fff3b0;
 }
