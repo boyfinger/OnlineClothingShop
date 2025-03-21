@@ -100,7 +100,10 @@
                                     }
                                     else
                                     {
-                                        <button class="btn btn-dark mt-auto" onclick="addToCart(@product.Id)">Add to cart</button>
+                                        @if (!string.IsNullOrEmpty(Context.Session.GetString("UserId")))
+                                        {
+                                            <button class="btn btn-dark mt-auto" onclick="addToCart(@product.Id)">Add to cart</button>
+                                        }
                                     }
                                 </div>
                             </div>
