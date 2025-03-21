@@ -167,8 +167,13 @@
             type: 'POST',
             data: { productId: productId, quantity: quantity },
             success: function (response) {
-                message.innerHTML = "Product added to cart successfully!";
-                message.className = "success-message";
+                if (response.message === "You have to log in to add to cart") {
+                    message.innerHTML = response.message;
+                    message.className = "error-message";
+                } else {
+                    message.innerHTML = "Product added to cart successfully!";
+                    message.className = "success-message";
+                }
             },
             error: function (xhr, status, error) {
                 console.error("Error adding product to cart: ", error);
