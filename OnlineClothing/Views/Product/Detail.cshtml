@@ -9,6 +9,11 @@
         height: 300px;
         object-fit: cover;
     }
+
+    .image-product {
+        width: 400px;
+        height: 450px
+    }
 </style>
 
 <div class="container">
@@ -21,7 +26,7 @@
             <li class="breadcrumb-item">
                 <a style="text-decoration: none; color: black;" href="/product">Product</a>
             </li>
-            <li class="breadcrumb-item" style="width: 300px">
+            <li class="breadcrumb-item" style="width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                 <p class="mb-0">@Model.Product.Name</p>
             </li>
         </ol>
@@ -36,7 +41,7 @@
                             @foreach (var image in Model.Product.Images.Select((img, index) => new { img, index }))
                             {
                                 <div class="carousel-item @(image.index == 0 ? "active" : "")">
-                                    <img src="@image.img.Url" class="d-block w-100" alt="Product Image">
+                                    <img src="@image.img.Url" class="d-block w-100 image-product" alt="Product Image">
                                 </div>
                             }
                         </div>
@@ -80,7 +85,7 @@
         </div>
 
         @{
-            string AvatarUrl = Model?.Product?.Seller?.Userinfo?.AvatarUrl ?? "/images/default-avatar.jpg";
+            string AvatarUrl = Model?.Product?.Seller?.Userinfo?.AvatarUrl ?? "/images/user-avatar/default-avatar.jpg";
         }
         <div class="card shadow-lg p-3 mb-5 bg-white rounded mt-5">
             <div class="seller-info d-flex align-items-center mb-3">
