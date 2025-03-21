@@ -167,7 +167,7 @@ namespace OnlineClothing.Controllers
                         return RedirectToAction("Add");
                     }
                     // end of changes
-
+                    product.Status = 1;
                     product.ThumbnailUrl = await _fileUploadService.UploadImageAsync(imageFile);
                 }
 
