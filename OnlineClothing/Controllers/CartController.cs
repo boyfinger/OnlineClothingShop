@@ -63,7 +63,14 @@ namespace OnlineClothing.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return RedirectToAction("Login", "Account");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { message = "You have to log in to add to cart" });
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
             }
 
             // Find or create the user's cart
@@ -118,7 +125,8 @@ namespace OnlineClothing.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok();
+            // Logic to add product to cart
+            return Json(new { message = "Product added to cart successfully!" });
         }
 
         [HttpPost]
