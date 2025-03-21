@@ -13,6 +13,7 @@ namespace OnlineClothing.Controllers
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly IFileUploadService _fileUploadService;
         private readonly ILogger<SellerProductsController> _logger;
+        private readonly IOpenAIService _openAIService;
 
         private readonly int pageSize = 4;
 
@@ -20,12 +21,14 @@ namespace OnlineClothing.Controllers
             ClothingShopPrn222G2Context context,
             IWebHostEnvironment hostEnvironment,
             IFileUploadService fileUploadService,
-            ILogger<SellerProductsController> logger)
+            ILogger<SellerProductsController> logger,
+            IOpenAIService openAIService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
             _fileUploadService = fileUploadService;
             _logger = logger;
+            _openAIService = openAIService;
         }
 
         public async Task<IActionResult> Index(string searchString, int categoryId = 0, int page = 1)
@@ -146,12 +149,25 @@ namespace OnlineClothing.Controllers
                     product.Discount = 0;
                 }
 
+                // changed by tuan anh (only add image validating + condition)
+                string openAIResponse = null;
                 if (imageFile == null || imageFile.Length == 0)
                 {
                     product.ThumbnailUrl = "/images/default_product.jpg";
                 }
                 else
                 {
+                    // main changes
+                    string description = product.Description == null? "" : product.Description;
+                    openAIResponse = await _openAIService.CheckImage(imageFile, description);
+                    openAIResponse ??= "Cannot connect to OpenAI for validating image";
+                    if (!openAIResponse.Equals("Valid"))
+                    {
+                        TempData["openAIResponse"] = openAIResponse;
+                        return RedirectToAction("Add");
+                    }
+                    // end of changes
+
                     product.ThumbnailUrl = await _fileUploadService.UploadImageAsync(imageFile);
                 }
 
@@ -227,6 +243,22 @@ namespace OnlineClothing.Controllers
                     ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
                     return View("Details", product);
                 }
+
+                
+                // openAI validate description
+                string description = product.Description == null ? "" : product.Description;
+                string openAIResponse = await _openAIService.CheckDescriptionAsync(description);
+                if (openAIResponse == null)
+                {
+                    openAIResponse = "Cannot connect to OpenAI to validate description";
+                }
+                if (!openAIResponse.Equals("Valid"))
+                {
+                    TempData["openAIResponse"] = openAIResponse;
+                    return RedirectToAction("Add");
+                }
+                // end of changes
+
 
                 existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;

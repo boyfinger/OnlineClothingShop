@@ -5,6 +5,7 @@ using OpenAI.Files;
 using OpenAI;
 using System.ClientModel;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace OnlineClothing.Services
 {
@@ -18,14 +19,19 @@ namespace OnlineClothing.Services
         public OpenAIService()
         {
             Env.Load();
-            _chatClient = new(model: "gpt-4o", apiKey: Env.GetString("OPENAI_API_KEY"));
-            _openAIClient = new(Env.GetString("OPENAI_API_KEY"));
+            _chatClient = new(model: "gpt-4o", apiKey: Env.GetString("OPENAI_SECRET_KEY"));
+            _openAIClient = new(Env.GetString("OPENAI_SECRET_KEY"));
             _fileClient = _openAIClient.GetOpenAIFileClient();
             _assistantClient = _openAIClient.GetAssistantClient();
         }
 
         public async Task<string> CheckDescriptionAsync(string description)
         {
+            if (description == null)
+            {
+                return "No description";
+            }
+
             string prompt = $"""
             Check if the following product description meets these rules:
             1. No inappropriate content (bloody, pornographic, violent, etc.).
@@ -42,7 +48,7 @@ namespace OnlineClothing.Services
             return result.Content[0].Text;
         }
 
-        public async Task<string> CheckImage(string image, string description)
+        public async Task<string> CheckImage(IFormFile image, string description)
         {
             string prompt = $"""
             Check the following product image and description:
@@ -55,6 +61,16 @@ namespace OnlineClothing.Services
             - "Invalid: [reason]" if the image does not match or is inappropriate.
             """;
 
+            if (description.IsNullOrEmpty())
+            {
+                prompt = $"""
+                    Does the image contain inappropriate content (bloody, pornographic, violent, etc.)?
+
+                    Respond with:
+                    - "Valid" if the image matches and is appropriate.
+                    - "Invalid: [reason]" if the image does not match or is inappropriate.
+                    """;
+            }
             Assistant assistant = _assistantClient.CreateAssistant(
                 "gpt-4o",
                 new AssistantCreationOptions()
@@ -64,11 +80,12 @@ namespace OnlineClothing.Services
                 }
             );
 
-            // Image 
-            OpenAIFile imageFile = _fileClient.UploadFile(
-                Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Assets", image),
-                FileUploadPurpose.Vision
-            );
+            // Upload image from IFormFile Stream
+            OpenAIFile uploadedFile;
+            using (var stream = image.OpenReadStream())
+            {
+                uploadedFile = _fileClient.UploadFile(stream, image.FileName, FileUploadPurpose.Vision);
+            }
 
 
             AssistantThread thread = _assistantClient.CreateThread(new ThreadCreationOptions()
@@ -79,7 +96,7 @@ namespace OnlineClothing.Services
                         MessageRole.User,
                         [
                             prompt,
-                            MessageContent.FromImageFileId(imageFile.Id),
+                            MessageContent.FromImageFileId(uploadedFile.Id),
                             //MessageContent.FromImageUri(linkToPictureOfOrange),
                         ]),
                 }
