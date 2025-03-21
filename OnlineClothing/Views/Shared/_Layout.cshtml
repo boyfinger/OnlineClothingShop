@@ -12,7 +12,18 @@
     <link rel="stylesheet" href="~/css/animate.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
     <link rel="stylesheet" href="~/css/common.css">
+    <script src="~/lib/signalr/signalr.js"></script>
+    <script>
+        var connection = new signalR.HubConnectionBuilder()
+            .withUrl("/signalrhub")
+            .build();
 
+        connection.on("ReloadData", () => {
+            location.reload();
+        });
+
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
 </head>
 <body>
     @if(Context.Session.GetString("UserId") != null && Context.Session.GetString("AvatarUrl") == null)
