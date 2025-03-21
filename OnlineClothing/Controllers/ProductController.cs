@@ -88,6 +88,7 @@ namespace OnlineClothing.Controllers
                 return RedirectToAction("HandleError", "Error", new { statusCode = 404 });
             }
             var relatedProducts = await _context.Products
+                .Where(p => p.Status == 1)
                 .Where(p => p.CategoryId == product.CategoryId || p.SellerId == product.SellerId && p.Id != product.Id)
                 .Select(p => new Product
                 {
@@ -138,6 +139,7 @@ namespace OnlineClothing.Controllers
                                  p.Description.ToLower().Contains(query.ToLower())));
                 int totalProducts = await queryable.CountAsync();
                 List<Product> products = await queryable
+                    .Where(p => p.Status == 1)
                     .OrderBy(p => p.Id)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -167,6 +169,7 @@ namespace OnlineClothing.Controllers
             if (string.IsNullOrWhiteSpace(query))
                 return Json(new List<object>());
             var products = await _context.Products
+                .Where(p => p.Status == 1)
                 .Where(p => p.Name.ToLower().Contains(query.ToLower()))
                 .Select(p => new { p.Id, p.Name })
                 .Take(5)
@@ -227,6 +230,7 @@ namespace OnlineClothing.Controllers
             }
             int totalProducts = await filteredProducts.CountAsync();
             List<Product> PagingProducts = await filteredProducts
+                .Where(p => p.Status == 1)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
