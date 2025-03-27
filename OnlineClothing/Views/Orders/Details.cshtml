@@ -37,12 +37,24 @@
                     <th class="text-muted">Total Amount:</th>
                     <td class=" text-success">@string.Format("{0:N0} VND", Model.TotalAmount)</td>
                 </tr>
-                <tr>
-                    <th class="text-muted">Note:</th>
-                    <td class=" text-success">@Model.Note</td>
-                </tr>
+                @{
+                    @if (!string.IsNullOrWhiteSpace(Model.Note))
+                    {
+                        <tr>
+                            <th class="text-muted">Note:</th>
+                            <td class="text-success">@Model.Note</td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
+
+        @{
+            if (Model.Status == 1)
+            {
+                <a href="@Model.PaymentLink">Payment Link</a>
+            }
+        }
     </div>
 
     <h3 class="fw-bold text-center my-4 text-dark">Ordered Items</h3>

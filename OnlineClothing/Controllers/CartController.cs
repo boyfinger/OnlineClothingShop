@@ -98,6 +98,10 @@ namespace OnlineClothing.Controllers
                 return NotFound();
             }
 
+            if (quantity > product.Quantity)
+            {
+                return Json(new { message = "Product quantity exceeded available amount." });
+            }
             var cartDetail = cart.CartDetails.FirstOrDefault(cd => cd.ProductId == productId);
 
             if (cartDetail != null)
