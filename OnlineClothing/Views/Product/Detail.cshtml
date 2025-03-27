@@ -14,8 +14,56 @@
         width: 400px;
         height: 450px
     }
-</style>
 
+    .dropdown-action-custom {
+        display: none;
+        position: absolute;
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        list-style: none;
+        padding: 10px;
+        z-index: 1000;
+    }
+
+        .dropdown-action-custom li {
+            padding: 8px 10px;
+            list-style: none;
+        }
+
+            .dropdown-action-custom li a {
+                text-decoration: none;
+                color: #335c67;
+                display: flex;
+                align-items: center;
+            }
+
+                .dropdown-action-custom li a i {
+                    margin-right: 8px;
+                }
+
+        .dropdown-action-custom.show {
+            display: block;
+        }
+
+    .dropdown-action-item {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        text-decoration: none;
+        color: black;
+    }
+
+        .dropdown-action-item i {
+            margin-right: 8px;
+        }
+
+        .dropdown-action-item:hover {
+            background: #f1f1f1;
+        }
+
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <div class="container">
     <h2 class="text-center mt-5">Product Details</h2>
     <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb" class="mt-lg-5">
@@ -53,7 +101,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-8 d-flex justify-content-between">
                     <div class="card-body">
                         <h3 class="card-title">@Model.Product.Name</h3>
                         <p class="card-text"><strong>Categorys:</strong> @Model.Product.Category.Name</p>
@@ -79,6 +127,28 @@
                         {
                             <p style="color: red">Sản phẩm đã hết hàng</p>
                         }
+                    </div>
+                    <div class="dropdown">
+                        <a href="#" id="productDropdown" onclick="toggleMenu();">
+                            <i class="bi bi-three-dots-vertical fs-4 text-dark"></i>
+                        </a>
+                        <ul id="productMenu" class="dropdown-action-custom">
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="copyProductLink(@Model.Product.Id)">
+                                    <i class="fas fa-link"></i> Copy Link
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="shareProduct(@Model.Product.Id)">
+                                    <i class="fas fa-share-alt"></i> Chia sẻ
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="@Url.Action("Create", "Report", new { productId = Model.Product.Id })">
+                                    <i class="fas fa-flag"></i> Báo cáo sản phẩm
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -187,6 +257,42 @@
                 message.className = "error-message";
             }
         });
+    }
+</script>
+
+<script>
+    function toggleMenu() {
+        let menu = document.getElementById("productMenu");
+        menu.classList.toggle("show");
+    }
+
+    document.addEventListener("click", function (event) {
+        let dropdown = document.getElementById("productDropdown");
+        let menu = document.getElementById("productMenu");
+        if (!dropdown.contains(event.target) && !menu.contains(event.target)) {
+            menu.classList.remove("show");
+        }
+    });
+
+    function copyProductLink(productId) {
+        const link = window.location.origin + "/Product/Detail/" + productId;
+        navigator.clipboard.writeText(link).then(() => {
+            alert("Đã sao chép liên kết sản phẩm!");
+        }).catch(err => {
+            console.error("Không thể sao chép liên kết: ", err);
+        });
+    }
+
+    function shareProduct(productId) {
+        const link = window.location.origin + "/Product/Detail/" + productId;
+        if (navigator.share) {
+            navigator.share({
+                title: "Xem sản phẩm này!",
+                url: link
+            }).catch(err => console.error("Lỗi chia sẻ: ", err));
+        } else {
+            alert("Tính năng chia sẻ không được hỗ trợ trên trình duyệt này.");
+        }
     }
 </script>
 

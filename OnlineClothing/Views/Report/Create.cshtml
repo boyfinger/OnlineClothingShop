@@ -1,0 +1,41 @@
+﻿@model OnlineClothing.Models.Report
+
+@{
+    ViewData["Title"] = "Report Product";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Report Product</h2>
+    @if (Model.Product != null)
+    {
+        <div class="card mb-4 shadow-sm p-3">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <img src="@Model.Product.ThumbnailUrl" alt="Ảnh sản phẩm" class="img-fluid rounded" style="width: 250px; height: 250px; object-fit: cover;">
+                </div>
+                <div class="col-md-8">
+                    <h4 class="card-title">@Model.Product.Name</h4>
+                    <p class="card-text"><strong>Categorys:</strong> @Model.Product.Category.Name</p>
+                    <p class="card-text"><strong>Description:</strong> @Model.Product.Description</p>
+                    <p class="card-text"><strong>Price:</strong> @String.Format("{0:N0} VND", Model.Product.Price)</p>
+                    <p class="card-text"><strong>Discount:</strong> -@Model.Product.Discount%</p>
+                </div>
+            </div>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    <form asp-action="Create" method="post">
+        <input type="hidden" asp-for="ProductId" />
+
+        <div class="mb-3">
+            <label class="form-label">Reason</label>
+            <textarea asp-for="Reason" class="form-control" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-danger">Submit Report</button>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
