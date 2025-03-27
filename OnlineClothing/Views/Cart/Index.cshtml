@@ -79,7 +79,7 @@
             <div class="mt-4">
                 <h4>Apply Voucher</h4>
                 <select name="VoucherId" id="VoucherId" class="form-select">
-                    <option value=@(0)>No Voucher</option>
+                    <option value=@(-1)>No Voucher</option>
                     @if (TempData["vouchers"] != null)
                     {
                         var vouchers = TempData["vouchers"] as List<OnlineClothing.Models.Voucher>;

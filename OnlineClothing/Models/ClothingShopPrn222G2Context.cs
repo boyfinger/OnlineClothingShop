@@ -235,7 +235,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("update_at");
             entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
-
+            entity.Property(e => e.PaymentLink).HasColumnName("payment_link");
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomerId)
                 .HasConstraintName("FK__order__customer___02FC7413");

@@ -245,8 +245,9 @@
                 if (response.message === "You have to log in to add to cart") {
                     message.innerHTML = response.message;
                     message.className = "error-message";
-                } else {
-                    message.innerHTML = "Product added to cart successfully!";
+                } 
+                else {
+                    message.innerHTML = response.message;
                     message.className = "success-message";
                 }
             },

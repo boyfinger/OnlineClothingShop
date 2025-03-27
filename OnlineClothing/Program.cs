@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
 using OnlineClothing.Services;
+using OnlineClothing.SignalR;
 using OnlineClothing.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,8 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 104857600;
 });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 app.UseStatusCodePagesWithRedirects("/Error/{0}");
@@ -61,5 +64,6 @@ app.MapControllerRoute(
     pattern: "admin/{controller=AdminDashboard}/{action=Dashboard}/{id?}"
 );
 
+app.MapHub<SignalRHub>("/hub");
 
 app.Run();
