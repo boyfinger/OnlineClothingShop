@@ -26,7 +26,7 @@
     </script>
 </head>
 <body>
-    @if(Context.Session.GetString("UserId") != null && Context.Session.GetString("AvatarUrl") == null)
+    @if (Context.Session.GetString("UserId") != null && Context.Session.GetString("AvatarUrl") == null)
     {
         <script>
             window.location.href = "/Account/Logout";
@@ -54,34 +54,40 @@
                             Online Clothing Shop
                         </a>
                         <!-- ***** Logo End ***** -->
-                        <!-- ***** Menu Start ***** -->
-                        <ul class="nav">
-                            <li><a href="/Home" id="home-link" class="active">Home</a></li>
-                            <li><a href="/product" id="shop-link">Our Shop</a></li>
-                            @if (Context.Session.GetString("UserId") != null)
+                        @{
+                            string? role = Context.Session.GetString("UserRole");
+                            if (string.IsNullOrEmpty(role) || role.Equals("CUSTOMER"))
                             {
-                                <li><a href="/Cart" id="cart-link" class="active">Your Cart</a></li>
+                                <!-- ***** Menu Start ***** -->
+                                <ul class="nav">
+                                    <li><a href="/Home" id="home-link" class="active">Home</a></li>
+                                    <li><a href="/product" id="shop-link">Our Shop</a></li>
+                                    @if (Context.Session.GetString("UserId") != null)
+                                    {
+                                        <li><a href="/Cart" id="cart-link" class="active">Your Cart</a></li>
+                                    }
+                                    @if (Context.Session.GetString("UserId") != null)
+                                    {
+                                        <li class="nav-item dropdown">
+                                            <a href="#" class="nav-link" id="profileDropdown" onclick="menuToggle();">
+                                                <img src="@Context.Session.GetString("AvatarUrl")" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
+                                            </a>
+                                            <ul id="profileMenu" class="dropdown-menu-custom">
+                                                <li><a class="dropdown-item" href="/Account/UserProfile"><i class="fas fa-cog"></i>User Settings</a></li>
+                                                <li><a class="dropdown-item" href="/Orders"><i class="fas fa-shopping-cart"></i>My Orders</a></li>
+                                                <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i>Change Password</a></li>
+                                                <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                                            </ul>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li><a href="/Account/Login" id="sign-in-link">Sign In</a></li>
+                                    }
+                                </ul>
+                                <!-- ***** Menu End ***** -->
                             }
-                            @if (Context.Session.GetString("UserId") != null)
-                            {
-                                <li class="nav-item dropdown">
-                                    <a href="#" class="nav-link" id="profileDropdown" onclick="menuToggle();">
-                                        <img src="@Context.Session.GetString("AvatarUrl")" class="profile-image" alt="Profile" style="width:40px; height:40px; border-radius:50%;">
-                                    </a>
-                                    <ul id="profileMenu" class="dropdown-menu-custom">
-                                        <li><a class="dropdown-item" href="/Account/UserProfile"><i class="fas fa-cog"></i>User Settings</a></li>
-                                        <li><a class="dropdown-item" href="/Orders"><i class="fas fa-shopping-cart"></i>My Orders</a></li>
-                                        <li><a class="dropdown-item" href="/Account/ChangePassword"><i class="fas fa-key"></i>Change Password</a></li>
-                                        <li><a class="dropdown-item" href="/Account/Logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                                    </ul>
-                                </li>
-                            }
-                            else
-                            {
-                                <li><a href="/Account/Login" id="sign-in-link">Sign In</a></li>
-                            }
-                        </ul>
-                        <!-- ***** Menu End ***** -->
+                        }
                     </nav>
                 </div>
             </div>

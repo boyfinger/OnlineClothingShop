@@ -52,7 +52,11 @@
         @{
             if (Model.Status == 1)
             {
-                <a href="@Model.PaymentLink">Payment Link</a>
+                <div class="text-center mt-4">
+                    <a href="@Model.PaymentLink" class="btn btn-primary btn-lg shadow rounded-pill px-4">
+                        <i class="bi bi-credit-card"></i> Proceed to Payment
+                    </a>
+                </div>
             }
         }
     </div>
