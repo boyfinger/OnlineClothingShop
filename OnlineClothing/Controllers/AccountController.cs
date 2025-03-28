@@ -28,7 +28,7 @@ namespace OnlineClothing.Controllers
                 var userRole = HttpContext.Session.GetString("UserRole");
                 if (userRole == "SELLER")
                 {
-                    return RedirectToAction("Index", "SellerProducts");
+                    return RedirectToAction("Dashboard", "SellerProducts");
                 }
                 else if (userRole == "CUSTOMER")
                 {
@@ -141,7 +141,7 @@ namespace OnlineClothing.Controllers
             }
             else
             {
-                return RedirectToAction("Index", "SellerProducts");
+                return RedirectToAction("Dashboard", "SellerProducts");
             }
         }
 

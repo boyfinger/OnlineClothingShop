@@ -10,17 +10,20 @@ namespace OnlineClothing.Controllers
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IFileUploadService _fileUploadService;
         private readonly ILogger<ImagesController> _logger;
+        private readonly CloudinaryService _cloudinaryService;
 
         private readonly int pageSize = 4;
 
         public ImagesController(
             ClothingShopPrn222G2Context context,
             IFileUploadService fileUploadService,
-            ILogger<ImagesController> logger)
+            ILogger<ImagesController> logger,
+            CloudinaryService cloudinaryService)
         {
             _context = context;
             _fileUploadService = fileUploadService;
             _logger = logger;
+            _cloudinaryService = cloudinaryService;
         }
 
         [Route("/sellerproducts/{productId}/images")]
@@ -106,7 +109,7 @@ namespace OnlineClothing.Controllers
                     return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
-                var imageUrl = await _fileUploadService.UploadImageAsync(imageFile);
+                var imageUrl = await _cloudinaryService.UploadImageAsync(imageFile, 380, 570);
                 var image = new Image
                 {
                     ProductId = productId,
