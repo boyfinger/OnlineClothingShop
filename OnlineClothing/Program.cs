@@ -17,12 +17,8 @@ builder.Logging.AddConsole();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
 
-// Bind Cloudinary settings from appsettings.json
-builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
-
 // Register the CloudinaryService
-builder.Services.AddScoped<CloudinaryService>();
-
+builder.Services.AddSingleton<CloudinaryService>();
 
 // Add services to the container.
 builder.Services.AddTransient<EmailUtils>();

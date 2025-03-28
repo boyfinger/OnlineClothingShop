@@ -1,6 +1,6 @@
 ﻿using CloudinaryDotNet.Actions;
 using CloudinaryDotNet;
-using Microsoft.Extensions.Options;
+using DotNetEnv;
 
 namespace OnlineClothing.Services
 {
@@ -15,15 +15,23 @@ namespace OnlineClothing.Services
     {
         private readonly Cloudinary _cloudinary;
 
-        public CloudinaryService(IOptions<CloudinarySettings> config)
+        public CloudinaryService()
         {
-            var account = new Account(
-                config.Value.CloudName,
-                config.Value.ApiKey,
-                config.Value.ApiSecret
-            );
+            Env.Load();
+            // Load environment variables for Cloudinary configuration
+            var cloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME");
+            var apiKey = Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY");
+            var apiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET");
+
+            if (string.IsNullOrEmpty(cloudName) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiSecret))
+            {
+                throw new InvalidOperationException("Cloudinary environment variables are not set properly.");
+            }
+
+            var account = new Account(cloudName, apiKey, apiSecret);
             _cloudinary = new Cloudinary(account);
         }
+
 
         public async Task<string>? UploadImageAsync(IFormFile file, int width, int height)
         {
