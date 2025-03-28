@@ -7,9 +7,9 @@ namespace OnlineClothing.Controllers.AdminController
     public class AdminDashboardController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
-        public AdminDashboardController()
+        public AdminDashboardController(ClothingShopPrn222G2Context context)
         {
-            _context = new ClothingShopPrn222G2Context();
+            _context = context;
         }
 
         [HttpGet]

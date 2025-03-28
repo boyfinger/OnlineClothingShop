@@ -22,7 +22,7 @@ namespace OnlineClothing.Controllers
           Retrieves the list of product categories from cache or database if not cached.
           Returns: List of product categories.
         */
-        private async Task<List<Category>> GetCategories()
+        public async Task<List<Category>> GetCategories()
         {
             if (!_cache.TryGetValue("categories", out List<Category>? categories))
             {
@@ -36,7 +36,7 @@ namespace OnlineClothing.Controllers
           Retrieves the list of product statuses from cache or database if not cached.
           Returns: List of product statuses.
         */
-        private async Task<List<ProductStatus>> GetProductStatuses()
+        public async Task<List<ProductStatus>> GetProductStatuses()
         {
             if (!_cache.TryGetValue("statuses", out List<ProductStatus>? statuses))
             {
