@@ -79,7 +79,7 @@
             <div class="mt-4">
                 <h4>Apply Voucher</h4>
                 <select name="VoucherId" id="VoucherId" class="form-select">
-                    <option value=0>No Voucher</option>
+                    <option value=@(-1)>No Voucher</option>
                     @if (TempData["vouchers"] != null)
                     {
                         var vouchers = TempData["vouchers"] as List<OnlineClothing.Models.Voucher>;
@@ -102,7 +102,15 @@
 
             <!-- Checkout Button and Save Shipping Info -->
             <div class="d-flex justify-content-between align-items-center mt-4">
-                <h4>Total Amount: <span id="total-amount" class="text-primary" data-original-total="@Model.TotalAmount">@string.Format("{0:N0} VND", Model.TotalAmount)</span></h4>
+                <h4>
+                    Total Amount:
+                    <span id="total-amount" class="text-primary" data-original-total="@Model.TotalAmount">
+                        @string.Format("{0:N0} VND", Model.TotalAmount)
+                    </span>
+                    <small id="discount-amount" class="text-danger ms-2" style="font-size: 0.9rem;">
+                        <!-- Discounted amount will be updated dynamically -->
+                    </small>
+                </h4>
 
                 <div class="d-flex align-items-center">
                     <div class="form-check me-3">
@@ -130,7 +138,8 @@
     document.addEventListener("DOMContentLoaded", function () {
         const voucherSelect = document.getElementById("VoucherId");
         const totalAmountElement = document.getElementById("total-amount");
-        const originalTotal = parseInt(totalAmountElement.dataset.originalTotal, 10); // Ensure integer
+        const discountAmountElement = document.getElementById("discount-amount");
+        const originalTotal = parseInt(totalAmountElement.dataset.originalTotal);
 
         voucherSelect.addEventListener("change", function () {
             let discount = 0;
@@ -139,17 +148,15 @@
             if (selectedOption.value) {
                 let text = selectedOption.textContent;
                 if (text.includes("%")) {
-                    // Percentage discount
-                    let percentage = parseInt(text.match(/\d+/)[0], 10); // Extract as integer
-                    discount = Math.floor((percentage * originalTotal) / 100); // Integer division
+                    discount = parseInt(text.match(/\d+/)[0]) / 100 * originalTotal;
                 } else if (text.includes("VND")) {
-                    // Fixed amount discount
-                    discount = parseInt(text.match(/\d+/)[0], 10) * 1000;
+                    discount = parseInt(text.match(/\d+/)[0]) * 1000;
                 }
             }
 
-            let newTotal = Math.max(0, originalTotal - discount); // Prevent negative total
+            let newTotal = originalTotal - discount;
             totalAmountElement.textContent = newTotal.toLocaleString() + " VND";
+            discountAmountElement.textContent = discount > 0 ? `-${discount.toLocaleString()} VND` : "";
         });
     });
 </script>

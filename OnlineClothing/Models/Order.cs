@@ -24,6 +24,7 @@ public partial class Order
 
     public int? Status { get; set; }
 
+    public string? PaymentLink { get; set; }
     public int? TotalAmount { get; set; }
 
     public DateTime? CreateAt { get; set; }

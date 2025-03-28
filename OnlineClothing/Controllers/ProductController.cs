@@ -22,7 +22,7 @@ namespace OnlineClothing.Controllers
           Retrieves the list of product categories from cache or database if not cached.
           Returns: List of product categories.
         */
-        private async Task<List<Category>> GetCategories()
+        public async Task<List<Category>> GetCategories()
         {
             if (!_cache.TryGetValue("categories", out List<Category>? categories))
             {
@@ -36,7 +36,7 @@ namespace OnlineClothing.Controllers
           Retrieves the list of product statuses from cache or database if not cached.
           Returns: List of product statuses.
         */
-        private async Task<List<ProductStatus>> GetProductStatuses()
+        public async Task<List<ProductStatus>> GetProductStatuses()
         {
             if (!_cache.TryGetValue("statuses", out List<ProductStatus>? statuses))
             {
@@ -88,6 +88,7 @@ namespace OnlineClothing.Controllers
                 return RedirectToAction("HandleError", "Error", new { statusCode = 404 });
             }
             var relatedProducts = await _context.Products
+                .Where(p => p.Status == 1)
                 .Where(p => p.CategoryId == product.CategoryId || p.SellerId == product.SellerId && p.Id != product.Id)
                 .Select(p => new Product
                 {
@@ -138,6 +139,7 @@ namespace OnlineClothing.Controllers
                                  p.Description.ToLower().Contains(query.ToLower())));
                 int totalProducts = await queryable.CountAsync();
                 List<Product> products = await queryable
+                    .Where(p => p.Status == 1)
                     .OrderBy(p => p.Id)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
@@ -167,6 +169,7 @@ namespace OnlineClothing.Controllers
             if (string.IsNullOrWhiteSpace(query))
                 return Json(new List<object>());
             var products = await _context.Products
+                .Where(p => p.Status == 1)
                 .Where(p => p.Name.ToLower().Contains(query.ToLower()))
                 .Select(p => new { p.Id, p.Name })
                 .Take(5)
@@ -227,6 +230,7 @@ namespace OnlineClothing.Controllers
             }
             int totalProducts = await filteredProducts.CountAsync();
             List<Product> PagingProducts = await filteredProducts
+                .Where(p => p.Status == 1)
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();

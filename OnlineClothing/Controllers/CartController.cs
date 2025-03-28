@@ -44,11 +44,11 @@ namespace OnlineClothing.Controllers
 
             var vouchers = await _context.Vouchers
                 .Include(v => v.TypeNavigation)
-                .Include(v => v.UserVouchers)
+                .Include(v => v.VoucherUsages)
                 .Where(v => v.Status == 1
                     && v.EndDate.HasValue
                     && v.EndDate > DateTime.Now
-                    && !v.UserVouchers.Any(uv => uv.UserId == Guid.Parse(userId))) 
+                    && !v.VoucherUsages.Any(uv => uv.UserId == Guid.Parse(userId))) 
                 .ToListAsync();
 
 
@@ -63,7 +63,14 @@ namespace OnlineClothing.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return RedirectToAction("Login", "Account");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { message = "You have to log in to add to cart" });
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
             }
 
             // Find or create the user's cart
@@ -91,6 +98,10 @@ namespace OnlineClothing.Controllers
                 return NotFound();
             }
 
+            if (quantity > product.Quantity)
+            {
+                return Json(new { message = "Product quantity exceeded available amount." });
+            }
             var cartDetail = cart.CartDetails.FirstOrDefault(cd => cd.ProductId == productId);
 
             if (cartDetail != null)
@@ -118,7 +129,8 @@ namespace OnlineClothing.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok();
+            // Logic to add product to cart
+            return Json(new { message = "Product added to cart successfully!" });
         }
 
         [HttpPost]

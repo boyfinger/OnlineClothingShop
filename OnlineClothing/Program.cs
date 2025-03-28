@@ -2,15 +2,17 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
 using OnlineClothing.Services;
+using OnlineClothing.SignalR;
 using OnlineClothing.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
 
 builder.Services.AddDbContext<ClothingShopPrn222G2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")));
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
@@ -37,6 +39,8 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 104857600;
 });
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 app.UseStatusCodePagesWithRedirects("/Error/{0}");
@@ -54,9 +58,15 @@ app.UseRouting();
 app.UseAuthorization();
 
 builder.Services.AddMemoryCache();
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{controller=AdminDashboard}/{action=Dashboard}/{id?}"
+);
+
+app.MapHub<SignalRHub>("/hub");
 
 app.Run();

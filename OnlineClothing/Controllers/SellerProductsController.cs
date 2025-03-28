@@ -10,9 +10,9 @@ namespace OnlineClothing.Controllers
     {
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IWebHostEnvironment _hostEnvironment;
-        private readonly IFileUploadService _fileUploadService;
         private readonly CloudinaryService _cloudinaryService;
         private readonly ILogger<SellerProductsController> _logger;
+        private readonly IOpenAIService _openAIService;
 
         private readonly int pageSize = 4;
         private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
@@ -20,15 +20,15 @@ namespace OnlineClothing.Controllers
         public SellerProductsController(
             ClothingShopPrn222G2Context context,
             IWebHostEnvironment hostEnvironment,
-            IFileUploadService fileUploadService,
             ILogger<SellerProductsController> logger,
-            CloudinaryService cloudinaryService)
+            CloudinaryService cloudinaryService,
+            IOpenAIService openAIService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
-            _fileUploadService = fileUploadService;
             _logger = logger;
             _cloudinaryService = cloudinaryService;
+            _openAIService = openAIService;
         }
 
         public async Task<IActionResult> Index(string searchString, int categoryId = 0, int page = 1)
@@ -149,12 +149,24 @@ namespace OnlineClothing.Controllers
                     product.Discount = 0;
                 }
 
-                if (imageFile == null)
+                string openAIResponse = null;
+                if (imageFile == null || imageFile.Length == 0)
                 {
                     product.ThumbnailUrl = defaultProductImage;
                 }
                 else
                 {
+                    // main changes
+                    string description = product.Description == null? "" : product.Description;
+                    openAIResponse = await _openAIService.CheckImage(imageFile, description);
+                    openAIResponse ??= "Cannot connect to OpenAI for validating image";
+                    if (!openAIResponse.Equals("Valid"))
+                    {
+                        TempData["openAIResponse"] = openAIResponse;
+                        return RedirectToAction("Add");
+                    }
+                    // end of changes
+                    product.Status = 1;
                     product.ThumbnailUrl = await _cloudinaryService.UploadImageAsync(imageFile, 380, 570);
                 }
 
@@ -230,6 +242,22 @@ namespace OnlineClothing.Controllers
                     ViewBag.Categories = new SelectList(await _context.Categories.ToListAsync(), "Id", "Name");
                     return View("Details", product);
                 }
+
+                
+                // openAI validate description
+                string description = product.Description == null ? "" : product.Description;
+                string openAIResponse = await _openAIService.CheckDescriptionAsync(description);
+                if (openAIResponse == null)
+                {
+                    openAIResponse = "Cannot connect to OpenAI to validate description";
+                }
+                if (!openAIResponse.Equals("Valid"))
+                {
+                    TempData["openAIResponse"] = openAIResponse;
+                    return RedirectToAction("Add");
+                }
+                // end of changes
+
 
                 existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;
