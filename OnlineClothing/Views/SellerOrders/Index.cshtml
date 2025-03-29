@@ -14,7 +14,7 @@
 
 <style>
     .parent > * {
-        display: block;
+    display: block;
     }
 </style>
 
@@ -36,7 +36,7 @@
                             }
                             else
                             {
-                                avtSrc = "/images/user-avatar/default-avatar.jpg";
+                                avtSrc = "https://res.cloudinary.com/dvyswwdcz/image/upload/v1743173655/uhvl2gm1jnnevuvrspdh.jpg";
                             }
                             <img src="@avtSrc" alt="@orderDetail.Order.Customer.UserName" class="rounded-circle me-3" style="width: 50px; height: 50px;" />
                             <!-- Name and Order ID -->
@@ -54,6 +54,18 @@
                             @if (orderDetail.Discount != 0)
                             {
                                 var discountedPrice = orderDetail.UnitPrice - (orderDetail.UnitPrice * orderDetail.Discount / 100);
+                                var voucher = orderDetail.Order.Voucher;
+                                switch (orderDetail.Order.VoucherId)
+                                {
+                                    case 1:
+                                        discountedPrice = (int)(discountedPrice - (discountedPrice * voucher.Value / 100));
+                                        break;
+                                    case 2:
+                                        discountedPrice = (int)(discountedPrice - voucher.Value);
+                                        break;
+                                    default:
+                                        break;
+                                }
                                 <h6><small><del class="text-danger">@String.Format("đ{0:N0}", orderDetail.UnitPrice)</del></small>@String.Format(" đ{0:N0}", discountedPrice)</h6>
                             }
                             else
