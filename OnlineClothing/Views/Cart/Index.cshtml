@@ -26,6 +26,7 @@
                         <th>Product Name</th>
                         <th>Quantity</th>
                         <th>Price</th>
+                        <th>Discount</th>
                         <th>Total</th>
                         <th>Actions</th>
                     </tr>
@@ -42,7 +43,8 @@
                                 <input type="number" class="form-control text-center quantity-input" value="@item.Quantity" min="1" max="@item.Product.Quantity" data-product-id="@item.ProductId" style="width: 80px;">
                             </td>
                             <td>@string.Format("{0:N0} VND", item.Product.Price)</td>
-                            <td class="total-price">@string.Format("{0:N0} VND", item.Quantity * item.Product.Price)</td>
+                            <td>@item.Product.Discount %</td>
+                            <td class="total-price">@string.Format("{0:N0} VND", item.Quantity * (item.Product.Price - item.Product.Price * item.Product.Discount / 100 ))</td>
                             <td>
                                 <button class="btn btn-danger btn-sm remove-btn" data-product-id="@item.ProductId">
                                     <i class="fas fa-trash-alt"></i> Remove

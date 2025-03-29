@@ -107,7 +107,7 @@ namespace OnlineClothing.Controllers
             if (cartDetail != null)
             {
                 cartDetail.Quantity += quantity;
-                cartDetail.TotalPrice = (cartDetail.Quantity * product.Price)?? 0;
+                cartDetail.TotalPrice = (cartDetail.Quantity * (product.Price - product.Price*product.Discount/100))?? 0;
                 cartDetail.UpdateAt = DateTime.UtcNow;
             }
             else
@@ -117,7 +117,7 @@ namespace OnlineClothing.Controllers
                     CartId = cart.Id,
                     ProductId = productId,
                     Quantity = quantity,
-                    TotalPrice = (quantity * product.Price) ?? 0,
+                    TotalPrice = (quantity * (product.Price - product.Price * product.Discount / 100)) ?? 0,
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow
                 };
@@ -198,9 +198,10 @@ namespace OnlineClothing.Controllers
 
             // Update quantity and total price of the item
             item.Quantity = quantity;
-            item.TotalPrice = (item.Quantity * item.Product.Price) ?? 0;
+            //item.TotalPrice = (item.Quantity * item.Product.Price) ?? 0;
+            item.TotalPrice = quantity * (item.Product.Price - item.Product.Price * item.Product.Discount / 100) ?? 0;
             item.UpdateAt = DateTime.UtcNow;
-
+            await _context.SaveChangesAsync();
             // Update total cart amount
             cart.TotalAmount = cart.CartDetails.Sum(cd => cd.TotalPrice);
             cart.UpdateAt = DateTime.UtcNow;
