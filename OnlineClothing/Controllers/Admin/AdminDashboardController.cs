@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace OnlineClothing.Controllers.AdminController
 {
-    [Route("Admin/AdminDashboard")]
+
     public class AdminDashboardController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
@@ -20,7 +20,7 @@ namespace OnlineClothing.Controllers.AdminController
             _context = context;
         }
 
-        [HttpGet("Dashboard")]
+        [HttpGet]
         public async Task<IActionResult> DashboardAsync()
         {
             var userRole = HttpContext.Session.GetString("UserRole");
@@ -45,13 +45,10 @@ namespace OnlineClothing.Controllers.AdminController
 
         private async Task LoadChartData()
         {
-            // Lấy danh sách seller cho dropdown
             ViewBag.Sellers = await GetSellers();
 
-            // Dữ liệu cho biểu đồ so sánh doanh thu seller
             ViewBag.SellerRevenueComparison = await GetSellerRevenueComparison();
 
-            // Dữ liệu doanh thu 3 tháng gần nhất
             ViewBag.RevenueTrend = GetRevenueTrend();
         }
 
@@ -159,7 +156,7 @@ namespace OnlineClothing.Controllers.AdminController
                 .GroupBy(od => new
                 {
                     od.Product.Id,
-                    od.Product.Name
+                    od.Product.Name,
                 })
                 .Select(g => new TopProductVM
                 {

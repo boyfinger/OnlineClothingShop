@@ -62,17 +62,17 @@ public partial class ClothingShopPrn222G2Context : DbContext
     public virtual DbSet<VoucherUsage> VoucherUsages { get; set; }
     public virtual DbSet<ProductRejectionLog> ProductRejectionLogs { get; set; }
     public virtual DbSet<Wishlist> Wishlists { get; set; }
-    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //{
-    //    var configuration = new ConfigurationBuilder()
-    //        .SetBasePath(Directory.GetCurrentDirectory())
-    //        .AddJsonFile("appsettings.json")
-    //        .Build();
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")
+            .Build();
 
-    //    var connectionString = configuration.GetConnectionString("DbConnection");
-   
-    //    optionsBuilder.UseSqlServer(connectionString);
-    //}
+        var connectionString = configuration.GetConnectionString("DbConnection");
+
+        optionsBuilder.UseSqlServer(connectionString);
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Cart>(entity =>
