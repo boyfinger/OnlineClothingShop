@@ -7,6 +7,6 @@ namespace OnlineClothing.Services
     {
         Task<string> CheckDescriptionAsync(string description);
 
-        Task<string> CheckImage(string image, string description);
+        Task<string> CheckImage(IFormFile image, string description);
     }
 }

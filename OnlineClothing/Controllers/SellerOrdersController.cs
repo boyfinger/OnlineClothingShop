@@ -39,6 +39,7 @@ namespace OnlineClothing.Controllers
                     .Where(od => od.Product.SellerId.Equals(sellerId))
                     .Include(od => od.Product)
                     .Include(od => od.Order)
+                        .ThenInclude(o => o.Voucher)
                     .Include(od => od.Order.Customer)
                     .Include(od => od.StatusNavigation)
                     .AsQueryable();

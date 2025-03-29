@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,17 +62,17 @@ public partial class ClothingShopPrn222G2Context : DbContext
     public virtual DbSet<VoucherUsage> VoucherUsages { get; set; }
     public virtual DbSet<ProductRejectionLog> ProductRejectionLogs { get; set; }
     public virtual DbSet<Wishlist> Wishlists { get; set; }
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .Build();
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    var configuration = new ConfigurationBuilder()
+    //        .SetBasePath(Directory.GetCurrentDirectory())
+    //        .AddJsonFile("appsettings.json")
+    //        .Build();
 
-        var connectionString = configuration.GetConnectionString("DbConnection");
-
-        optionsBuilder.UseSqlServer(connectionString);
-    }
+    //    var connectionString = configuration.GetConnectionString("DbConnection");
+   
+    //    optionsBuilder.UseSqlServer(connectionString);
+    //}
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Cart>(entity =>
@@ -201,11 +201,13 @@ public partial class ClothingShopPrn222G2Context : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__order__3213E83F7BF0A0C2");
+            entity.HasKey(e => e.Id).HasName("PK__order__3213E83FA1EBBCF0");
 
             entity.ToTable("order");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
             entity.Property(e => e.Address)
                 .HasMaxLength(255)
                 .HasColumnName("address");
@@ -233,18 +235,18 @@ public partial class ClothingShopPrn222G2Context : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("update_at");
             entity.Property(e => e.VoucherId).HasColumnName("voucher_id");
-
+            entity.Property(e => e.PaymentLink).HasColumnName("payment_link");
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.CustomerId)
-                .HasConstraintName("FK__order__customer___3E1D39E1");
+                .HasConstraintName("FK__order__customer___02FC7413");
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__order__status__3F115E1A");
+                .HasConstraintName("FK__order__status__03F0984C");
 
             entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.VoucherId)
-                .HasConstraintName("FK__order__voucher_i__40058253");
+                .HasConstraintName("FK__order__voucher_i__04E4BC85");
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>

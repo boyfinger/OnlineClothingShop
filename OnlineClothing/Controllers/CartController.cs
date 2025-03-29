@@ -44,11 +44,11 @@ namespace OnlineClothing.Controllers
 
             var vouchers = await _context.Vouchers
                 .Include(v => v.TypeNavigation)
-                .Include(v => v.UserVouchers)
+                .Include(v => v.VoucherUsages)
                 .Where(v => v.Status == 1
                     && v.EndDate.HasValue
                     && v.EndDate > DateTime.Now
-                    && !v.UserVouchers.Any(uv => uv.UserId == Guid.Parse(userId))) 
+                    && !v.VoucherUsages.Any(uv => uv.UserId == Guid.Parse(userId))) 
                 .ToListAsync();
 
 
@@ -63,7 +63,14 @@ namespace OnlineClothing.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
-                return RedirectToAction("Login", "Account");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { message = "You have to log in to add to cart" });
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
             }
 
             // Find or create the user's cart
@@ -91,12 +98,16 @@ namespace OnlineClothing.Controllers
                 return NotFound();
             }
 
+            if (quantity > product.Quantity)
+            {
+                return Json(new { message = "Product quantity exceeded available amount." });
+            }
             var cartDetail = cart.CartDetails.FirstOrDefault(cd => cd.ProductId == productId);
 
             if (cartDetail != null)
             {
                 cartDetail.Quantity += quantity;
-                cartDetail.TotalPrice = (cartDetail.Quantity * product.Price)?? 0;
+                cartDetail.TotalPrice = (cartDetail.Quantity * (product.Price - product.Price*product.Discount/100))?? 0;
                 cartDetail.UpdateAt = DateTime.UtcNow;
             }
             else
@@ -106,7 +117,7 @@ namespace OnlineClothing.Controllers
                     CartId = cart.Id,
                     ProductId = productId,
                     Quantity = quantity,
-                    TotalPrice = (quantity * product.Price) ?? 0,
+                    TotalPrice = (quantity * (product.Price - product.Price * product.Discount / 100)) ?? 0,
                     CreateAt = DateTime.UtcNow,
                     UpdateAt = DateTime.UtcNow
                 };
@@ -118,7 +129,8 @@ namespace OnlineClothing.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok();
+            // Logic to add product to cart
+            return Json(new { message = "Product added to cart successfully!" });
         }
 
         [HttpPost]
@@ -143,12 +155,21 @@ namespace OnlineClothing.Controllers
                     cart.TotalAmount -= item.TotalPrice;
                     await _context.SaveChangesAsync();
 
-                    return Json(new { success = true, totalAmount = string.Format("{0:N0} VND", cart.TotalAmount) });
+                    // Check if the cart is empty
+                    bool isCartEmpty = !cart.CartDetails.Any();
+
+                    return Json(new
+                    {
+                        success = true,
+                        totalAmount = string.Format("{0:N0} VND", cart.TotalAmount),
+                        isCartEmpty = isCartEmpty
+                    });
                 }
             }
 
             return Json(new { success = false });
         }
+
 
         [HttpPost]
         public async Task<IActionResult> UpdateQuantity(long productId, int quantity)
@@ -177,9 +198,10 @@ namespace OnlineClothing.Controllers
 
             // Update quantity and total price of the item
             item.Quantity = quantity;
-            item.TotalPrice = (item.Quantity * item.Product.Price) ?? 0;
+            //item.TotalPrice = (item.Quantity * item.Product.Price) ?? 0;
+            item.TotalPrice = quantity * (item.Product.Price - item.Product.Price * item.Product.Discount / 100) ?? 0;
             item.UpdateAt = DateTime.UtcNow;
-
+            await _context.SaveChangesAsync();
             // Update total cart amount
             cart.TotalAmount = cart.CartDetails.Sum(cd => cd.TotalPrice);
             cart.UpdateAt = DateTime.UtcNow;

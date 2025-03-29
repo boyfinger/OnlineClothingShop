@@ -5,6 +5,7 @@ using OpenAI.Files;
 using OpenAI;
 using System.ClientModel;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace OnlineClothing.Services
 {
@@ -18,42 +19,63 @@ namespace OnlineClothing.Services
         public OpenAIService()
         {
             Env.Load();
-            _chatClient = new(model: "gpt-4o", apiKey: Env.GetString("OPENAI_API_KEY"));
-            _openAIClient = new(Env.GetString("OPENAI_API_KEY"));
+            _chatClient = new(model: "gpt-4o", apiKey: Env.GetString("OPENAI_SECRET_KEY"));
+            _openAIClient = new(Env.GetString("OPENAI_SECRET_KEY"));
             _fileClient = _openAIClient.GetOpenAIFileClient();
             _assistantClient = _openAIClient.GetAssistantClient();
         }
 
         public async Task<string> CheckDescriptionAsync(string description)
         {
+            if (description == null)
+            {
+                return "No description";
+            }
+
             string prompt = $"""
-            Check if the following product description meets these rules:
-            1. No inappropriate content (bloody, pornographic, violent, etc.).
-            2. No misleading or inaccurate information.
+    Check if the following product description meets these rules:
+    1. No inappropriate content (bloody, pornographic, violent, offensive, etc.).
+    2. No misleading, exaggerated, or overly promotional content. Avoid descriptions that make unproven claims (e.g., “turns you into a celebrity” or “the best in the world”) or unrealistic promises.
+    3. Description should focus on real product features (such as fabric, color, design) and maintain a professional, neutral tone.
+    4. No unrelated or irrelevant information. Keep the description concise and factual.
 
-            Description: "{description}"
+    Description: "{description}"
 
-            Respond with either:
-            - "Valid" if it follows the rules.
-            - "Invalid: [reason]" if it breaks the rules.
-            """;
+    Respond with either:
+    - "Valid" if it follows the rules.
+    - "Invalid: [reason]" if it breaks the rules, specifying which rule(s) it violates.
+    """;
 
             ChatCompletion result = await _chatClient.CompleteChatAsync(prompt);
             return result.Content[0].Text;
         }
 
-        public async Task<string> CheckImage(string image, string description)
+
+        public async Task<string> CheckImage(IFormFile image, string description)
         {
             string prompt = $"""
-            Check the following product image and description:
+Check the following product image and description:
 
-            1. Does the image match this product description: "{description}"?
-            2. Does the image contain inappropriate content (bloody, pornographic, violent, etc.)?
+1. Does the image visually match this product description: "{description}"?
+   - The product's key features (such as color, fabric, design) should match the description.
+   - The image should not contain any unrelated or misleading elements.
+2. Does the image contain inappropriate content (e.g., bloody, pornographic, violent, offensive)?
 
-            Respond with:
-            - "Valid" if the image matches and is appropriate.
-            - "Invalid: [reason]" if the image does not match or is inappropriate.
-            """;
+Respond with:
+- "Valid" if the image visually matches the description and is appropriate.
+- "Invalid: [reason]" if the image does not match or contains inappropriate content.
+""";
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                prompt = $"""
+    Does the image contain inappropriate content (e.g., bloody, pornographic, violent, offensive)?
+
+    Respond with:
+    - "Valid" if the image is appropriate.
+    - "Invalid: [reason]" if the image is inappropriate.
+    """;
+            }
 
             Assistant assistant = _assistantClient.CreateAssistant(
                 "gpt-4o",
@@ -64,11 +86,12 @@ namespace OnlineClothing.Services
                 }
             );
 
-            // Image 
-            OpenAIFile imageFile = _fileClient.UploadFile(
-                Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Assets", image),
-                FileUploadPurpose.Vision
-            );
+            // Upload image from IFormFile Stream
+            OpenAIFile uploadedFile;
+            using (var stream = image.OpenReadStream())
+            {
+                uploadedFile = _fileClient.UploadFile(stream, image.FileName, FileUploadPurpose.Vision);
+            }
 
 
             AssistantThread thread = _assistantClient.CreateThread(new ThreadCreationOptions()
@@ -79,7 +102,7 @@ namespace OnlineClothing.Services
                         MessageRole.User,
                         [
                             prompt,
-                            MessageContent.FromImageFileId(imageFile.Id),
+                            MessageContent.FromImageFileId(uploadedFile.Id),
                             //MessageContent.FromImageUri(linkToPictureOfOrange),
                         ]),
                 }

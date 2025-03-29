@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OnlineClothing.Models;
 using OnlineClothing.Services;
 
@@ -11,21 +10,25 @@ namespace OnlineClothing.Controllers
     {
         private readonly ClothingShopPrn222G2Context _context;
         private readonly IWebHostEnvironment _hostEnvironment;
-        private readonly IFileUploadService _fileUploadService;
+        private readonly CloudinaryService _cloudinaryService;
         private readonly ILogger<SellerProductsController> _logger;
+        private readonly IOpenAIService _openAIService;
 
         private readonly int pageSize = 4;
-
+        private readonly Guid sellerId = new Guid("dde923de-6b2a-4104-a293-6da7aaa68ef3");
+        private static readonly string defaultProductImage = "https://res.cloudinary.com/dvyswwdcz/image/upload/v1743165454/cegnaulio6vns9lrxhsw.jpg";
         public SellerProductsController(
             ClothingShopPrn222G2Context context,
             IWebHostEnvironment hostEnvironment,
-            IFileUploadService fileUploadService,
-            ILogger<SellerProductsController> logger)
+            ILogger<SellerProductsController> logger,
+            CloudinaryService cloudinaryService,
+            IOpenAIService openAIService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
-            _fileUploadService = fileUploadService;
             _logger = logger;
+            _cloudinaryService = cloudinaryService;
+            _openAIService = openAIService;
         }
 
         public async Task<IActionResult> Index(string searchString, int categoryId = 0, int page = 1)
@@ -146,13 +149,25 @@ namespace OnlineClothing.Controllers
                     product.Discount = 0;
                 }
 
+                string openAIResponse = null;
                 if (imageFile == null || imageFile.Length == 0)
                 {
-                    product.ThumbnailUrl = "/images/default_product.jpg";
+                    product.ThumbnailUrl = defaultProductImage;
                 }
                 else
                 {
-                    product.ThumbnailUrl = await _fileUploadService.UploadImageAsync(imageFile);
+                    // main changes
+                    string description = product.Description == null? "" : product.Description;
+                    openAIResponse = await _openAIService.CheckImage(imageFile, description);
+                    openAIResponse ??= "Cannot connect to OpenAI for validating image";
+                    if (!openAIResponse.Equals("Valid"))
+                    {
+                        TempData["openAIResponse"] = openAIResponse;
+                        return RedirectToAction("Add");
+                    }
+                    // end of changes
+                    product.Status = 1;
+                    product.ThumbnailUrl = await _cloudinaryService.UploadImageAsync(imageFile, 380, 570);
                 }
 
                 _context.Products.Add(product);
@@ -228,6 +243,22 @@ namespace OnlineClothing.Controllers
                     return View("Details", product);
                 }
 
+                
+                // openAI validate description
+                string description = product.Description == null ? "" : product.Description;
+                string openAIResponse = await _openAIService.CheckDescriptionAsync(description);
+                if (openAIResponse == null)
+                {
+                    openAIResponse = "Cannot connect to OpenAI to validate description";
+                }
+                if (!openAIResponse.Equals("Valid"))
+                {
+                    TempData["openAIResponse"] = openAIResponse;
+                    return RedirectToAction("Add");
+                }
+                // end of changes
+
+
                 existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;
                 existingProduct.CategoryId = product.CategoryId;
@@ -247,7 +278,7 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to update product with id = {product.Id}", ex);
+                _logger.LogError(ex, $"Failed to update product with id = {product.Id}");
                 return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
@@ -308,7 +339,7 @@ namespace OnlineClothing.Controllers
                     return RedirectToAction("handleerror", "error", new { statusCode = 403 });
                 }
 
-                var url = await _fileUploadService.UploadImageAsync(imageFile);
+                var url = await _cloudinaryService.UploadImageAsync(imageFile, 380, 570);
 
                 existingProduct.ThumbnailUrl = url;
                 existingProduct.Status = 2;
@@ -323,6 +354,75 @@ namespace OnlineClothing.Controllers
                 _logger.LogError(ex, $"Failed to set thumbnail for product with id = {id}");
                 return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
+        }
+
+        public async Task<IActionResult> Dashboard()
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetString("UserId");
+                if (userId == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var sellerId = new Guid(userId);
+                var userRole = HttpContext.Session.GetString("UserRole");
+
+                if (userRole != "SELLER")
+                {
+                    return RedirectToAction("handleerror", "error", new { statusCode = 403 });
+                }
+
+                var orderDetails = await _context.OrderDetails
+                .Include(od => od.Product)
+                .Include(od => od.Order)
+                .Where(od => od.Product.SellerId.Equals(sellerId))
+                .ToListAsync();
+
+                var productSales = new List<int>();
+                var revenues = new List<int>();
+                for (int i = 1; i <= 12; i++)
+                {
+                    var total = orderDetails
+                        .Where(od => od.Order.CreateAt.Value.Month == i);
+                    if (total == null || total.Count() == 0)
+                    {
+                        productSales.Add(0);
+                        revenues.Add(0);
+                    }
+                    else
+                    {
+                        productSales.Add(total.Count());
+                        revenues.Add(total.Sum(od =>
+                            od.Quantity.Value * od.UnitPrice.Value * (100 - od.Discount.Value) / 100
+                        ));
+                    }
+                }
+
+                var productsSold = orderDetails.Sum(od => od.Quantity.Value);
+                var mostSoldProduct = orderDetails.GroupBy(od => od.ProductId)
+                    .Select(g => new
+                    {
+                        ProductId = g.Key,
+                        Quantity = g.Sum(od => od.Quantity.Value)
+                    })
+                    .OrderByDescending(g => g.Quantity)
+                    .First();
+
+                ViewData["ProductSales"] = productSales;
+                ViewData["Revenues"] = revenues;
+                ViewData["ProductsSold"] = productsSold;
+                ViewBag.MostSoldProduct = new { Product = await _context.Products.FirstOrDefaultAsync(p => p.Id == mostSoldProduct.ProductId), mostSoldProduct.Quantity };
+                ViewData["Months"] = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get dashboard data for seller");
+                return RedirectToAction("handleerror", "error", new { statusCode = 500 });
+            }
+
         }
     }
 }

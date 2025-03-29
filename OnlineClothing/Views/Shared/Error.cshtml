@@ -10,8 +10,21 @@
             <h1 class="text-danger display-3"><i class="bi bi-exclamation-triangle-fill"></i></h1>
             <h2 class="text-danger">Lỗi @statusCode</h2>
             <p class="lead">@ViewData["ErrorMessage"]</p>
-
-            <a href="/" class="btn btn-primary mt-3"><i class="bi bi-house-door"></i> Quay lại trang chủ</a>
+            @{
+                string? role = Context.Session.GetString("UserRole");
+                if (string.IsNullOrEmpty(role) || role.Equals("CUSTOMER"))
+                {
+                    <a href="/" class="btn btn-primary mt-3"><i class="bi bi-house-door"></i> Quay lại trang chủ</a>
+                }
+                else if (role.Equals("SELLER"))
+                {
+                    <a href="http://localhost:5222/SellerProducts" class="btn btn-primary mt-3"><i class="bi bi-house-door"></i> Quay lại trang chủ</a>
+                }
+                else if (role.Equals("ADMIN"))
+                {
+                    <a href="http://localhost:5222/AdminDashboard/Dashboard" class="btn btn-primary mt-3"><i class="bi bi-house-door"></i> Quay lại trang chủ</a>
+                }
+            }
         </div>
     </div>
 </div>

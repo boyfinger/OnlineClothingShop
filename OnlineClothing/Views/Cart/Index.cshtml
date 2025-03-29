@@ -2,13 +2,18 @@
 
 <link rel="stylesheet" href="~/css/cart-index.css" asp-append-version="true" />
 
-<div class="container my-4">
+<div id="cart-container" class="container my-4">
     <h2 class="text-center mb-4">Your Shopping Cart</h2>
 
     @if (ViewBag.Message != null)
     {
         <div class="alert alert-info text-center">
             @ViewBag.Message
+        </div>
+    } else if (Model.CartDetails.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            Your cart is empty.
         </div>
     }
     else
@@ -21,6 +26,7 @@
                         <th>Product Name</th>
                         <th>Quantity</th>
                         <th>Price</th>
+                        <th>Discount</th>
                         <th>Total</th>
                         <th>Actions</th>
                     </tr>
@@ -37,7 +43,8 @@
                                 <input type="number" class="form-control text-center quantity-input" value="@item.Quantity" min="1" max="@item.Product.Quantity" data-product-id="@item.ProductId" style="width: 80px;">
                             </td>
                             <td>@string.Format("{0:N0} VND", item.Product.Price)</td>
-                            <td class="total-price">@string.Format("{0:N0} VND", item.Quantity * item.Product.Price)</td>
+                            <td>@item.Product.Discount %</td>
+                            <td class="total-price">@string.Format("{0:N0} VND", item.Quantity * (item.Product.Price - item.Product.Price * item.Product.Discount / 100 ))</td>
                             <td>
                                 <button class="btn btn-danger btn-sm remove-btn" data-product-id="@item.ProductId">
                                     <i class="fas fa-trash-alt"></i> Remove
@@ -79,7 +86,7 @@
             <div class="mt-4">
                 <h4>Apply Voucher</h4>
                 <select name="VoucherId" id="VoucherId" class="form-select">
-                    <option value=0>No Voucher</option>
+                    <option value=@(-1)>No Voucher</option>
                     @if (TempData["vouchers"] != null)
                     {
                         var vouchers = TempData["vouchers"] as List<OnlineClothing.Models.Voucher>;
@@ -102,7 +109,15 @@
 
             <!-- Checkout Button and Save Shipping Info -->
             <div class="d-flex justify-content-between align-items-center mt-4">
-                <h4>Total Amount: <span id="total-amount" class="text-primary" data-original-total="@Model.TotalAmount">@string.Format("{0:N0} VND", Model.TotalAmount)</span></h4>
+                <h4>
+                    Total Amount:
+                    <span id="total-amount" class="text-primary" data-original-total="@Model.TotalAmount">
+                        @string.Format("{0:N0} VND", Model.TotalAmount)
+                    </span>
+                    <small id="discount-amount" class="text-danger ms-2" style="font-size: 0.9rem;">
+                        <!-- Discounted amount will be updated dynamically -->
+                    </small>
+                </h4>
 
                 <div class="d-flex align-items-center">
                     <div class="form-check me-3">
@@ -130,7 +145,8 @@
     document.addEventListener("DOMContentLoaded", function () {
         const voucherSelect = document.getElementById("VoucherId");
         const totalAmountElement = document.getElementById("total-amount");
-        const originalTotal = parseInt(totalAmountElement.dataset.originalTotal, 10); // Ensure integer
+        const discountAmountElement = document.getElementById("discount-amount");
+        const originalTotal = parseInt(totalAmountElement.dataset.originalTotal);
 
         voucherSelect.addEventListener("change", function () {
             let discount = 0;
@@ -139,17 +155,15 @@
             if (selectedOption.value) {
                 let text = selectedOption.textContent;
                 if (text.includes("%")) {
-                    // Percentage discount
-                    let percentage = parseInt(text.match(/\d+/)[0], 10); // Extract as integer
-                    discount = Math.floor((percentage * originalTotal) / 100); // Integer division
+                    discount = parseInt(text.match(/\d+/)[0]) / 100 * originalTotal;
                 } else if (text.includes("VND")) {
-                    // Fixed amount discount
-                    discount = parseInt(text.match(/\d+/)[0], 10) * 1000;
+                    discount = parseInt(text.match(/\d+/)[0]) * 1000;
                 }
             }
 
-            let newTotal = Math.max(0, originalTotal - discount); // Prevent negative total
+            let newTotal = originalTotal - discount;
             totalAmountElement.textContent = newTotal.toLocaleString() + " VND";
+            discountAmountElement.textContent = discount > 0 ? `-${discount.toLocaleString()} VND` : "";
         });
     });
 </script>
@@ -183,7 +197,7 @@
         }
     });
 
-    $(document).ready(function () {
+        $(document).ready(function () {
         $(".remove-btn").click(function () {
             var productId = $(this).data("product-id");
             var row = $("#row-" + productId);
@@ -194,7 +208,21 @@
                 data: { productId: productId },
                 success: function (response) {
                     if (response.success) {
-                        row.fadeOut(300, function () { $(this).remove(); });
+                        row.fadeOut(300, function () {
+                            $(this).remove();
+
+                            // Check if the cart is empty
+                            if ($(".quantity-input").length === 0) {
+                                $(".table-responsive").remove(); // Remove table
+                                $("#checkoutForm").remove(); // Remove checkout form
+                                $("#cart-container").append(`
+                                    <div class="alert alert-info text-center">
+                                        Your cart is empty.
+                                    </div>
+                                `);
+                            }
+                        });
+
                         $("#total-amount").text(response.totalAmount);
                     } else if (response.redirectUrl) {
                         window.location.href = response.redirectUrl;
@@ -227,6 +255,7 @@
             });
         });
     });
+
 
     function saveInfo() {
         let isChecked = document.getElementById("saveShippingInfo").checked;

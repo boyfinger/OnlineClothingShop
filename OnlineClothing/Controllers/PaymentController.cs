@@ -189,6 +189,7 @@ namespace OnlineClothing.Controllers
                     Note = Note,
                     OrderDate = DateTime.Now,
                     Status = 1,
+                    PaymentLink = response.PayUrl,
                     TotalAmount = (int)_request.amount,
                     CreateAt = DateTime.Now
                 };

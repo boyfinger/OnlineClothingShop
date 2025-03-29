@@ -1,4 +1,4 @@
-﻿using OnlineClothing.Models;
+using OnlineClothing.Models;
 using System;
 using System.Collections.Generic;
 
@@ -35,8 +35,6 @@ public partial class Voucher
     public virtual VoucherStatus? StatusNavigation { get; set; }
 
     public virtual VoucherType? TypeNavigation { get; set; }
-
-    public virtual ICollection<UserVoucher> UserVouchers { get; set; } = new List<UserVoucher>();
 
     public virtual ICollection<VoucherUsage> VoucherUsages { get; set; } = new List<VoucherUsage>();
 }
