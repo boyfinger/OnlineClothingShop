@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace OnlineClothing.Controllers.AdminController
 {
-    [Route("Admin/AdminDashboard")]
+    
     public class AdminDashboardController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
@@ -20,7 +20,7 @@ namespace OnlineClothing.Controllers.AdminController
             _context = context;
         }
 
-        [HttpGet("Dashboard")]
+      
         public async Task<IActionResult> DashboardAsync()
         {
             var userRole = HttpContext.Session.GetString("UserRole");
