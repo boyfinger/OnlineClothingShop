@@ -1,0 +1,412 @@
+﻿@model List<OnlineClothing.Models.AdminReportViewModel>
+@{
+    Layout = "~/Views/AdminDashboard/AdminShared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý sản phẩm";
+}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+    .no-hover-effect:hover {
+        transform: none !important;
+    }
+
+    .btn-status {
+        transition: all 0.3s ease;
+    }
+
+        .btn-status:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+    .card {
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        max-width: 800px;
+        margin: auto;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card img {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+            height: 120px;
+            object-fit: cover;
+        }
+
+    .card-body {
+        padding: 12px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .card-text {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .badge {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .btn-primary {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background-color: #007bff;
+        border: none;
+        transition: background 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .btn-approve, .btn-reject {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-approve:hover {
+            background-color: #218838;
+        }
+
+        .btn-reject:hover {
+            background-color: #c82333;
+        }
+
+    .container {
+        max-width: 900px;
+    }
+
+    #categoryFilter {
+        max-width: 300px;
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    .pagination {
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+        .pagination .page-item .page-link {
+            color: #007bff;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .pagination .page-item .page-link:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+
+    /* Hiệu ứng màu cho Discount */
+    .discount-effect {
+        font-weight: bold;
+        color: #dc3545;
+        transition: all 0.3s ease-in-out;
+    }
+
+</style>
+<div class="container mt-4">
+    <h2 class="text-center my-3"><i class="fas fa-chart-bar"></i> Đơn khiếu nại sản phẩm</h2>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <select id="statusFilter" class="form-control">
+                <option value="">Tất cả trạng thái</option>
+                @foreach (var status in ViewBag.StatusList as IEnumerable<SelectListItem>)
+                {
+                    <option value="@status.Value" selected="@(status.Value == ViewBag.SelectedStatus?.ToString())">@status.Text</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div id="reportContainer" class="row">
+        @foreach(var rp in Model)
+        {
+            <div class="col-12">
+                <div class="card border shadow-none mb-3 p-3 no-hover-effect">
+                    <div class="d-flex flex-row align-items-center gap-3">
+                        <div class="flex-grow-1 text-dark">
+                            <strong class="fs-5 text-danger fw-bold">Đơn khiếu nại về sản phẩm</strong>
+                            <p class="mb-1 fs-6 fw-normal">
+                                <strong>Tên đăng nhập : </strong>@rp.UserName <br />
+                                <strong>Email : </strong>@rp.Email <br />
+                                <strong>Gửi ngày: </strong> @rp.CreateAt?.ToString("dd/MM/yyyy") <br>
+                            </p>
+                        </div>
+                        <span class="badge @(rp.Status == 1 ? "bg-warning" :
+                                                   rp.Status == 2 ? "bg-info" :
+                                                   rp.Status == 3 ? "bg-success" : "bg-danger")">
+                            @rp.StatusName
+                        </span>
+                        <div class="ms-3 d-flex gap-2">
+                            <button class="btn btn-primary btn-sm fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@rp.ProductId">
+                                <i class="fas fa-chevron-down"></i> Xem chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapse" id="collapse_@rp.ProductId">
+                    <div class="card-footer bg-light p-3 border rounded shadow-sm w-100">
+                        <h6 class="text-primary fw-bold mb-3">
+                            <i class="fas fa-info-circle"></i> Chi tiết sản phẩm
+                        </h6>
+                        <table class="table table-sm table-borderless mb-3">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Ảnh</strong></td>
+                                    <td><img src="@rp.ThumbnailUrl" class="rounded" width="100" height="100" alt="Ảnh sản phẩm" style="object-fit: cover;"></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tên sản phẩm:</strong></td>
+                                    <td>@rp.ProductName</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Danh mục:</strong></td>
+                                    <td>@rp.CategoryName</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Giá gốc:</strong></td>
+                                    <td>@rp.Price?.ToString("C", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Giảm giá:</strong></td>
+                                    <td class="text-danger discount-effect">@rp.Discount %</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Giá sau khi giảm:</strong></td>
+                                    <td class="text-success fw-bold">@rp.FinalPrice?.ToString("C", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Số lượng:</strong></td>
+                                    <td>@rp.Quantity</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Mô tả:</strong></td>
+                                    <td>@rp.ProductDescription</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Lí do khiếu nại:</strong></td>
+                                    <td class="text-danger fw-bold">@rp.Reason</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        @if (rp.Status == 1) 
+                        {
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-success btn-sm fw-bold btn-approve-report" data-report-id="@rp.Id">
+                                    <i class="fas fa-check-circle"></i> Chấp thuận
+                                </button>
+                                <button class="btn btn-danger btn-sm fw-bold btn-reject-report" data-report-id="@rp.Id">
+                                    <i class="fas fa-times-circle"></i> Từ chối
+                                </button>
+                            </div>
+                        }
+                    </div>
+               </div>
+           </div>
+        }
+    </div>
+    <nav id="paginationContainer">
+        <ul class="pagination">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                    <a class="page-link pagination-link" href="#" data-page="@i">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+<script>
+    $(document).ready(function () {
+        // Lọc theo status
+        $('#statusFilter').change(function() {
+            loadReports(1);
+        });
+
+        // Xử lý phân trang
+        $(document).on('click', '.pagination-link', function(e) {
+            e.preventDefault();
+            loadReports($(this).data('page'));
+        });
+
+               // ==================== XỬ LÝ CHẤP THUẬN REPORT ====================
+    $(document).on('click', '.btn-approve-report', function() {
+        const reportId = $(this).data('report-id');
+        const reportCard = $(this).closest('.col-12');
+
+        Swal.fire({
+            title: 'XÁC NHẬN CHẤP THUẬN',
+            text: "Bạn chắc chắn muốn duyệt khiếu nại này?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Admin/AdminReport/ApproveReport',
+                    type: 'POST',
+                    data: { id: reportId },
+                    beforeSend: function() {
+                        reportCard.find('.btn').prop('disabled', true);
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Cập nhật giao diện ngay lập tức
+                            reportCard.find('.badge')
+                                .removeClass('bg-warning')
+                                .addClass('bg-success')
+                                .text(response.newStatusText);
+
+                            // Ẩn nút action
+                            reportCard.find('.btn-approve-report, .btn-reject-report').remove();
+
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: response.message,
+                                icon: 'success',
+                                timer: 2000
+                            });
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Lỗi!', 'Không thể kết nối tới server', 'error');
+                        console.error(xhr.responseText);
+                    },
+                    complete: function() {
+                        reportCard.find('.btn').prop('disabled', false);
+                    }
+                });
+            }
+        });
+    });
+
+    // ==================== XỬ LÝ TỪ CHỐI REPORT ====================
+    $(document).on('click', '.btn-reject-report', function() {
+        const reportId = $(this).data('report-id');
+        const reportCard = $(this).closest('.col-12');
+
+        Swal.fire({
+            title: 'XÁC NHẬN TỪ CHỐI',
+            text: "Bạn chắc chắn muốn từ chối khiếu nại này? Sản phẩm liên quan sẽ bị vô hiệu hóa!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Từ chối',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Admin/AdminReport/RejectReport',
+                    type: 'POST',
+                    data: { id: reportId },
+                    beforeSend: function() {
+                        reportCard.find('.btn').prop('disabled', true);
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Cập nhật giao diện ngay lập tức
+                            reportCard.find('.badge')
+                                .removeClass('bg-warning')
+                                .addClass('bg-danger')
+                                .text(response.newStatusText);
+
+                            // Ẩn nút action
+                            reportCard.find('.btn-approve-report, .btn-reject-report').remove();
+
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: response.message,
+                                icon: 'success',
+                                timer: 2000
+                            });
+                        } else {
+                            Swal.fire('Lỗi!', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Lỗi!', 'Không thể kết nối tới server', 'error');
+                        console.error(xhr.responseText);
+                    },
+                    complete: function() {
+                        reportCard.find('.btn').prop('disabled', false);
+                    }
+                });
+            }
+        });
+    });
+
+        // Hàm tải report bằng AJAX
+        function loadReports(page) {
+            const statusId = $('#statusFilter').val();
+
+            $.ajax({
+                url: '/Admin/AdminReports/Manage',
+                type: 'GET',
+                data: {
+                    page: page,
+                    pageSize: 4,
+                    statusId: statusId
+                },
+                success: function(data) {
+                    $('#reportContainer').html($(data).find('#reportContainer').html());
+                    updatePagination(
+                        parseInt($(data).find('#totalPagesHidden').val()),
+                        page
+                    );
+                }
+            });
+        }
+
+        function updatePagination(totalPages, currentPage) {
+            let paginationHtml = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link pagination-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+
+            $('#paginationContainer ul').html(paginationHtml);
+        }
+
+        // Lấy trang hiện tại
+        function getCurrentPage() {
+            return $('.page-item.active .pagination-link').data('page') || 1;
+        }
+    });
+</script>

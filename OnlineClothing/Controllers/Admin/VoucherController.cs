@@ -16,7 +16,24 @@ namespace OnlineClothing.Controllers.Admin
         public async Task<IActionResult> Manage(string search, int? status, int? type, int page = 1)
         {
             int pageSize = 7;
+            var now = DateTime.Now;
+
+            var expiredVouchers = await _context.Vouchers
+                .Where(v => v.EndDate <= now && v.Status == 1)
+                .ToListAsync();
+
+            if (expiredVouchers.Any())
+            {
+                foreach (var voucher in expiredVouchers)
+                {
+                    voucher.Status = 2; 
+                }
+                await _context.SaveChangesAsync();
+            }
+
+
             var query = _context.Vouchers.AsQueryable();
+
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(v => v.Code.Contains(search));
@@ -31,20 +48,27 @@ namespace OnlineClothing.Controllers.Admin
             }
 
             var totalRecords = await query.CountAsync();
-            var vouchers = await query.OrderBy(v => v.Id)
+
+            var vouchers = await query.ToListAsync();
+
+            var statusOrder = new List<int?> { 5, 1, 3, 2, 4 };
+
+            vouchers = vouchers
+                .OrderBy(v => statusOrder.IndexOf(v.Status))
+                .ThenByDescending(v => v.CreateAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToList();
 
             var totalVouchers = await _context.Vouchers.CountAsync();
             var activeVouchers = await _context.Vouchers.CountAsync(v => v.Status == 1);
-            var expiringVouchers = await _context.Vouchers.CountAsync(v => v.EndDate <= DateTime.Now.AddDays(7) && v.EndDate > DateTime.Now);
-            var expiredVouchers = await _context.Vouchers.CountAsync(v => v.EndDate <= DateTime.Now);
+            var expiringVouchers = await _context.Vouchers.CountAsync(v => v.EndDate <= now.AddDays(7) && v.EndDate > now);
+            var expiredVouchersCount = await _context.Vouchers.CountAsync(v => v.Status == 2);
 
             ViewBag.TotalVouchers = totalVouchers;
             ViewBag.ActiveVouchers = activeVouchers;
             ViewBag.ExpiringVouchers = expiringVouchers;
-            ViewBag.ExpiredVouchers = expiredVouchers;
+            ViewBag.ExpiredVouchers = expiredVouchersCount;
             ViewBag.TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
             ViewBag.CurrentPage = page;
             ViewBag.Search = search;
@@ -53,6 +77,8 @@ namespace OnlineClothing.Controllers.Admin
 
             return View(vouchers);
         }
+
+
         public enum VoucherStatus
         {
             Active = 1,
@@ -121,20 +147,55 @@ namespace OnlineClothing.Controllers.Admin
         [HttpPost("Add")]
         public async Task<IActionResult> Add(Voucher voucher)
         {
-            if (ModelState.IsValid)
+            try
             {
-                voucher.Status = 5;
-                voucher.CreateAt = DateTime.Now;
+                // Validate ModelState
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ", errors = errors });
+                }
 
+                if (voucher.StartDate >= voucher.EndDate)
+                {
+                    return Json(new { success = false, message = "Ngày bắt đầu phải trước ngày kết thúc" });
+                }
+
+                if (await _context.Vouchers.AnyAsync(v => v.Code == voucher.Code))
+                {
+                    return Json(new { success = false, message = "Mã voucher đã tồn tại" });
+                }
+                if (voucher.Value <= 0)
+                {
+                    return Json(new { success = false, message = "Giá trị voucher phải lớn hơn 0" });
+                }
+
+                if (voucher.UsageLimit <= 0)
+                {
+                    return Json(new { success = false, message = "Số lần sử dụng phải lớn hơn 0" });
+                }
+                if (voucher.StartDate < DateTime.Now.Date)
+                {
+                    return Json(new { success = false, message = "Ngày bắt đầu không được trong quá khứ" });
+                }
+
+                voucher.Status = 5; 
+                voucher.CreateAt = DateTime.Now;
 
                 _context.Vouchers.Add(voucher);
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Voucher được thêm vào thành công!" });
+                return Json(new { success = true, message = "Thêm voucher thành công!" });
             }
-
-            return Json(new { success = false, message = "Invalid data." });
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
+            }
         }
+
         [HttpGet("Edit/{id}")]
         public async Task<IActionResult> Edit(long id)
         {
@@ -148,18 +209,57 @@ namespace OnlineClothing.Controllers.Admin
         [HttpPost("Edit/{id}")]
         public async Task<IActionResult> Edit(long id, Voucher voucher)
         {
-            if (id != voucher.Id)
+            try
             {
-                return NotFound();
-            }
+                // Validate ModelState
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = "Dữ liệu không hợp lệ", errors = errors });
+                }
+                if (id != voucher.Id)
+                {
+                    return Json(new { success = false, message = "ID voucher không khớp" });
+                }
 
-            if (ModelState.IsValid)
-            {
+                if (voucher.StartDate >= voucher.EndDate)
+                {
+                    return Json(new { success = false, message = "Ngày bắt đầu phải trước ngày kết thúc" });
+                }
+
                 var existingVoucher = await _context.Vouchers.FindAsync(id);
                 if (existingVoucher == null)
                 {
-                    return NotFound();
+                    return Json(new { success = false, message = "Không tìm thấy voucher" });
                 }
+
+                if (await _context.Vouchers.AnyAsync(v => v.Code == voucher.Code && v.Id != id))
+                {
+                    return Json(new { success = false, message = "Mã voucher đã tồn tại" });
+                }
+
+                // Validate giá trị voucher
+                if (voucher.Value <= 0)
+                {
+                    return Json(new { success = false, message = "Giá trị voucher phải lớn hơn 0" });
+                }
+
+                // Validate số lần sử dụng
+                if (voucher.UsageLimit <= 0)
+                {
+                    return Json(new { success = false, message = "Số lần sử dụng phải lớn hơn 0" });
+                }
+
+                // Validate ngày bắt đầu không được trong quá khứ (nếu thay đổi)
+                if (voucher.StartDate != existingVoucher.StartDate && voucher.StartDate < DateTime.Now.Date)
+                {
+                    return Json(new { success = false, message = "Ngày bắt đầu không được trong quá khứ" });
+                }
+
+                // Cập nhật thông tin
                 existingVoucher.Code = voucher.Code;
                 existingVoucher.Type = voucher.Type;
                 existingVoucher.Value = voucher.Value;
@@ -172,15 +272,12 @@ namespace OnlineClothing.Controllers.Admin
                 _context.Vouchers.Update(existingVoucher);
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Voucher đã chỉnh sửa thành công!" });
+                return Json(new { success = true, message = "Cập nhật voucher thành công!" });
             }
-
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-
-            return Json(new { success = false, message = "Dữ liệu không hợp lệ.", errors = errors });
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi hệ thống: {ex.Message}" });
+            }
         }
         [HttpPost("Delete/{id}")]
         public async Task<IActionResult> Delete(long id)

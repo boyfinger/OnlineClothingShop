@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="~/css/admin.css">
+    @RenderSection("Styles", required: false)
 </head>
 <body>
 
@@ -29,18 +30,19 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link text-light sidebar-link">
+                <a href="@Url.Action("Manage", "AdminProducts")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "AdminProducts" ? "active" : "")">
                     <i class="fa fa-product-hunt"></i> Quản lý sản phẩm
                 </a>
             </li>
             <li class="nav-item"><a href="@Url.Action("Manage","Voucher")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "Voucher" ? "active" : "")">
                 <i class="fas fa-ticket"></i> Quản lý voucher cửa hàng</a></li>
             <li class="nav-item">
-                <a href="#" class="nav-link text-light sidebar-link">
-                    <i class="fas fa-chart-bar"></i> Quản lý khiếu nại
+                <a href="@Url.Action("Manage","AdminReports")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "AdminReports" ? "active" : "")">
+                    <i class="fas fa-chart-bar"></i> Khiếu nại về sản phẩm 
                 </a>
             </li>
-            <li class="nav-item"><a href="#" class="nav-link text-light sidebar-link">
+            <li class="nav-item">
+                <a href="@Url.Action("Manage","AdminChangePassword")" class="nav-link text-light sidebar-link @(ViewBag.ActivePage == "AdminReports" ? "active" : "")">
                 <i class="fas fa-key"></i> Đổi mật khẩu</a></li>
             <li class="nav-item">
                 <a href="javascript:void(0);" id="logoutButton" class="nav-link text-danger sidebar-link">
@@ -86,7 +88,7 @@
     <div class="main-content">
         @RenderBody()
     </div>
-
+    @RenderSection("Scripts", required: false)
     <script>
         document.getElementById("logoutButton").addEventListener("click", function () {
             var myModal = new bootstrap.Modal(document.getElementById('logoutDialog'));

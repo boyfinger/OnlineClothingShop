@@ -1,0 +1,458 @@
+﻿@model List<OnlineClothing.Models.AdminProductViewModel>
+@{
+    Layout = "~/Views/AdminDashboard/AdminShared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý sản phẩm";
+}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+    .no-hover-effect:hover {
+        transform: none !important;
+    }
+
+    .btn-status {
+        transition: all 0.3s ease;
+    }
+
+        .btn-status:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+    .card {
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        max-width: 800px;
+        margin: auto;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card img {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+            height: 120px;
+            object-fit: cover;
+        }
+
+    .card-body {
+        padding: 12px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .card-text {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .badge {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .btn-primary {
+        font-size: 0.9rem;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background-color: #007bff;
+        border: none;
+        transition: background 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .btn-approve, .btn-reject {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-approve:hover {
+            background-color: #218838;
+        }
+
+        .btn-reject:hover {
+            background-color: #c82333;
+        }
+
+    .container {
+        max-width: 900px;
+    }
+
+    #categoryFilter {
+        max-width: 300px;
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    .pagination {
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+        .pagination .page-item .page-link {
+            color: #007bff;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .pagination .page-item .page-link:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+
+    /* Hiệu ứng màu cho Discount */
+    .discount-effect {
+        font-weight: bold;
+        color: #dc3545;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
+<div class="container mt-4">
+    <h2 class="text-center my-3"><i class="fa fa-product-hunt"></i> Quản lý sản phẩm</h2>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <select id="categoryFilter" class="form-control">
+                <option value="">Tất cả danh mục</option>
+                @foreach (var category in ViewBag.Categories as SelectList)
+                {
+                    <option value="@category.Value" selected="@(category.Value == ViewBag.SelectedCategory?.ToString())">@category.Text</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select id="statusFilter" class="form-control">
+                <option value="">Tất cả trạng thái</option>
+                @foreach (var status in ViewBag.StatusList as IEnumerable<SelectListItem>)
+                {
+                    <option value="@status.Value" selected="@(status.Value == ViewBag.SelectedStatus?.ToString())">@status.Text</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Đang tải dữ liệu...</p>
+    </div>
+    <div id="productListContainer">
+        <div class="row">
+        @if (Model.Any())
+        {
+            @foreach (var product in Model)
+            {
+                <div class="col-12 product-item" data-product-id="@product.ProductId">
+                    <div class="card border shadow-none mb-3 p-3 no-hover-effect">
+                        <div class="d-flex flex-row align-items-center gap-3">
+
+                            <img src="@product.ThumbnailUrl" class="rounded" width="100" height="100" alt="Ảnh sản phẩm" style="object-fit: cover;">
+
+                            <div class="flex-grow-1 text-dark">
+                                <strong class="fs-5 text-danger fw-bold">@product.ProductName</strong>
+                                <p class="mb-1 fs-6 fw-normal">
+                                    <strong>Cửa hàng: </strong><strong class="text-warning">@product.SellerName</strong> <br />
+                                    <strong>Ngày tạo: </strong> @product.CreatedAt?.ToString("dd/MM/yyyy") <br>
+                                </p>
+                            </div>
+                            <span class="badge badge-status @(product.Status == 1 ? "bg-success" : product.Status == 2 ? "bg-warning text-dark" : "bg-danger") fs-6">
+                                @(product.Status == 1 ? "Đã duyệt" : product.Status == 2 ? "Chưa duyệt" : "Bị từ chối")
+                            </span>
+                            <div class="ms-3 d-flex gap-2">
+                                <button class="btn btn-primary btn-sm fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#productDetails_@product.ProductId">
+                                    <i class="fas fa-chevron-down"></i> Xem chi tiết
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapse" id="productDetails_@product.ProductId">
+                        <div class="card-footer bg-light p-3 border rounded shadow-sm w-100">
+                            <h6 class="text-primary fw-bold mb-3">
+                                <i class="fas fa-info-circle"></i> Chi tiết sản phẩm
+                            </h6>
+                            <table class="table table-sm table-borderless mb-3">
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Danh mục:</strong></td>
+                                        <td>@product.CategoryName</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Giá gốc:</strong></td>
+                                        <td>@product.Price?.ToString("C", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Giảm giá:</strong></td>
+                                        <td class="text-danger discount-effect">@product.Discount %</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Giá sau khi giảm:</strong></td>
+                                        <td class="text-success fw-bold">@product.FinalPrice?.ToString("C", new System.Globalization.CultureInfo("vi-VN"))</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Số lượng:</strong></td>
+                                        <td>@product.Quantity</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Mô tả:</strong></td>
+                                        <td>@product.Description</td>
+                                    </tr>
+                                    @if (product.Status == 3)
+                                    {
+                                        <tr>
+                                            <td><strong>Lí do bị từ chối :</strong></td>
+                                            <td>@product.RejectionReason</td>
+                                        </tr>
+
+                                    }
+                                </tbody>
+                            </table>
+
+                            @if (product.Status == 2)
+                            {
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-success btn-sm fw-bold btn-approve-action" data-product-id="@product.ProductId">
+                                        <i class="fas fa-check-circle"></i> Chấp thuận
+                                    </button>
+                                    <button class="btn btn-danger btn-sm fw-bold btn-reject-action" data-product-id="@product.ProductId">
+                                        <i class="fas fa-times-circle"></i> Từ chối
+                                    </button>
+                                </div>
+                            }
+                          
+                        </div>
+                    </div>
+                </div>
+            }
+            }
+            else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Không có dữ liệu hợp lệ
+                            </div>
+                        </td>
+                    </tr>
+                }
+        </div>
+    </div>
+    <nav id="paginationContainer">
+        <ul class="pagination">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                    <a class="page-link pagination-link" href="#" data-page="@i">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</div>
+<input type="hidden" id="totalPagesHidden" value="@ViewBag.TotalPages" />
+<script>
+    $(document).ready(function () {
+        // Xử lý lọc theo danh mục và trạng thái
+        $('#categoryFilter, #statusFilter').change(function() {
+            loadProducts(1);
+        });
+
+        // Xử lý phân trang
+        $(document).on('click', '.pagination-link', function(e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            loadProducts(page);
+        });
+
+        // Xử lý duyệt sản phẩm
+        $(document).on('click', '.btn-approve-action', function() {
+            const productId = $(this).data('product-id');
+            const productCard = $(this).closest('.product-item');
+
+            Swal.fire({
+                title: "Xác nhận duyệt sản phẩm?",
+                text: "Bạn có chắc chắn muốn duyệt sản phẩm này?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#28a745",
+                cancelButtonColor: "#dc3545",
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Admin/AdminProducts/ApproveProduct',
+                        type: 'POST',
+                        data: { productId: productId },
+                        beforeSend: function() {
+                            productCard.find('.btn').prop('disabled', true);
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: "Thành công!",
+                                    text: "Sản phẩm đã được duyệt.",
+                                    icon: "success"
+                                }).then(() => {
+                                    loadProducts(getCurrentPage());
+                                });
+                            } else {
+                                Swal.fire("Lỗi!", "Có lỗi xảy ra khi duyệt sản phẩm.", "error");
+                            }
+                        },
+                        error: function() {
+                            Swal.fire("Lỗi!", "Có lỗi xảy ra khi gửi yêu cầu.", "error");
+                        },
+                        complete: function() {
+                            productCard.find('.btn').prop('disabled', false);
+                        }
+                    });
+                }
+            });
+        });
+
+        // Xử lý từ chối sản phẩm
+        $(document).on('click', '.btn-reject-action', function() {
+            const productId = $(this).data('product-id');
+            const productCard = $(this).closest('.product-item');
+
+            Swal.fire({
+                title: "Lý do từ chối",
+                input: "textarea",
+                inputLabel: "Nhập lý do từ chối sản phẩm",
+                inputPlaceholder: "Lý do...",
+                showCancelButton: true,
+                confirmButtonText: "Xác nhận từ chối",
+                cancelButtonText: "Hủy",
+                inputValidator: (value) => {
+                    if (!value) {
+                        return "Vui lòng nhập lý do từ chối!";
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Admin/AdminProducts/RejectProduct',
+                        type: 'POST',
+                        data: {
+                            productId: productId,
+                            reason: result.value
+                        },
+                        beforeSend: function() {
+                            productCard.find('.btn').prop('disabled', true);
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: "Thành công!",
+                                    text: "Sản phẩm đã bị từ chối.",
+                                    icon: "success"
+                                }).then(() => {
+                                    loadProducts(getCurrentPage());
+                                });
+                            } else {
+                                Swal.fire("Lỗi!", "Có lỗi xảy ra khi từ chối sản phẩm.", "error");
+                            }
+                        },
+                        error: function() {
+                            Swal.fire("Lỗi!", "Có lỗi xảy ra khi gửi yêu cầu.", "error");
+                        },
+                        complete: function() {
+                            productCard.find('.btn').prop('disabled', false);
+                        }
+                    });
+                }
+            });
+        });
+
+        // Hàm tải sản phẩm bằng AJAX
+        function loadProducts(page) {
+            const categoryId = $('#categoryFilter').val();
+            const statusId = $('#statusFilter').val();
+
+            $('#loadingSpinner').show();
+            $('#productListContainer').hide();
+
+            $.ajax({
+                url: '/Admin/AdminProducts/Manage',
+                type: 'GET',
+                data: {
+                    page: page,
+                    pageSize: 4,
+                    categoryId: categoryId,
+                    statusId: statusId
+                },
+                success: function(data) {
+                    // Cập nhật danh sách sản phẩm
+                    $('#productListContainer').html($(data).find('#productListContainer').html());
+
+                    // Cập nhật phân trang
+                    const totalPages = $(data).find('#totalPagesHidden').val();
+                    updatePagination(totalPages, page);
+
+                    $('#productListContainer').fadeIn();
+                },
+                error: function() {
+                    Swal.fire("Lỗi!", "Không thể tải danh sách sản phẩm.", "error");
+                    $('#productListContainer').show();
+                },
+                complete: function() {
+                    $('#loadingSpinner').hide();
+                }
+            });
+        }
+
+        // Hàm cập nhật phân trang
+        function updatePagination(totalPages, currentPage) {
+            let paginationHtml = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `
+                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                        <a class="page-link pagination-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            }
+
+            $('#paginationContainer ul').html(paginationHtml);
+        }
+
+        // Lấy trang hiện tại
+        function getCurrentPage() {
+            return $('.page-item.active .pagination-link').data('page') || 1;
+        }
+    });
+</script>

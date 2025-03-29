@@ -1,11 +1,12 @@
 ﻿@model OnlineClothing.Models.Category
 
+<!-- Create Modal -->
 <div class="modal fade" id="createModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Thêm danh mục</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title">Thêm danh mục mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="createForm" method="post">
@@ -14,9 +15,11 @@
                         <label class="form-label">Tên danh mục</label>
                         <input type="text" class="form-control" name="Name" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Lưu</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu</button>
+                    </div>
                 </form>
-
             </div>
         </div>
     </div>
@@ -27,50 +30,46 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-              $(document).ready(function () {
-        console.log("Document is ready!");
+    $(document).ready(function() {
+        $('#createForm').submit(function(e) {
+            e.preventDefault();
 
-        let form = $("#createForm");
-        if (form.length === 0) {
-            console.error("Không tìm thấy form với ID #createForm!");
-        } else {
-            console.log("Form đã tìm thấy, sự kiện đang được gán!");
-            form.submit(function (e) {
-                e.preventDefault();
-                console.log("Sự kiện submit đang chạy!");
+            $.ajax({
+                type: "POST",
+                url: "/Admin/Category/Create",
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        $('#createModal').modal('hide');
 
-                let formData = $(this).serialize();
-                $.ajax({
-                    type: "POST",
-                    url: "/Admin/Category/Create",
-                    data: formData,
-                    success: function (response) {
-                        console.log("Phản hồi từ server:", response);
-                        if (response.success) {
-                            $("#createModal").modal("hide");
+                        Swal.fire({
+                            title: "Thành công!",
+                            text: "Danh mục đã được thêm thành công",
+                            icon: "success",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
 
-                            Swal.fire({
-                                title: "Thành công!",
-                                text: "Danh mục đã được thêm.",
-                                icon: "success",
-                                timer: 2000,
-                                showConfirmButton: fals
-                            });
-
-                            setTimeout(function () {
-                                location.reload();
-                            }, 2000);
-                        } else {
-                            Swal.fire("Lỗi!", response.message, "error");
-                        }
-                    },
-                    error: function (xhr) {
-                        console.error("Lỗi AJAX:", xhr.responseText);
-                        Swal.fire("Lỗi!", "Có lỗi xảy ra khi thêm danh mục!", "error");
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        Swal.fire({
+                            title: "Lỗi!",
+                            text: response.message || "Có lỗi xảy ra khi thêm danh mục",
+                            icon: "error"
+                        });
                     }
-                });
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        title: "Lỗi hệ thống!",
+                        text: "Đã xảy ra lỗi khi kết nối tới server",
+                        icon: "error"
+                    });
+                    console.error(xhr.responseText);
+                }
             });
-        }
+        });
     });
-
 </script>

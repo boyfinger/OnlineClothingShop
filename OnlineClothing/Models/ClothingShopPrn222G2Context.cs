@@ -60,7 +60,7 @@ public partial class ClothingShopPrn222G2Context : DbContext
     public virtual DbSet<VoucherType> VoucherTypes { get; set; }
 
     public virtual DbSet<VoucherUsage> VoucherUsages { get; set; }
-
+    public virtual DbSet<ProductRejectionLog> ProductRejectionLogs { get; set; }
     public virtual DbSet<Wishlist> Wishlists { get; set; }
     //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //{
@@ -348,7 +348,30 @@ public partial class ClothingShopPrn222G2Context : DbContext
                 .HasForeignKey(d => d.Status)
                 .HasConstraintName("FK__product__status__0A9D95DB");
         });
+        modelBuilder.Entity<ProductRejectionLog>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__productR__3213E83FCC76F399");
 
+            entity.ToTable("productRejectionLog");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.Reason)
+                .HasMaxLength(255)
+                .HasColumnName("reason");
+            entity.Property(e => e.RejectedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("rejected_at");
+            entity.Property(e => e.ResendCount)
+                .HasDefaultValue(0)
+                .HasColumnName("resend_count");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductRejectionLogs)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__productRe__produ__72910220");
+        });
         modelBuilder.Entity<ProductStatus>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__product___3213E83FA5523638");

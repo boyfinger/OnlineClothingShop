@@ -69,7 +69,6 @@
                             <strong>Ngày thành lập:</strong> @(shop.DateOfBirth?.ToString("dd/MM/yyyy") ?? "N/A")
                         </p>
                     </div>
-
                     <!-- Badge Status -->
                     <span class="badge badge-status @(shop.Status == 1 ? "bg-success" : shop.Status == 2 ? "bg-warning text-dark" : "bg-danger") fs-6">
                         @(shop.Status == 1 ? "Hoạt động" : shop.Status == 2 ? "Chưa chấp thuận" : "Bị cấm")
