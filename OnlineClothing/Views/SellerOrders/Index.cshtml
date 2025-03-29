@@ -14,7 +14,7 @@
 
 <style>
     .parent > * {
-    display: block;
+        display: block;
     }
 </style>
 
@@ -50,32 +50,11 @@
                         <hr />
                         <h5>@orderDetail.Product.Name</h5>
                         <small>&times;@orderDetail.Quantity</small>
-                        <div class="text-end">
-                            @if (orderDetail.Discount != 0)
-                            {
-                                var discountedPrice = orderDetail.UnitPrice - (orderDetail.UnitPrice * orderDetail.Discount / 100);
-                                var voucher = orderDetail.Order.Voucher;
-                                switch (orderDetail.Order.VoucherId)
-                                {
-                                    case 1:
-                                        discountedPrice = (int)(discountedPrice - (discountedPrice * voucher.Value / 100));
-                                        break;
-                                    case 2:
-                                        discountedPrice = (int)(discountedPrice - voucher.Value);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                <h6><small><del class="text-danger">@String.Format("đ{0:N0}", orderDetail.UnitPrice)</del></small>@String.Format(" đ{0:N0}", discountedPrice)</h6>
-                            }
-                            else
-                            {
-                                <h6>@String.Format("đ{0:N0}", orderDetail.UnitPrice)</h6>
-                            }
-                        </div>
+                        
                         <div class="text-end mb-2">
                             <span>Total: <strong>@String.Format("đ{0:N0}", orderDetail.TotalPrice)</strong></span>
                         </div>
+
                         @if (!new[] { "SHIPPING", "DELIVERED", "RETURNED" }.Contains(orderDetail.StatusNavigation.Name))
                         {
                             <div class="text-end">
