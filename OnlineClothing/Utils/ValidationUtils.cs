@@ -59,7 +59,7 @@ namespace OnlineClothing.Utils
         {
             if (string.IsNullOrEmpty(userName) || userName.Length < 5 || userName.Length > 20) return false;
 
-            string pattern = @"^[a-zA-Z0-9_]+$";
+            string pattern = @"^[a-zA-Z][a-zA-Z0-9._-]{5,19}$";
             Regex regex = new Regex(pattern);
             if (!regex.IsMatch(userName)) return false;
             return true;
