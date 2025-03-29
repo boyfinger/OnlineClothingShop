@@ -502,7 +502,7 @@ namespace OnlineClothing.Controllers
                 {
                     try
                     {
-                        string newAvatarUrl = await _cloudinaryService.UploadImageAsync(model.AvatarFile, 600, 00);
+                        string newAvatarUrl = await _cloudinaryService.UploadImageAsync(model.AvatarFile, 600, 600);
                         if (!string.IsNullOrEmpty(newAvatarUrl))
                         {
                             userInfo.AvatarUrl = newAvatarUrl; // Update only if upload succeeds
