@@ -21,7 +21,7 @@ builder.Services.AddSingleton<IOpenAIService, OpenAIService>();
 builder.Services.AddSingleton<CloudinaryService>();
 
 // Add services to the container.
-builder.Services.AddTransient<EmailUtils>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddControllersWithViews();
 // Configure session settings
