@@ -155,12 +155,21 @@ namespace OnlineClothing.Controllers
                     cart.TotalAmount -= item.TotalPrice;
                     await _context.SaveChangesAsync();
 
-                    return Json(new { success = true, totalAmount = string.Format("{0:N0} VND", cart.TotalAmount) });
+                    // Check if the cart is empty
+                    bool isCartEmpty = !cart.CartDetails.Any();
+
+                    return Json(new
+                    {
+                        success = true,
+                        totalAmount = string.Format("{0:N0} VND", cart.TotalAmount),
+                        isCartEmpty = isCartEmpty
+                    });
                 }
             }
 
             return Json(new { success = false });
         }
+
 
         [HttpPost]
         public async Task<IActionResult> UpdateQuantity(long productId, int quantity)

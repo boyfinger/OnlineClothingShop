@@ -2,13 +2,18 @@
 
 <link rel="stylesheet" href="~/css/cart-index.css" asp-append-version="true" />
 
-<div class="container my-4">
+<div id="cart-container" class="container my-4">
     <h2 class="text-center mb-4">Your Shopping Cart</h2>
 
     @if (ViewBag.Message != null)
     {
         <div class="alert alert-info text-center">
             @ViewBag.Message
+        </div>
+    } else if (Model.CartDetails.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            Your cart is empty.
         </div>
     }
     else
@@ -190,7 +195,7 @@
         }
     });
 
-    $(document).ready(function () {
+        $(document).ready(function () {
         $(".remove-btn").click(function () {
             var productId = $(this).data("product-id");
             var row = $("#row-" + productId);
@@ -201,7 +206,21 @@
                 data: { productId: productId },
                 success: function (response) {
                     if (response.success) {
-                        row.fadeOut(300, function () { $(this).remove(); });
+                        row.fadeOut(300, function () {
+                            $(this).remove();
+
+                            // Check if the cart is empty
+                            if ($(".quantity-input").length === 0) {
+                                $(".table-responsive").remove(); // Remove table
+                                $("#checkoutForm").remove(); // Remove checkout form
+                                $("#cart-container").append(`
+                                    <div class="alert alert-info text-center">
+                                        Your cart is empty.
+                                    </div>
+                                `);
+                            }
+                        });
+
                         $("#total-amount").text(response.totalAmount);
                     } else if (response.redirectUrl) {
                         window.location.href = response.redirectUrl;
@@ -234,6 +253,7 @@
             });
         });
     });
+
 
     function saveInfo() {
         let isChecked = document.getElementById("saveShippingInfo").checked;
