@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
@@ -68,5 +69,6 @@ app.MapControllerRoute(
 );
 
 app.MapHub<SignalRHub>("/hub");
+
 
 app.Run();
