@@ -8,9 +8,9 @@ namespace OnlineClothing.Controllers.Admin
     public class ShopController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
-        public ShopController()
+        public ShopController(ClothingShopPrn222G2Context context)
         {
-            _context = new ClothingShopPrn222G2Context();
+            _context = context;
         }
         [HttpGet("Manage")]
         public async Task<IActionResult> Manage(string search, int? status, int page = 1)

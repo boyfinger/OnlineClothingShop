@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OnlineClothing.Models;
@@ -12,9 +13,11 @@ namespace OnlineClothing.Controllers.Admin
     public class CustomerController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
-        public CustomerController(ClothingShopPrn222G2Context context)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public CustomerController(ClothingShopPrn222G2Context context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
         // GET: Admin/Customer/Manage
         [HttpGet("Manage")]
@@ -28,17 +31,24 @@ namespace OnlineClothing.Controllers.Admin
             // tim kiem theo user name or email
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(u => u.UserName.Contains(search) || u.Email.Contains(search));
+                // Tách các từ khóa tìm kiếm
+                var searchTerms = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            }
-            // loc theo status
+                foreach (var term in searchTerms)
+                {
+                    var lowerTerm = term.ToLower();
+                    query = query.Where(u =>
+                        u.UserName.ToLower().Contains(lowerTerm) ||
+                        u.Email.ToLower().Contains(lowerTerm));
+                }
+            }            // loc theo status
             if (status.HasValue)
             {
                 query = query.Where(u => u.Status == status.Value);
             }
             // phan trang
             var totalRecords = await query.CountAsync();
-            var users = await query.OrderBy(u => u.Id)
+            var users = await query.OrderBy(u => u.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -172,7 +182,7 @@ namespace OnlineClothing.Controllers.Admin
             return PartialView("_EditCustomerPartial", model);
         }
         [HttpPost("Edit/{id}")]
-        public async Task<IActionResult> Edit(Guid id, AdminUserViewModel model)
+        public async Task<IActionResult> Edit(Guid id, AdminUserViewModel model, IFormFile avatarFile)
         {
             if (ModelState.IsValid)
             {
@@ -202,9 +212,70 @@ namespace OnlineClothing.Controllers.Admin
                     };
                 }
 
+                // Xử lý upload ảnh đại diện
+                if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    // Kiểm tra định dạng file
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            message = "Chỉ chấp nhận file ảnh có định dạng JPG, JPEG, PNG hoặc GIF."
+                        });
+                    }
+
+                    // Kiểm tra kích thước file (tối đa 5MB)
+                    if (avatarFile.Length > 5 * 1024 * 1024)
+                    {
+                        return Json(new
+                        {
+                            success = false,
+                            message = "Kích thước file quá lớn (tối đa 5MB)."
+                        });
+                    }
+
+                    // Tạo tên file duy nhất
+                    var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads/avatars");
+
+                    // Đảm bảo thư mục tồn tại
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // Xóa ảnh cũ nếu có
+                    if (!string.IsNullOrEmpty(user.Userinfo.AvatarUrl))
+                    {
+                        var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, user.Userinfo.AvatarUrl.TrimStart('/'));
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                    }
+
+                    // Lưu file mới
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await avatarFile.CopyToAsync(fileStream);
+                    }
+
+                    // Cập nhật đường dẫn ảnh mới
+                    user.Userinfo.AvatarUrl = $"/uploads/avatars/{uniqueFileName}";
+                }
+                else if (!string.IsNullOrEmpty(model.AvatarUrl))
+                {
+                    // Giữ nguyên ảnh cũ nếu không có file upload và có AvatarUrl từ model
+                    user.Userinfo.AvatarUrl = model.AvatarUrl;
+                }
+
                 user.Userinfo.FullName = model.FullName;
                 user.Userinfo.PhoneNumber = model.PhoneNumber;
-                user.Userinfo.AvatarUrl = model.AvatarUrl;
                 user.Userinfo.Gender = model.Gender;
                 user.Userinfo.DateOfBirth = model.DateOfBirth;
                 user.Userinfo.Address = model.Address;
@@ -213,11 +284,31 @@ namespace OnlineClothing.Controllers.Admin
                 try
                 {
                     await _context.SaveChangesAsync();
-                    return Json(new { success = true, message = "Chỉnh sửa thông tin khách hàng thành công!" });
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Chỉnh sửa thông tin khách hàng thành công!",
+                        avatarUrl = user.Userinfo.AvatarUrl // Trả về đường dẫn ảnh mới nếu cần
+                    });
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!UserExists(id))
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy khách hàng." });
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 catch (Exception ex)
                 {
-                    return Json(new { success = false, message = "Đã xảy ra lỗi khi lưu thay đổi: " + ex.Message });
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Đã xảy ra lỗi khi lưu thay đổi: " + ex.Message
+                    });
                 }
             }
 
@@ -227,7 +318,17 @@ namespace OnlineClothing.Controllers.Admin
                 .Select(e => e.ErrorMessage)
                 .ToList();
 
-            return Json(new { success = false, message = "Dữ liệu không hợp lệ.", errors = errors });
+            return Json(new
+            {
+                success = false,
+                message = "Dữ liệu không hợp lệ.",
+                errors = errors
+            });
+        }
+
+        private bool UserExists(Guid id)
+        {
+            return _context.Users.Any(e => e.Id == id);
         }
 
 

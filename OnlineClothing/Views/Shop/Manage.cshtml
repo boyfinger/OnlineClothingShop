@@ -54,7 +54,7 @@
             <div class="card border shadow-none mb-3 p-3 no-hover-effect">
                 <div class="d-flex flex-row align-items-center gap-3">
                     <!-- Avatar -->
-                    <img src="@(shop.AvatarUrl ?? "/images/default-shop.png")" class="rounded me-3" width="100" height="100" alt="Shop Logo">
+                    <img src="@(shop.AvatarUrl ?? "/images/default-shop.jpg")" class="rounded me-3" width="100" height="100" alt="Shop Logo">
 
                     <!-- Info -->
                     <div class="flex-grow-1 text-dark">
@@ -66,7 +66,6 @@
                             <strong>Ngày thành lập:</strong> @(shop.DateOfBirth?.ToString("dd/MM/yyyy") ?? "N/A")
                         </p>
                     </div>
-
                     <!-- Badge Status -->
                     <span class="badge badge-status @(shop.Status == 1 ? "bg-success" : shop.Status == 2 ? "bg-warning text-dark" : "bg-danger") fs-6">
                         @(shop.Status == 1 ? "Hoạt động" : shop.Status == 2 ? "Chưa chấp thuận" : "Bị cấm")

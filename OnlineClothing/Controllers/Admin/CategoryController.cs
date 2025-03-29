@@ -6,9 +6,9 @@ namespace OnlineClothing.Controllers.Admin
     public class CategoryController : Controller
     {
         private readonly ClothingShopPrn222G2Context _context;
-        public CategoryController()
+        public CategoryController(ClothingShopPrn222G2Context context)
         {
-            _context = new ClothingShopPrn222G2Context();
+            _context = context;
         }
 
         public IActionResult Manage()
