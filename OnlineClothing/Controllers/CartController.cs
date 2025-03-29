@@ -51,8 +51,25 @@ namespace OnlineClothing.Controllers
                     && !v.VoucherUsages.Any(uv => uv.UserId == Guid.Parse(userId))) 
                 .ToListAsync();
 
-
             TempData["vouchers"] = vouchers;
+
+            // validate cart items (check for discounts (if expired)
+            int totalAmount = 0;
+            foreach (CartDetail item in cart.CartDetails)
+            {
+                int totalPrice = 0;
+                Product p = await _context.Products.FirstOrDefaultAsync(p => p.Id ==  item.ProductId);
+                if (p != null)
+                {
+                    totalPrice += (item.Quantity * (p.Price - p.Price * p.Discount / 100)) ?? 0;
+                }
+                item.TotalPrice = totalPrice;
+                totalAmount += totalPrice;
+            }
+
+            cart.TotalAmount = totalAmount;
+            await _context.SaveChangesAsync();
+ 
             return View(cart);
         }
 

@@ -47,7 +47,7 @@ var app = builder.Build();
 app.UseStatusCodePagesWithRedirects("/Error/{0}");
 
 // Apply the session middleware
-app.UseSession(); 
+app.UseSession();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -62,11 +62,13 @@ builder.Services.AddMemoryCache();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
     name: "admin",
     pattern: "admin/{controller=AdminDashboard}/{action=Dashboard}/{id?}"
 );
 
+app.MapHub<SignalRHub>("/hub");
 
 
 app.Run();
