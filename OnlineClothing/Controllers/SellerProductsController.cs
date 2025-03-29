@@ -278,7 +278,7 @@ namespace OnlineClothing.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Failed to update product with id = {product.Id}", ex);
+                _logger.LogError(ex, $"Failed to update product with id = {product.Id}");
                 return RedirectToAction("handleerror", "error", new { statusCode = 500 });
             }
         }
