@@ -5,15 +5,15 @@
 }
 <h2 class="text-center"><i class="fas fa-user"></i> Quản lý khách hàng</h2>
 <div class="row mb-3">
-    <div class="col-md-3 text-right">
-        <button class="btn btn-primary" id="addCustomer">Thêm khách hàng</button>
-    </div>
+    @* <div class="col-md-3 text-right"> *@
+    @*     <button class="btn btn-primary" id="addCustomer">Thêm khách hàng</button> *@
+    @* </div> *@
     <div class="col-md-6">
         <input type="text" id="searchBox" class="form-control" placeholder="Tìm kiếm theo username hoặc email..." value="@ViewBag.Search"/>
     </div>
     <div class="col-md-3">
         <select id="statusFilter" class="form-control">
-            <option value="">All Status</option>
+            <option value="">Tất cả trạng thái</option>
             <option value="1" selected="@(ViewBag.Status == 1 ? "selected" : null)">Hoạt động</option>
             <option value="3" selected="@(ViewBag.Status == 3 ? "selected" : null)">Bị cấm</option>
         </select>
@@ -32,25 +32,37 @@
         </tr>
     </thead>
     <tbody id="customerTable">
-        @foreach (var user in Model)
+        @if (Model.Any())
+        {
+            foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        <span class="badge @(user.Status == 1 ? "bg-success" : "bg-danger") text-white p-2 rounded">
+                            @(user.Status == 1 ? "Hoạt Động" : "Bị Cấm")
+                        </span>
+                    </td>
+                    <td>@user.CreatedAt</td>
+                    <td>
+                        <button class="btn btn-warning btn-edit" data-id="@user.Id">Chỉnh sửa</button>
+                        <button class="btn btn-danger btn-block" data-id="@user.Id">
+                            @(user.Status == 1 ? "Cấm" : "Bỏ cấm")
+                        </button>
+                        <button class="btn btn-info btn-view-details" onclick="openDetailsModal('@user.Id')">Thông tin chi tiết</button>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@user.Id</td>
-                <td>@user.UserName</td>
-                <td>@user.Email</td>
-                <td>
-                    <span class="badge @(user.Status == 1 ? "bg-success" : "bg-danger") text-white p-2 rounded">
-                        @(user.Status == 1 ? "Hoạt Động" : "Bị Cấm")
-                    </span>
-                </td>
-
-                <td>@user.CreatedAt</td>
-                <td>
-                    <button class="btn btn-warning btn-edit" data-id="@user.Id">Edit</button>
-                    <button class="btn btn-danger btn-block" data-id="@user.Id">
-                        @(user.Status == 1 ? "Cấm" : "Bỏ cấm")
-                    </button>
-                    <button class="btn btn-info btn-view-details" onclick="openDetailsModal('@user.Id')">View Details</button>
+                <td colspan="6" class="text-center py-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Không có dữ liệu hợp lệ
+                    </div>
                 </td>
             </tr>
         }
@@ -83,13 +95,21 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="detailsContent">
-                <p><strong>Full Name:</strong> <span id="fullName"></span></p>
-                <p><strong>Phone:</strong> <span id="phoneNumber"></span></p>
-                <p><strong>Avatar:</strong> <img id="avatarUrl" src="" alt="Avatar" style="max-width: 100px; max-height: 100px;" /></p>
-                <p><strong>Gender:</strong> <span id="gender"></span></p>
-                <p><strong>Date of Birth:</strong> <span id="dateOfBirth"></span></p>
-                <p><strong>Address:</strong> <span id="address"></span></p>
-                <p><strong>Updated At:</strong> <span id="updatedAt"></span></p>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <img id="avatarUrl" src="" alt="Avatar" class="img-fluid rounded" style="max-width: 150px; max-height: 150px;" />
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <p><strong>Full Name:</strong> <span id="fullName"></span></p>
+                        <p><strong>Phone:</strong> <span id="phoneNumber"></span></p>
+                        <p><strong>Gender:</strong> <span id="gender"></span></p>
+                        <p><strong>Date of Birth:</strong> <span id="dateOfBirth"></span></p>
+                        <p><strong>Address:</strong> <span id="address"></span></p>
+                        <p><strong>Updated At:</strong> <span id="updatedAt"></span></p>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -120,10 +140,16 @@
         });
     }
      // search and filter
-    $('#searchBox, #statusFilter').on('change keyup', function () {
-        var search = $('#searchBox').val();
-        var status = $('#statusFilter').val();
-        window.location.href = '/Admin/Customer/Manage?search=' + search + '&status=' + status;
+       $('#searchBox, #statusFilter').on('change keyup', function () {
+        clearTimeout($(this).data('timer'));
+        $(this).data('timer', setTimeout(function() {
+            var search = $('#searchBox').val();
+            var status = $('#statusFilter').val();
+            var searchQuery = encodeURIComponent(search.trim());
+
+
+            window.location.href = '/Admin/Customer/Manage?search=' + searchQuery + '&status=' + status;
+        }, 500)); 
     });
      $('#addCustomer').click(function () {
         $.get('/Admin/Customer/Add', function (data) {

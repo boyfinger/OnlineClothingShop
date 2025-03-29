@@ -60,4 +60,5 @@ public partial class Product
     public virtual ProductStatus? StatusNavigation { get; set; }
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
+    public virtual ICollection<ProductRejectionLog> ProductRejectionLogs { get; set; } = new List<ProductRejectionLog>();
 }
